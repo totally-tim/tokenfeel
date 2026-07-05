@@ -1,0 +1,9 @@
+{
+  "id": "m2-max-32gb",
+  "name": "MacBook Pro M2 Max 32GB",
+  "shortName": "M2 Max",
+  "vendor": "Apple",
+  "memory": "32GB unified",
+  "accelerator": "M2 Max 30-core GPU",
+  "notes": "Apple Silicon baseline from oMLX community benchmarks."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "m3-ultra-80c-256gb",
+  "name": "Apple M3 Ultra (80c) 256GB",
+  "shortName": "M3 Ultra (80c)",
+  "vendor": "Apple",
+  "memory": "256GB unified",
+  "accelerator": "M3 Ultra 80-core GPU",
+  "notes": "Generated from the oMLX community benchmark API import. Source hardware fields: chip=M3, variant=Ultra, gpu_cores=80."
+}

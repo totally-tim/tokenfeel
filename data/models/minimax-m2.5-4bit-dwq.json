@@ -1,0 +1,8 @@
+{
+  "id": "minimax-m2.5-4bit-dwq",
+  "name": "MiniMax-M2.5-4bit-DWQ",
+  "family": "MiniMax",
+  "params": "4B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

@@ -1,0 +1,8 @@
+{
+  "id": "step-3.5-flash6.5bit",
+  "name": "Step-3.5-Flash6.5bit",
+  "family": "Step",
+  "params": "6.5B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

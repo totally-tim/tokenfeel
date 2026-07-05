@@ -1,0 +1,106 @@
+{
+  "id": "m3-ultra-96gb__nemotron-3-super-120b-a12b-4bitcrack__4bit__omlx-api",
+  "hardware": "m3-ultra-96gb",
+  "model": "nemotron-3-super-120b-a12b-4bitcrack",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.17",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 410.4,
+      "tg": 40.1,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/w015sxcm",
+        "upstreamId": "w015sxcm",
+        "createdAt": "2026-03-17T15:42:09Z",
+        "ttftMs": 2495,
+        "peakMemoryGb": 69.37
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 504.8,
+      "tg": 38.5,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/lsrdobcn",
+        "upstreamId": "lsrdobcn",
+        "createdAt": "2026-03-17T15:42:10Z",
+        "ttftMs": 8113.9,
+        "peakMemoryGb": 73.05
+      }
+    },
+    {
+      "depth": 8192,
+      "pp": 528.8,
+      "tg": 38.3,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/lwbbxbc3",
+        "upstreamId": "lwbbxbc3",
+        "createdAt": "2026-03-17T15:42:10Z",
+        "ttftMs": 15492.9,
+        "peakMemoryGb": 73.13
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:04.067Z",
+    "upstreamId": "lsrdobcn",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "w015sxcm 2026-03-17T15:42:09Z ctx=1024 pp=410.4 tg=40.1 omlx=0.2.17 os=macOS 26.4 https://omlx.ai/benchmarks/w015sxcm",
+      "lsrdobcn 2026-03-17T15:42:10Z ctx=4096 pp=504.8 tg=38.5 omlx=0.2.17 os=macOS 26.4 https://omlx.ai/benchmarks/lsrdobcn",
+      "lwbbxbc3 2026-03-17T15:42:10Z ctx=8192 pp=528.8 tg=38.3 omlx=0.2.17 os=macOS 26.4 https://omlx.ai/benchmarks/lwbbxbc3"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/w015sxcm",
+      "https://omlx.ai/benchmarks/lsrdobcn",
+      "https://omlx.ai/benchmarks/lwbbxbc3"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 3,
+      "selected_depths": 3,
+      "latest_upstream_id": "lsrdobcn",
+      "latest_created_at": "2026-03-17T15:42:10Z",
+      "selected_omlx_versions": "0.2.17",
+      "selected_os_versions": "macOS 26.4"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.4",
+    "runtimeVersions": {
+      "omlx": "0.2.17"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Nemotron-3-Super-120B-A12B-4bitCRACK on M3 Ultra (60c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/lsrdobcn",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-17",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 3 upstream row(s) were scraped for this hardware/model/quant group; the latest row at each context depth was selected for simulation. Selected depths may span oMLX or macOS versions, and each measurement links to its exact upstream row."
+}

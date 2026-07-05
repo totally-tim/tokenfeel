@@ -1,0 +1,154 @@
+{
+  "id": "m2-ultra-76c-128gb__gpt-oss-swallow-120b-rl-v0.1-6bit__6bit__omlx-api",
+  "hardware": "m2-ultra-76c-128gb",
+  "model": "gpt-oss-swallow-120b-rl-v0.1-6bit",
+  "quant": "6bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.15",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 540.8,
+      "tg": 52.6,
+      "ppLabel": "6bit PP",
+      "tgLabel": "6bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/4o6lk3qy",
+        "upstreamId": "4o6lk3qy",
+        "createdAt": "2026-03-17T08:08:44Z",
+        "ttftMs": 1893.7,
+        "peakMemoryGb": 88.89
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 596.9,
+      "tg": 50.3,
+      "ppLabel": "6bit PP",
+      "tgLabel": "6bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/hany9mmb",
+        "upstreamId": "hany9mmb",
+        "createdAt": "2026-03-17T08:08:44Z",
+        "ttftMs": 6862.7,
+        "peakMemoryGb": 89.01
+      }
+    },
+    {
+      "depth": 8192,
+      "pp": 596,
+      "tg": 46,
+      "ppLabel": "6bit PP",
+      "tgLabel": "6bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/0wugw4ub",
+        "upstreamId": "0wugw4ub",
+        "createdAt": "2026-03-17T08:08:44Z",
+        "ttftMs": 13745.9,
+        "peakMemoryGb": 89.17
+      }
+    },
+    {
+      "depth": 16384,
+      "pp": 571.4,
+      "tg": 38.5,
+      "ppLabel": "6bit PP",
+      "tgLabel": "6bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/mlpkel7h",
+        "upstreamId": "mlpkel7h",
+        "createdAt": "2026-03-17T08:08:45Z",
+        "ttftMs": 28674.5,
+        "peakMemoryGb": 89.44
+      }
+    },
+    {
+      "depth": 32768,
+      "pp": 522.1,
+      "tg": 29.5,
+      "ppLabel": "6bit PP",
+      "tgLabel": "6bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/hk3fgsmq",
+        "upstreamId": "hk3fgsmq",
+        "createdAt": "2026-03-17T08:08:45Z",
+        "ttftMs": 62760.1,
+        "peakMemoryGb": 90
+      }
+    },
+    {
+      "depth": 65536,
+      "pp": 443,
+      "tg": 19.4,
+      "ppLabel": "6bit PP",
+      "tgLabel": "6bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/943saefv",
+        "upstreamId": "943saefv",
+        "createdAt": "2026-03-17T08:08:45Z",
+        "ttftMs": 147922.6,
+        "peakMemoryGb": 91.16
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:04.066Z",
+    "upstreamId": "mlpkel7h",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "4o6lk3qy 2026-03-17T08:08:44Z ctx=1024 pp=540.8 tg=52.6 omlx=0.2.15 os=macOS 15.7.4 https://omlx.ai/benchmarks/4o6lk3qy",
+      "hany9mmb 2026-03-17T08:08:44Z ctx=4096 pp=596.9 tg=50.3 omlx=0.2.15 os=macOS 15.7.4 https://omlx.ai/benchmarks/hany9mmb",
+      "0wugw4ub 2026-03-17T08:08:44Z ctx=8192 pp=596 tg=46 omlx=0.2.15 os=macOS 15.7.4 https://omlx.ai/benchmarks/0wugw4ub",
+      "mlpkel7h 2026-03-17T08:08:45Z ctx=16384 pp=571.4 tg=38.5 omlx=0.2.15 os=macOS 15.7.4 https://omlx.ai/benchmarks/mlpkel7h",
+      "hk3fgsmq 2026-03-17T08:08:45Z ctx=32768 pp=522.1 tg=29.5 omlx=0.2.15 os=macOS 15.7.4 https://omlx.ai/benchmarks/hk3fgsmq",
+      "943saefv 2026-03-17T08:08:45Z ctx=65536 pp=443 tg=19.4 omlx=0.2.15 os=macOS 15.7.4 https://omlx.ai/benchmarks/943saefv"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/4o6lk3qy",
+      "https://omlx.ai/benchmarks/hany9mmb",
+      "https://omlx.ai/benchmarks/0wugw4ub",
+      "https://omlx.ai/benchmarks/mlpkel7h",
+      "https://omlx.ai/benchmarks/hk3fgsmq",
+      "https://omlx.ai/benchmarks/943saefv"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 8,
+      "selected_depths": 6,
+      "latest_upstream_id": "mlpkel7h",
+      "latest_created_at": "2026-03-17T08:08:45Z",
+      "selected_omlx_versions": "0.2.15",
+      "selected_os_versions": "macOS 15.7.4"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 15.7.4",
+    "runtimeVersions": {
+      "omlx": "0.2.15"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX GPT-OSS-Swallow-120B-RL-v0.1-6bit on M2 Ultra (76c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/mlpkel7h",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-17",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 8 upstream row(s) were scraped for this hardware/model/quant group; the latest row at each context depth was selected for simulation. Selected depths may span oMLX or macOS versions, and each measurement links to its exact upstream row."
+}

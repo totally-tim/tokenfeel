@@ -1,0 +1,9 @@
+{
+  "id": "qwen3-30b-a3b",
+  "name": "Qwen3 30B A3B",
+  "family": "Qwen",
+  "params": "30B",
+  "activeParams": "3B",
+  "license": "Apache-2.0 style model family license varies by release",
+  "notes": "Community Strix Halo sweep model."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "qwen3.5-122b-a10b",
+  "name": "Qwen3.5 122B A10B",
+  "family": "Qwen3.5",
+  "params": "122B",
+  "activeParams": "10B",
+  "license": "See upstream model card",
+  "notes": "Large Qwen3.5 MoE model represented by community INT4 AutoRound dual-DGX Spark rows."
+}

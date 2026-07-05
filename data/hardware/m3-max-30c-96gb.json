@@ -1,0 +1,9 @@
+{
+  "id": "m3-max-30c-96gb",
+  "name": "Apple M3 Max (30c) 96GB",
+  "shortName": "M3 Max (30c)",
+  "vendor": "Apple",
+  "memory": "96GB unified",
+  "accelerator": "M3 Max 30-core GPU",
+  "notes": "Generated from the oMLX community benchmark API import. Source hardware fields: chip=M3, variant=Max, gpu_cores=30."
+}

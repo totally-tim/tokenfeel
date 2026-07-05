@@ -1,0 +1,9 @@
+{
+  "id": "qwen3.6-35b-a3b",
+  "name": "Qwen3.6 35B A3B",
+  "family": "Qwen",
+  "params": "35B",
+  "activeParams": "A3B",
+  "license": "Model license varies by release",
+  "notes": "Community benchmark model used across Apple Silicon and Strix Halo rows."
+}

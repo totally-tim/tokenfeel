@@ -1,0 +1,39 @@
+name: Flag a benchmark result
+description: Report a result that looks incorrect, stale, unverifiable, or misleading.
+title: "Flag result: "
+labels: ["data", "flagged-result"]
+body:
+  - type: input
+    id: result-id
+    attributes:
+      label: Result ID
+      description: The `data/results/*.json` id or filename.
+      placeholder: dgx-spark__qwen3-coder-next__int4__vllm
+    validations:
+      required: true
+  - type: dropdown
+    id: reason
+    attributes:
+      label: Reason
+      options:
+        - Raw evidence missing
+        - Hardware/runtime mismatch
+        - Model/quant mismatch
+        - Implausible throughput
+        - Duplicate or stale source
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Link the better source, raw log, reproduction result, or thread.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected correction
+      description: What should happen to this row?
+      placeholder: Mark flagged, replace pp/tg rows, move to research-only, or remove.

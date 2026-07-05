@@ -1,0 +1,8 @@
+{
+  "id": "gemma-4-e4b-agentic-opus-reasoning-geminicli",
+  "name": "gemma-4-E4B-Agentic-Opus-Reasoning-GeminiCLI",
+  "family": "Gemma",
+  "params": "4B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

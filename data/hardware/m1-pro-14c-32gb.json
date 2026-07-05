@@ -1,0 +1,9 @@
+{
+  "id": "m1-pro-14c-32gb",
+  "name": "Apple M1 Pro (14c) 32GB",
+  "shortName": "M1 Pro (14c)",
+  "vendor": "Apple",
+  "memory": "32GB unified",
+  "accelerator": "M1 Pro 14-core GPU",
+  "notes": "Generated from the oMLX community benchmark API import. Source hardware fields: chip=M1, variant=Pro, gpu_cores=14."
+}

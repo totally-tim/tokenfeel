@@ -1,0 +1,122 @@
+{
+  "id": "m5-max-40c-48gb__nemotron-cascade-2-30b-a3b__4bit__omlx-api",
+  "hardware": "m5-max-40c-48gb",
+  "model": "nemotron-cascade-2-30b-a3b",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.3.5.dev2",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 2497.2,
+      "tg": 157.9,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/3npk1nj2",
+        "upstreamId": "3npk1nj2",
+        "createdAt": "2026-04-10T22:17:28Z",
+        "ttftMs": 410.5,
+        "peakMemoryGb": 18.89
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 3432.7,
+      "tg": 151.4,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/hs5wke0s",
+        "upstreamId": "hs5wke0s",
+        "createdAt": "2026-04-10T22:17:29Z",
+        "ttftMs": 1193.5,
+        "peakMemoryGb": 19.84
+      }
+    },
+    {
+      "depth": 8192,
+      "pp": 3622.3,
+      "tg": 144.3,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/kb1qjl6o",
+        "upstreamId": "kb1qjl6o",
+        "createdAt": "2026-04-10T22:17:29Z",
+        "ttftMs": 2261.8,
+        "peakMemoryGb": 19.86
+      }
+    },
+    {
+      "depth": 16384,
+      "pp": 3555,
+      "tg": 133.8,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/d0h8jiuv",
+        "upstreamId": "d0h8jiuv",
+        "createdAt": "2026-04-10T22:17:30Z",
+        "ttftMs": 4609,
+        "peakMemoryGb": 19.91
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:04.153Z",
+    "upstreamId": "d0h8jiuv",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "3npk1nj2 2026-04-10T22:17:28Z ctx=1024 pp=2497.2 tg=157.9 omlx=0.3.5.dev2 os=macOS 26.4 https://omlx.ai/benchmarks/3npk1nj2",
+      "hs5wke0s 2026-04-10T22:17:29Z ctx=4096 pp=3432.7 tg=151.4 omlx=0.3.5.dev2 os=macOS 26.4 https://omlx.ai/benchmarks/hs5wke0s",
+      "kb1qjl6o 2026-04-10T22:17:29Z ctx=8192 pp=3622.3 tg=144.3 omlx=0.3.5.dev2 os=macOS 26.4 https://omlx.ai/benchmarks/kb1qjl6o",
+      "d0h8jiuv 2026-04-10T22:17:30Z ctx=16384 pp=3555 tg=133.8 omlx=0.3.5.dev2 os=macOS 26.4 https://omlx.ai/benchmarks/d0h8jiuv"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/3npk1nj2",
+      "https://omlx.ai/benchmarks/hs5wke0s",
+      "https://omlx.ai/benchmarks/kb1qjl6o",
+      "https://omlx.ai/benchmarks/d0h8jiuv"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 6,
+      "selected_depths": 4,
+      "latest_upstream_id": "d0h8jiuv",
+      "latest_created_at": "2026-04-10T22:17:30Z",
+      "selected_omlx_versions": "0.3.5.dev2",
+      "selected_os_versions": "macOS 26.4"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.4",
+    "runtimeVersions": {
+      "omlx": "0.3.5.dev2"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Nemotron-Cascade-2-30B-A3B on M5 Max (40c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/d0h8jiuv",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-04-10",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 6 upstream row(s) were scraped for this hardware/model/quant group; the latest row at each context depth was selected for simulation. Selected depths may span oMLX or macOS versions, and each measurement links to its exact upstream row."
+}

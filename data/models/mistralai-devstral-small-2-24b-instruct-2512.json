@@ -1,0 +1,8 @@
+{
+  "id": "mistralai-devstral-small-2-24b-instruct-2512",
+  "name": "mistralai_Devstral-Small-2-24B-Instruct-2512",
+  "family": "Mistral",
+  "params": "24B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

@@ -1,0 +1,8 @@
+{
+  "id": "qwen3.5-27b-openclaw6.5bit",
+  "name": "Qwen3.5-27B-OpenClaw6.5bit",
+  "family": "Qwen",
+  "params": "27B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

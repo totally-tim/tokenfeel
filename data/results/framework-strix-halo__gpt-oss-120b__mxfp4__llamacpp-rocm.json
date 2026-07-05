@@ -1,0 +1,31 @@
+{
+  "id": "framework-strix-halo__gpt-oss-120b__mxfp4__llamacpp-rocm",
+  "hardware": "framework-strix-halo-128gb",
+  "model": "gpt-oss-120b",
+  "quant": "mxfp4",
+  "runtime": {
+    "name": "llama.cpp",
+    "version": "128d522 (1)",
+    "backend": "ROCm",
+    "flags": "-fa 1 --mmap 0 -d 0,4096,8192,16384,32768 -p 2048 -n 32 -ub 2048",
+    "cache": "prefix"
+  },
+  "measurements": [
+    { "depth": 0, "pp": 1041.98, "tg": 47.88, "ppLabel": "pp2048", "tgLabel": "tg32" },
+    { "depth": 4096, "pp": 845.05, "tg": 39.08, "ppLabel": "pp2048 @ d4096", "tgLabel": "tg32 @ d4096" },
+    { "depth": 8192, "pp": 661.34, "tg": 32.86, "ppLabel": "pp2048 @ d8192", "tgLabel": "tg32 @ d8192" },
+    { "depth": 16384, "pp": 476.18, "tg": 25.58, "ppLabel": "pp2048 @ d16384", "tgLabel": "tg32 @ d16384" },
+    { "depth": 32768, "pp": 306.09, "tg": 18.05, "ppLabel": "pp2048 @ d32768", "tgLabel": "tg32 @ d32768" }
+  ],
+  "source": {
+    "kind": "community-benchmark",
+    "title": "Reddit LocalLLaMA Strix Halo gpt-oss llama.cpp comparison",
+    "url": "https://www.reddit.com/r/LocalLLaMA/comments/1o7k7zz/dgx_spark_compiled_llamacpp_benchmarks_compared/",
+    "notes": "Comment includes command, ROCm device log, and llama-bench table for Strix Halo gfx1151."
+  },
+  "submitter": "Educational_Sun_8813 / Reddit community",
+  "date": "2025-10-04",
+  "status": "community",
+  "overheadMs": 120,
+  "notes": "Same command shape as the M4 Max and DGX Spark gpt-oss comparison table."
+}

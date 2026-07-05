@@ -1,0 +1,9 @@
+{
+  "id": "m5-max-32c-36gb",
+  "name": "Apple M5 Max (32c) 36GB",
+  "shortName": "M5 Max (32c)",
+  "vendor": "Apple",
+  "memory": "36GB unified",
+  "accelerator": "M5 Max 32-core GPU",
+  "notes": "Generated from the oMLX community benchmark API import. Source hardware fields: chip=M5, variant=Max, gpu_cores=32."
+}

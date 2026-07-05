@@ -1,0 +1,86 @@
+{
+  "id": "repo-wide-refactor",
+  "title": "Repo-wide refactor",
+  "type": "agent",
+  "systemPromptTokens": 18000,
+  "description": "A long-context agent pass over a medium repository: broad file reads, patch synthesis, test output and a final review.",
+  "events": [
+    {
+      "id": "refactor-u1",
+      "role": "user",
+      "text": "Refactor the race experience end to end. Read the product brief, current route, shared simulator components, picker helpers, tests and styling before touching code. Keep the implementation tight and verify the browser flow.",
+      "tokens": 1200
+    },
+    {
+      "id": "refactor-tool-call-1",
+      "role": "tool_call",
+      "text": "read_many([\"src/pages/RacePage.tsx\", \"src/components/SimulatorPieces.tsx\", \"src/lib/configMatrix.ts\", \"src/styles.css\", \"src/hooks/usePlayback.ts\", \"scenarios/*/script.json\"])",
+      "tokens": 90
+    },
+    {
+      "id": "refactor-tool-result-1",
+      "role": "tool_result",
+      "text": "Repository context loaded: RacePage owns URL state and dual playback; SimulatorPieces contains SearchSelect, phase UI and lane rendering; configMatrix has top-down result resolution; styles define command panel, picker strip, lanes and mobile breakpoints. Existing scenarios are short and do not stress context depth.",
+      "tokens": 28000,
+      "toolLatencyMs": 420,
+      "cacheBust": {
+        "retainedPrefixTokens": 18000,
+        "reason": "Large multi-file read inserted into the working transcript."
+      }
+    },
+    {
+      "id": "refactor-thinking-1",
+      "role": "thinking",
+      "text": "The race page needs an interaction model more than another visual skin: clean start/stop semantics, match suggestions, axis-first selection and less status chrome. The helper logic should be pure so ranking and progressive selection can be tested without the browser.",
+      "tokens": 5200
+    },
+    {
+      "id": "refactor-a1",
+      "role": "assistant",
+      "text": "I will split comparison ranking into a small helper module, replace the top command strip with a compare workbench, make running state expose Stop instead of Restart, and add a long-context scenario so race timing reflects real agent work.",
+      "tokens": 2400
+    },
+    {
+      "id": "refactor-tool-call-2",
+      "role": "tool_call",
+      "text": "apply_patch(\"race refactor: comparison helpers, RacePage workbench, stop/reset playback, long-context scenario, responsive CSS\")",
+      "tokens": 80
+    },
+    {
+      "id": "refactor-tool-result-2",
+      "role": "tool_result",
+      "text": "Patch applied. New helper tests cover model-first selection and same-model hardware suggestions. RacePage now shows a compact compare header, lane setup cards, suggested matches for Lane B, and a single run control. Status badges were removed from race lanes.",
+      "tokens": 42000,
+      "toolLatencyMs": 780,
+      "cacheBust": {
+        "retainedPrefixTokens": 25000,
+        "reason": "Patch output and generated catalog changes invalidate part of the previous prefix."
+      }
+    },
+    {
+      "id": "refactor-thinking-2",
+      "role": "thinking",
+      "text": "The new path still needs browser evidence: the selector panel should not overflow, suggested matches should be visible without forcing them, Stop must reset both lanes to zero, and the long scenario should expose deep context without making the page unreadable.",
+      "tokens": 6200
+    },
+    {
+      "id": "refactor-tool-call-3",
+      "role": "tool_call",
+      "text": "npm test && npm run build && playwright race visual sweep",
+      "tokens": 70
+    },
+    {
+      "id": "refactor-tool-result-3",
+      "role": "tool_result",
+      "text": "Tests, typecheck and build passed. Browser sweep covered desktop and mobile Race, opened the progressive selector, started and stopped the race, applied a suggested match, and confirmed no console errors or horizontal overflow.",
+      "tokens": 8800,
+      "toolLatencyMs": 900
+    },
+    {
+      "id": "refactor-a2",
+      "role": "assistant",
+      "text": "Race is now centered on comparable setup selection. The default is a same-model hardware comparison, Start becomes Stop while the run is active, Stop resets to the beginning, and exploratory mismatches remain possible but are no longer the primary path.",
+      "tokens": 1800
+    }
+  ]
+}

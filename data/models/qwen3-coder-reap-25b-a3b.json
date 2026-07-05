@@ -1,0 +1,9 @@
+{
+  "id": "qwen3-coder-reap-25b-a3b",
+  "name": "Qwen3-Coder-REAP-25B-A3B",
+  "family": "Qwen",
+  "params": "25B",
+  "activeParams": "3B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

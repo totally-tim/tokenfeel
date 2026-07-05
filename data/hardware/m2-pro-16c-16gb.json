@@ -1,0 +1,9 @@
+{
+  "id": "m2-pro-16c-16gb",
+  "name": "Apple M2 Pro (16c) 16GB",
+  "shortName": "M2 Pro (16c)",
+  "vendor": "Apple",
+  "memory": "16GB unified",
+  "accelerator": "M2 Pro 16-core GPU",
+  "notes": "Generated from the oMLX community benchmark API import. Source hardware fields: chip=M2, variant=Pro, gpu_cores=16."
+}

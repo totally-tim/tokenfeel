@@ -1,0 +1,9 @@
+{
+  "id": "m3-ultra-96gb",
+  "name": "Mac Studio M3 Ultra 96GB",
+  "shortName": "M3 Ultra",
+  "vendor": "Apple",
+  "memory": "96GB unified",
+  "accelerator": "M3 Ultra 60-core GPU",
+  "notes": "Apple Silicon high-end baseline from oMLX community benchmarks."
+}

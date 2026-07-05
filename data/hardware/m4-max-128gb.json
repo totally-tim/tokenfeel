@@ -1,0 +1,9 @@
+{
+  "id": "m4-max-128gb",
+  "name": "Apple M4 Max 128GB",
+  "shortName": "M4 Max",
+  "vendor": "Apple",
+  "memory": "128GB unified",
+  "accelerator": "M4 Max 40-core GPU",
+  "notes": "Community llama.cpp Metal benchmark rows used for apples-to-apples gpt-oss comparisons."
+}

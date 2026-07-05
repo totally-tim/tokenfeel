@@ -1,0 +1,9 @@
+{
+  "id": "step-3.5-flash-reap-149b-a11b-4bitcrack",
+  "name": "Step-3.5-Flash-REAP-149B-A11B-4bitCRACK",
+  "family": "Step",
+  "params": "149B",
+  "activeParams": "11B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

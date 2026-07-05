@@ -1,0 +1,80 @@
+{
+  "id": "agent-bugfix",
+  "title": "Agent bugfix",
+  "type": "agent",
+  "systemPromptTokens": 4012,
+  "description": "An agentic coding loop with tool calls, tool results, cache busts and short fixes.",
+  "events": [
+    {
+      "id": "agent-u1",
+      "role": "user",
+      "text": "The timing test is failing on extrapolated depths. Read the module and the test, then fix it.",
+      "tokens": 28
+    },
+    {
+      "id": "agent-tool-call-1",
+      "role": "tool_call",
+      "text": "read_file(\"src/sim/timing.ts\", lines=[80,140])",
+      "tokens": 41
+    },
+    {
+      "id": "agent-tool-result-1",
+      "role": "tool_result",
+      "text": "export function tgAt(depth: number): number { const pts = result.measurements; if (depth >= pts.at(-1).depth) return flatExtrapolate(pts); return lerp(pts, depth); }",
+      "tokens": 1240,
+      "toolLatencyMs": 180,
+      "cacheBust": {
+        "retainedPrefixTokens": 4012,
+        "reason": "Large file-read result inserted into transcript."
+      }
+    },
+    {
+      "id": "agent-thinking-1",
+      "role": "thinking",
+      "text": "The failing case sits exactly at the final measured depth; equality should not enter the interpolation branch.",
+      "tokens": 318
+    },
+    {
+      "id": "agent-a1",
+      "role": "assistant",
+      "text": "Found it — lerp() includes the final point, so at exactly the last measured depth it interpolates past the array. I'll clamp the upper bound and route equality to the flat extrapolation branch.",
+      "tokens": 148
+    },
+    {
+      "id": "agent-tool-call-2",
+      "role": "tool_call",
+      "text": "apply_patch(\"src/sim/timing.ts\", \"clamp interpolation upper bound\")",
+      "tokens": 64
+    },
+    {
+      "id": "agent-tool-result-2",
+      "role": "tool_result",
+      "text": "Patch applied. Modified interpolateRate to return the final measured point for equality and clamp beyond it.",
+      "tokens": 1540,
+      "toolLatencyMs": 260,
+      "cacheBust": {
+        "retainedPrefixTokens": 4350,
+        "reason": "Patch output reorders the tool transcript."
+      }
+    },
+    {
+      "id": "agent-tool-call-3",
+      "role": "tool_call",
+      "text": "npm test -- src/sim/timing.test.ts",
+      "tokens": 36
+    },
+    {
+      "id": "agent-tool-result-3",
+      "role": "tool_result",
+      "text": "PASS src/sim/timing.test.ts. interpolateRate keeps interior values unchanged and clamps the final depth.",
+      "tokens": 760,
+      "toolLatencyMs": 620
+    },
+    {
+      "id": "agent-a2",
+      "role": "assistant",
+      "text": "Fixed. lerp() treated the last measured depth as interpolatable, so at exactly 16,384 it indexed one point past the array and returned NaN. I clamped the upper bound and routed the equality case to flatExtrapolate(). The failing test now passes and the three interpolated depths are unchanged.",
+      "tokens": 220
+    }
+  ]
+}

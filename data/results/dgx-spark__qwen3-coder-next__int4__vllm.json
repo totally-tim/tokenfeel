@@ -1,0 +1,34 @@
+{
+  "id": "dgx-spark__qwen3-coder-next__int4__vllm",
+  "hardware": "dgx-spark",
+  "model": "qwen3-coder-next",
+  "quant": "int4",
+  "runtime": {
+    "name": "vLLM",
+    "version": "Spark Arena recipe",
+    "backend": "CUDA",
+    "flags": "llama-benchy pp2048/tg128 c1",
+    "cache": "prefix"
+  },
+  "measurements": [
+    { "depth": 0, "pp": 3234.26, "tg": 73.33, "ppLabel": "pp2048", "tgLabel": "tg128" },
+    { "depth": 4096, "pp": 2438.91, "tg": 73.77, "ppLabel": "pp2048 @ d4096", "tgLabel": "tg128 @ d4096" },
+    { "depth": 8192, "pp": 2491.15, "tg": 71.47, "ppLabel": "pp2048 @ d8192", "tgLabel": "tg128 @ d8192" },
+    { "depth": 16384, "pp": 2410.14, "tg": 69.72, "ppLabel": "pp2048 @ d16384", "tgLabel": "tg128 @ d16384" },
+    { "depth": 32768, "pp": 1825.86, "tg": 66.14, "ppLabel": "pp2048 @ d32768", "tgLabel": "tg128 @ d32768" },
+    { "depth": 65535, "pp": 1558.72, "tg": 59.65, "ppLabel": "pp2048 @ d65535", "tgLabel": "tg128 @ d65535" },
+    { "depth": 100000, "pp": 1153.1, "tg": 52.5, "ppLabel": "pp2048 @ d100000", "tgLabel": "tg128 @ d100000" }
+  ],
+  "source": {
+    "kind": "leaderboard",
+    "title": "Spark Arena raw benchmark entry for DGX Spark",
+    "url": "https://spark-arena.com/benchmark/16d87e41-212a-44f6-a820-506bd342817f",
+    "raw": "https://spark-arena.com/api/benchmarks/16d87e41-212a-44f6-a820-506bd342817f/raw",
+    "notes": "Spark Arena raw llama-benchy log, submitted 2026-04-01. Not NVIDIA-certified."
+  },
+  "submitter": "Spark Arena",
+  "date": "2026-04-01",
+  "status": "verified",
+  "overheadMs": 90,
+  "notes": "Leaderboard row with pp2048/tg128 at multiple depths and concurrency c1."
+}

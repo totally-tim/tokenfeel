@@ -1,0 +1,9 @@
+{
+  "id": "m4-10c-32gb",
+  "name": "Apple M4 (10c) 32GB",
+  "shortName": "M4 (10c)",
+  "vendor": "Apple",
+  "memory": "32GB unified",
+  "accelerator": "M4 10-core GPU",
+  "notes": "Generated from the oMLX community benchmark API import. Source hardware fields: chip=M4, variant=base, gpu_cores=10."
+}

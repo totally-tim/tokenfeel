@@ -1,0 +1,16 @@
+{
+  "source": "https://omlx.ai/benchmarks",
+  "api": "https://omlx.ai/api/benchmarks",
+  "apiQuery": "https://omlx.ai/api/benchmarks?sort=created_at&order=asc&limit=100",
+  "parserVersion": "tokenfeel-omlx-api/1",
+  "retrievedAt": "2026-07-05T02:54:06.904Z",
+  "rawFile": "data/upstream/omlx-benchmarks.jsonl",
+  "rawChecksum": "sha256:ba7a0fb6cbe07c6ae47c8405d0fd5eea2433f3d9e40509f5347213c8ef1e05dd",
+  "rawRows": 90400,
+  "generated": {
+    "hardware": 96,
+    "models": 1740,
+    "results": 8050,
+    "skippedRows": 0
+  }
+}

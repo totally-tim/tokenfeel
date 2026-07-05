@@ -1,0 +1,81 @@
+{
+  "id": "chatbot-trip-planning",
+  "title": "Chatbot trip planning",
+  "type": "chatbot",
+  "systemPromptTokens": 850,
+  "description": "A pleasant six-turn travel planning conversation with steadily growing context.",
+  "events": [
+    {
+      "id": "trip-u1",
+      "role": "user",
+      "text": "Plan a three-day route through the Dolomites that keeps driving under two hours per day.",
+      "tokens": 42
+    },
+    {
+      "id": "trip-a1",
+      "role": "assistant",
+      "text": "Start in Bolzano, sleep near Ortisei, then loop through Val Gardena, Seceda and Lago di Braies with short hikes each afternoon.",
+      "tokens": 390
+    },
+    {
+      "id": "trip-u2",
+      "role": "user",
+      "text": "Make it friendlier for a parent travelling with a seven-year-old.",
+      "tokens": 30
+    },
+    {
+      "id": "trip-a2",
+      "role": "assistant",
+      "text": "Swap the longest hut walk for cable-car viewpoints, add playground stops and schedule the lake visit early to avoid crowds.",
+      "tokens": 420
+    },
+    {
+      "id": "trip-u3",
+      "role": "user",
+      "text": "Now turn it into a packing and booking checklist.",
+      "tokens": 24
+    },
+    {
+      "id": "trip-a3",
+      "role": "assistant",
+      "text": "Book two bases, reserve lift tickets, pack layers, rain shells, snacks, offline maps, booster seat details and a compact first-aid kit.",
+      "tokens": 360
+    },
+    {
+      "id": "trip-u4",
+      "role": "user",
+      "text": "Add restaurant ideas that do not require long dinners.",
+      "tokens": 26
+    },
+    {
+      "id": "trip-a4",
+      "role": "assistant",
+      "text": "Prioritize refugios and casual pizzerias near the route, keep one picnic dinner in the plan, and book only the final night so tired evenings stay flexible.",
+      "tokens": 410
+    },
+    {
+      "id": "trip-u5",
+      "role": "user",
+      "text": "What if rain closes the cable cars on day two?",
+      "tokens": 28
+    },
+    {
+      "id": "trip-a5",
+      "role": "assistant",
+      "text": "Move the mountain viewpoint to day three, use the Ortisei pool and wood-carving museum as the rainy-day anchor, and keep the drive short by staying in the same valley.",
+      "tokens": 445
+    },
+    {
+      "id": "trip-u6",
+      "role": "user",
+      "text": "Finish with a text I can send to my partner.",
+      "tokens": 24
+    },
+    {
+      "id": "trip-a6",
+      "role": "assistant",
+      "text": "Here is the short version: two easy bases, cable-car views instead of long climbs, early lake visit, flexible dinners, rainy-day backup in Ortisei, and a kid-friendly checklist before we book.",
+      "tokens": 382
+    }
+  ]
+}

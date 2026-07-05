@@ -1,0 +1,106 @@
+{
+  "id": "m1-pro-16c-32gb__harmonic-hermes-9b__4bit__omlx-api",
+  "hardware": "m1-pro-16c-32gb",
+  "model": "harmonic-hermes-9b",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.3.5.dev1",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 139.1,
+      "tg": 31.4,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/zpo2w8y5",
+        "upstreamId": "zpo2w8y5",
+        "createdAt": "2026-04-13T00:45:11Z",
+        "ttftMs": 7360.7,
+        "peakMemoryGb": 5.84
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 154.5,
+      "tg": 30.1,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/6enumsri",
+        "upstreamId": "6enumsri",
+        "createdAt": "2026-04-13T00:45:12Z",
+        "ttftMs": 26509.2,
+        "peakMemoryGb": 6.49
+      }
+    },
+    {
+      "depth": 8192,
+      "pp": 154.4,
+      "tg": 29,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/vtki9ooq",
+        "upstreamId": "vtki9ooq",
+        "createdAt": "2026-04-13T00:45:12Z",
+        "ttftMs": 53041.7,
+        "peakMemoryGb": 6.86
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:04.164Z",
+    "upstreamId": "6enumsri",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "zpo2w8y5 2026-04-13T00:45:11Z ctx=1024 pp=139.1 tg=31.4 omlx=0.3.5.dev1 os=macOS 26.4.1 https://omlx.ai/benchmarks/zpo2w8y5",
+      "6enumsri 2026-04-13T00:45:12Z ctx=4096 pp=154.5 tg=30.1 omlx=0.3.5.dev1 os=macOS 26.4.1 https://omlx.ai/benchmarks/6enumsri",
+      "vtki9ooq 2026-04-13T00:45:12Z ctx=8192 pp=154.4 tg=29 omlx=0.3.5.dev1 os=macOS 26.4.1 https://omlx.ai/benchmarks/vtki9ooq"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/zpo2w8y5",
+      "https://omlx.ai/benchmarks/6enumsri",
+      "https://omlx.ai/benchmarks/vtki9ooq"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 3,
+      "selected_depths": 3,
+      "latest_upstream_id": "6enumsri",
+      "latest_created_at": "2026-04-13T00:45:12Z",
+      "selected_omlx_versions": "0.3.5.dev1",
+      "selected_os_versions": "macOS 26.4.1"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.4.1",
+    "runtimeVersions": {
+      "omlx": "0.3.5.dev1"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Harmonic-Hermes-9B on M1 Pro (16c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/6enumsri",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-04-13",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 3 upstream row(s) were scraped for this hardware/model/quant group; the latest row at each context depth was selected for simulation. Selected depths may span oMLX or macOS versions, and each measurement links to its exact upstream row."
+}

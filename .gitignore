@@ -1,0 +1,8 @@
+node_modules/
+dist/
+public/catalog/
+tsconfig.tsbuildinfo
+.playwright-cli/
+output/
+data/upstream/*.tmp
+.DS_Store

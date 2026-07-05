@@ -1,0 +1,9 @@
+{
+  "id": "claude4.6-qwen3.5-35b-a3b-reasoning-distilled-mxfp4",
+  "name": "Claude4.6-Qwen3.5-35B-A3B-Reasoning-Distilled-MXFP4",
+  "family": "Claude4.6",
+  "params": "35B",
+  "activeParams": "3B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

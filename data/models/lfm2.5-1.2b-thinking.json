@@ -1,0 +1,8 @@
+{
+  "id": "lfm2.5-1.2b-thinking",
+  "name": "LFM2.5-1.2B-Thinking",
+  "family": "LFM2.5",
+  "params": "1.2B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

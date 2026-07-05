@@ -1,0 +1,9 @@
+{
+  "id": "m5-10c-16gb",
+  "name": "Apple M5 (10c) 16GB",
+  "shortName": "M5 (10c)",
+  "vendor": "Apple",
+  "memory": "16GB unified",
+  "accelerator": "M5 10-core GPU",
+  "notes": "Generated from the oMLX community benchmark API import. Source hardware fields: chip=M5, variant=base, gpu_cores=10."
+}

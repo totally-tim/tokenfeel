@@ -1,0 +1,8 @@
+{
+  "id": "qwen3.5-9b",
+  "name": "Qwen3.5 9B",
+  "family": "Qwen",
+  "params": "9B",
+  "license": "Model license varies by release",
+  "notes": "Apple Silicon oMLX depth-sweep seed row."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "dgx-spark-quad-qsfp",
+  "name": "NVIDIA DGX Spark 4-Node QSFP Cluster",
+  "shortName": "4x DGX Spark",
+  "vendor": "NVIDIA",
+  "memory": "512GB unified aggregate",
+  "accelerator": "4x GB10 over switched QSFP / ConnectX-7 fabric",
+  "notes": "Four DGX Spark systems on switched QSFP fabric for distributed inference. Rows are community raw-log results from Spark Arena."
+}

@@ -1,0 +1,122 @@
+{
+  "id": "m2-10c-8gb__llama-3.2-3b-instruct__4bit__omlx-api",
+  "hardware": "m2-10c-8gb",
+  "model": "llama-3.2-3b-instruct",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.3.4",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 440.1,
+      "tg": 39.7,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/f4ejftvc",
+        "upstreamId": "f4ejftvc",
+        "createdAt": "2026-04-07T06:59:52Z",
+        "ttftMs": 2328.8,
+        "peakMemoryGb": 2.3
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 427.1,
+      "tg": 33.1,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/cyurjd7u",
+        "upstreamId": "cyurjd7u",
+        "createdAt": "2026-04-07T06:59:53Z",
+        "ttftMs": 9592.8,
+        "peakMemoryGb": 2.64
+      }
+    },
+    {
+      "depth": 8192,
+      "pp": 387,
+      "tg": 26.8,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/no99zbhv",
+        "upstreamId": "no99zbhv",
+        "createdAt": "2026-04-07T06:59:53Z",
+        "ttftMs": 21169,
+        "peakMemoryGb": 3.06
+      }
+    },
+    {
+      "depth": 16384,
+      "pp": 317,
+      "tg": 6.3,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/gndzx7f8",
+        "upstreamId": "gndzx7f8",
+        "createdAt": "2026-04-07T06:59:54Z",
+        "ttftMs": 51688.4,
+        "peakMemoryGb": 3.96
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:04.065Z",
+    "upstreamId": "gndzx7f8",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "f4ejftvc 2026-04-07T06:59:52Z ctx=1024 pp=440.1 tg=39.7 omlx=0.3.4 os=macOS 26.5 https://omlx.ai/benchmarks/f4ejftvc",
+      "cyurjd7u 2026-04-07T06:59:53Z ctx=4096 pp=427.1 tg=33.1 omlx=0.3.4 os=macOS 26.5 https://omlx.ai/benchmarks/cyurjd7u",
+      "no99zbhv 2026-04-07T06:59:53Z ctx=8192 pp=387 tg=26.8 omlx=0.3.4 os=macOS 26.5 https://omlx.ai/benchmarks/no99zbhv",
+      "gndzx7f8 2026-04-07T06:59:54Z ctx=16384 pp=317 tg=6.3 omlx=0.3.4 os=macOS 26.5 https://omlx.ai/benchmarks/gndzx7f8"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/f4ejftvc",
+      "https://omlx.ai/benchmarks/cyurjd7u",
+      "https://omlx.ai/benchmarks/no99zbhv",
+      "https://omlx.ai/benchmarks/gndzx7f8"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 34,
+      "selected_depths": 4,
+      "latest_upstream_id": "gndzx7f8",
+      "latest_created_at": "2026-04-07T06:59:54Z",
+      "selected_omlx_versions": "0.3.4",
+      "selected_os_versions": "macOS 26.5"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.5",
+    "runtimeVersions": {
+      "omlx": "0.3.4"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Llama-3.2-3B-Instruct on M2 (10c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/gndzx7f8",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-04-07",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 34 upstream row(s) were scraped for this hardware/model/quant group; the latest row at each context depth was selected for simulation. Selected depths may span oMLX or macOS versions, and each measurement links to its exact upstream row."
+}

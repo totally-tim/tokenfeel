@@ -1,0 +1,8 @@
+{
+  "id": "copaw-flash-4b-oq6",
+  "name": "CoPaw-Flash-4B-oQ6",
+  "family": "CoPaw",
+  "params": "4B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

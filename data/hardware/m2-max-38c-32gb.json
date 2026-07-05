@@ -1,0 +1,9 @@
+{
+  "id": "m2-max-38c-32gb",
+  "name": "Apple M2 Max (38c) 32GB",
+  "shortName": "M2 Max (38c)",
+  "vendor": "Apple",
+  "memory": "32GB unified",
+  "accelerator": "M2 Max 38-core GPU",
+  "notes": "Generated from the oMLX community benchmark API import. Source hardware fields: chip=M2, variant=Max, gpu_cores=38."
+}

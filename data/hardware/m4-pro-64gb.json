@@ -1,0 +1,9 @@
+{
+  "id": "m4-pro-64gb",
+  "name": "MacBook Pro M4 Pro 64GB",
+  "shortName": "M4 Pro",
+  "vendor": "Apple",
+  "memory": "64GB unified",
+  "accelerator": "M4 Pro 20-core GPU",
+  "notes": "Apple Silicon Pro-class baseline from oMLX community benchmarks."
+}

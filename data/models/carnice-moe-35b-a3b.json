@@ -1,0 +1,9 @@
+{
+  "id": "carnice-moe-35b-a3b",
+  "name": "Carnice-MoE-35B-A3B",
+  "family": "Carnice",
+  "params": "35B",
+  "activeParams": "3B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

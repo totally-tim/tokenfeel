@@ -1,0 +1,9 @@
+{
+  "id": "darwin-35b-a3b-opus-oq3",
+  "name": "Darwin-35B-A3B-Opus-oQ3",
+  "family": "Darwin",
+  "params": "35B",
+  "activeParams": "3B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

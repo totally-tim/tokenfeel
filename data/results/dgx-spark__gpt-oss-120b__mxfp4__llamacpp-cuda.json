@@ -1,0 +1,31 @@
+{
+  "id": "dgx-spark__gpt-oss-120b__mxfp4__llamacpp-cuda",
+  "hardware": "dgx-spark",
+  "model": "gpt-oss-120b",
+  "quant": "mxfp4",
+  "runtime": {
+    "name": "llama.cpp",
+    "version": "b7941",
+    "backend": "CUDA",
+    "flags": "-fa 1 -ub 2048 -mmp 0",
+    "cache": "prefix"
+  },
+  "measurements": [
+    { "depth": 0, "pp": 2443.91, "tg": 58.72, "ppLabel": "pp2048", "tgLabel": "tg32" },
+    { "depth": 4096, "pp": 2309.84, "tg": 55.67, "ppLabel": "pp2048 @ d4096", "tgLabel": "tg32 @ d4096" },
+    { "depth": 8192, "pp": 2216.68, "tg": 52.87, "ppLabel": "pp2048 @ d8192", "tgLabel": "tg32 @ d8192" },
+    { "depth": 16384, "pp": 1956.31, "tg": 49.45, "ppLabel": "pp2048 @ d16384", "tgLabel": "tg32 @ d16384" },
+    { "depth": 32768, "pp": 1567.08, "tg": 42.76, "ppLabel": "pp2048 @ d32768", "tgLabel": "tg32 @ d32768" }
+  ],
+  "source": {
+    "kind": "llama-bench",
+    "title": "llama.cpp DGX Spark benchmark file",
+    "url": "https://github.com/ggml-org/llama.cpp/blob/master/benches/dgx-spark/dgx-spark.md",
+    "raw": "gpt-oss-120b-GGUF llama-bench table",
+    "license": "MIT"
+  },
+  "submitter": "ggml-org",
+  "date": "2026-02-05",
+  "status": "verified",
+  "overheadMs": 100
+}

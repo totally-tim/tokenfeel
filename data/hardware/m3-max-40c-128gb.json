@@ -1,0 +1,9 @@
+{
+  "id": "m3-max-40c-128gb",
+  "name": "Apple M3 Max (40c) 128GB",
+  "shortName": "M3 Max (40c)",
+  "vendor": "Apple",
+  "memory": "128GB unified",
+  "accelerator": "M3 Max 40-core GPU",
+  "notes": "Generated from the oMLX community benchmark API import. Source hardware fields: chip=M3, variant=Max, gpu_cores=40."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "m5-pro-16c-24gb",
+  "name": "Apple M5 Pro (16c) 24GB",
+  "shortName": "M5 Pro (16c)",
+  "vendor": "Apple",
+  "memory": "24GB unified",
+  "accelerator": "M5 Pro 16-core GPU",
+  "notes": "Generated from the oMLX community benchmark API import. Source hardware fields: chip=M5, variant=Pro, gpu_cores=16."
+}

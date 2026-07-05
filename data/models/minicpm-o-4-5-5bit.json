@@ -1,0 +1,8 @@
+{
+  "id": "minicpm-o-4-5-5bit",
+  "name": "MiniCPM-o-4_5-5bit",
+  "family": "MiniCPM",
+  "params": "5B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

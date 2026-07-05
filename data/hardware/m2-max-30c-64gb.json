@@ -1,0 +1,9 @@
+{
+  "id": "m2-max-30c-64gb",
+  "name": "Apple M2 Max (30c) 64GB",
+  "shortName": "M2 Max (30c)",
+  "vendor": "Apple",
+  "memory": "64GB unified",
+  "accelerator": "M2 Max 30-core GPU",
+  "notes": "Generated from the oMLX community benchmark API import. Source hardware fields: chip=M2, variant=Max, gpu_cores=30."
+}

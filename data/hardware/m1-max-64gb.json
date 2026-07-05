@@ -1,0 +1,9 @@
+{
+  "id": "m1-max-64gb",
+  "name": "MacBook Pro M1 Max 64GB",
+  "shortName": "M1 Max",
+  "vendor": "Apple",
+  "memory": "64GB unified",
+  "accelerator": "M1 Max 32-core GPU",
+  "notes": "Apple Silicon baseline from oMLX community benchmarks."
+}

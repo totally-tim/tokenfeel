@@ -1,0 +1,9 @@
+{
+  "id": "m1-max-24c-32gb",
+  "name": "Apple M1 Max (24c) 32GB",
+  "shortName": "M1 Max (24c)",
+  "vendor": "Apple",
+  "memory": "32GB unified",
+  "accelerator": "M1 Max 24-core GPU",
+  "notes": "Generated from the oMLX community benchmark API import. Source hardware fields: chip=M1, variant=Max, gpu_cores=24."
+}

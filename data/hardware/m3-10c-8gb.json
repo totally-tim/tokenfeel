@@ -1,0 +1,9 @@
+{
+  "id": "m3-10c-8gb",
+  "name": "Apple M3 (10c) 8GB",
+  "shortName": "M3 (10c)",
+  "vendor": "Apple",
+  "memory": "8GB unified",
+  "accelerator": "M3 10-core GPU",
+  "notes": "Generated from the oMLX community benchmark API import. Source hardware fields: chip=M3, variant=base, gpu_cores=10."
+}

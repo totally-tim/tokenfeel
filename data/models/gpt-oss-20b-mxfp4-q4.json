@@ -1,0 +1,8 @@
+{
+  "id": "gpt-oss-20b-mxfp4-q4",
+  "name": "gpt-oss-20b-MXFP4-Q4",
+  "family": "gpt-oss",
+  "params": "20B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

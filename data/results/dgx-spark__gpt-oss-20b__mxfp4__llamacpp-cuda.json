@@ -1,0 +1,33 @@
+{
+  "id": "dgx-spark__gpt-oss-20b__mxfp4__llamacpp-cuda",
+  "hardware": "dgx-spark",
+  "model": "gpt-oss-20b",
+  "quant": "mxfp4",
+  "runtime": {
+    "name": "llama.cpp",
+    "version": "b7941",
+    "backend": "CUDA",
+    "flags": "-fa 1 -ub 2048 -mmp 0",
+    "cache": "prefix"
+  },
+  "measurements": [
+    { "depth": 0, "pp": 4505.82, "tg": 83.43, "ppLabel": "pp2048", "tgLabel": "tg32" },
+    { "depth": 4096, "pp": 4158.34, "tg": 79.22, "ppLabel": "pp2048 @ d4096", "tgLabel": "tg32 @ d4096" },
+    { "depth": 8192, "pp": 3993.81, "tg": 75.22, "ppLabel": "pp2048 @ d8192", "tgLabel": "tg32 @ d8192" },
+    { "depth": 16384, "pp": 3449.98, "tg": 70.36, "ppLabel": "pp2048 @ d16384", "tgLabel": "tg32 @ d16384" },
+    { "depth": 32768, "pp": 2689.42, "tg": 61.65, "ppLabel": "pp2048 @ d32768", "tgLabel": "tg32 @ d32768" }
+  ],
+  "source": {
+    "kind": "llama-bench",
+    "title": "llama.cpp DGX Spark benchmark file",
+    "url": "https://github.com/ggml-org/llama.cpp/blob/master/benches/dgx-spark/dgx-spark.md",
+    "raw": "ggml-org/gpt-oss-20b-GGUF llama-bench table",
+    "license": "MIT",
+    "notes": "Maintainer-hosted benchmark file with pp2048/tg32 rows at multiple context depths."
+  },
+  "submitter": "ggml-org",
+  "date": "2026-02-05",
+  "status": "verified",
+  "overheadMs": 100,
+  "notes": "Labels preserve the llama-bench prompt and generation sizes."
+}

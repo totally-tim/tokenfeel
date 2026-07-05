@@ -1,0 +1,9 @@
+{
+  "id": "m1-ultra-64c-128gb",
+  "name": "Apple M1 Ultra (64c) 128GB",
+  "shortName": "M1 Ultra (64c)",
+  "vendor": "Apple",
+  "memory": "128GB unified",
+  "accelerator": "M1 Ultra 64-core GPU",
+  "notes": "Generated from the oMLX community benchmark API import. Source hardware fields: chip=M1, variant=Ultra, gpu_cores=64."
+}

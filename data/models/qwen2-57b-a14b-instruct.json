@@ -1,0 +1,9 @@
+{
+  "id": "qwen2-57b-a14b-instruct",
+  "name": "Qwen2-57B-A14B-Instruct",
+  "family": "Qwen",
+  "params": "57B",
+  "activeParams": "14B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

@@ -1,0 +1,34 @@
+{
+  "id": "dgx-spark-quad-qsfp__gpt-oss-120b__mxfp4__vllm",
+  "hardware": "dgx-spark-quad-qsfp",
+  "model": "gpt-oss-120b",
+  "quant": "mxfp4",
+  "runtime": {
+    "name": "vLLM",
+    "version": "spark-vllm-docker",
+    "backend": "CUDA/Ray",
+    "flags": "Spark Arena raw run sub1772848338394; llama-benchy pp2048/tg128 c1",
+    "cache": "prefix"
+  },
+  "measurements": [
+    { "depth": 0, "pp": 6044.14, "tg": 63.1, "ppLabel": "pp2048 (c1)", "tgLabel": "tg128 (c1)" },
+    { "depth": 4096, "pp": 7859.83, "tg": 62.65, "ppLabel": "pp2048 @ d4096 (c1)", "tgLabel": "tg128 @ d4096 (c1)" },
+    { "depth": 8192, "pp": 7391.17, "tg": 62.36, "ppLabel": "pp2048 @ d8192 (c1)", "tgLabel": "tg128 @ d8192 (c1)" },
+    { "depth": 16384, "pp": 6726.81, "tg": 61.37, "ppLabel": "pp2048 @ d16384 (c1)", "tgLabel": "tg128 @ d16384 (c1)" },
+    { "depth": 32768, "pp": 5613.71, "tg": 59.67, "ppLabel": "pp2048 @ d32768 (c1)", "tgLabel": "tg128 @ d32768 (c1)" },
+    { "depth": 65535, "pp": 4168.88, "tg": 57.01, "ppLabel": "pp2048 @ d65535 (c1)", "tgLabel": "tg128 @ d65535 (c1)" },
+    { "depth": 100000, "pp": 3362.8, "tg": 53.74, "ppLabel": "pp2048 @ d100000 (c1)", "tgLabel": "tg128 @ d100000 (c1)" }
+  ],
+  "source": {
+    "kind": "llama-benchy",
+    "title": "Spark Arena raw benchmark sub1772848338394",
+    "url": "https://spark-arena.com/benchmark/sub1772848338394",
+    "raw": "https://spark-arena.com/api/benchmarks/sub1772848338394/raw",
+    "notes": "Community raw log for a 4-node DGX Spark cluster. No trustworthy triple-system pp/tg row was found."
+  },
+  "submitter": "Spark Arena",
+  "date": "2026-07-04",
+  "status": "community",
+  "overheadMs": 90,
+  "notes": "Four-node switched-fabric row, useful as a scaling reference rather than a single-user workstation baseline."
+}

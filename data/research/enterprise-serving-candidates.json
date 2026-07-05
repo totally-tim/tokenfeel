@@ -1,0 +1,77 @@
+[
+  {
+    "id": "gb200-nvl72__gpt-oss-120b__mlperf-v6-offline",
+    "category": "serving-throughput",
+    "hardware": "CoreWeave GB200 NVL72 x64",
+    "model": "gpt-oss-120b",
+    "precision": "TensorRT submission precision",
+    "runtime": "TensorRT-LLM / MLPerf Inference v6.0",
+    "workload": "MLPerf Offline aggregate serving",
+    "metrics": [
+      { "name": "offline_tokens_per_second", "value": 774539, "unit": "tokens/s", "scope": "aggregate" }
+    ],
+    "source": {
+      "title": "MLPerf Inference v6.0 CoreWeave GB200 gpt-oss-120b Offline summary",
+      "url": "https://raw.githubusercontent.com/mlcommons/inference_results_v6.0/main/closed/CoreWeave/results/GB200-NVL72_GB200-186GB_aarch64x64_TRT/gpt-oss-120b/Offline/performance/run_1/mlperf_log_summary.txt"
+    },
+    "importDecision": "needs-serving-schema",
+    "notes": "Same model family as local gpt-oss rows, but MLPerf reports aggregate serving throughput, not llama-bench pp/tg depth measurements."
+  },
+  {
+    "id": "gb300-nvl72__gpt-oss-120b__mlperf-v6-offline",
+    "category": "serving-throughput",
+    "hardware": "CoreWeave GB300 NVL72 x64",
+    "model": "gpt-oss-120b",
+    "precision": "TensorRT submission precision",
+    "runtime": "TensorRT-LLM / MLPerf Inference v6.0",
+    "workload": "MLPerf Offline aggregate serving",
+    "metrics": [
+      { "name": "offline_tokens_per_second", "value": 910468, "unit": "tokens/s", "scope": "aggregate" }
+    ],
+    "source": {
+      "title": "MLPerf Inference v6.0 CoreWeave GB300 gpt-oss-120b Offline summary",
+      "url": "https://raw.githubusercontent.com/mlcommons/inference_results_v6.0/main/closed/CoreWeave/results/GB300-NVL72_GB300-288GB_aarch64x64_TRT/gpt-oss-120b/Offline/performance/run_1/mlperf_log_summary.txt"
+    },
+    "importDecision": "needs-serving-schema",
+    "notes": "Useful enterprise ceiling signal, but not directly comparable to single-user pp/tg simulator rows."
+  },
+  {
+    "id": "gb300-nvl72__deepseek-r1__mlperf-v6-server",
+    "category": "serving-throughput",
+    "hardware": "CoreWeave GB300 NVL72 x8",
+    "model": "DeepSeek R1",
+    "precision": "TensorRT submission precision",
+    "runtime": "TensorRT-LLM / MLPerf Inference v6.0",
+    "workload": "MLPerf Server aggregate serving",
+    "metrics": [
+      { "name": "server_tokens_per_second", "value": 44589.69, "unit": "tokens/s", "scope": "aggregate" },
+      { "name": "mean_ttft_ms", "value": 492.27, "unit": "ms", "scope": "request" },
+      { "name": "mean_tpot_ms", "value": 57.01, "unit": "ms/token", "scope": "request" }
+    ],
+    "source": {
+      "title": "MLPerf Inference v6.0 CoreWeave GB300 DeepSeek R1 Server summary",
+      "url": "https://raw.githubusercontent.com/mlcommons/inference_results_v6.0/main/closed/CoreWeave/results/GB300-NVL72_GB300-288GB_aarch64x8_TRT/deepseek-r1/Server/performance/run_1/mlperf_log_summary.txt"
+    },
+    "importDecision": "needs-serving-schema",
+    "notes": "Contains latency and throughput, but no pp/tg context-depth sweep."
+  },
+  {
+    "id": "gb200-nvl72__deepseek-v3-r1__sglang-serving",
+    "category": "serving-throughput",
+    "hardware": "GB200 NVL72",
+    "model": "DeepSeek V3/R1",
+    "precision": "FP8 attention with NVFP4 MoE/output projection",
+    "runtime": "SGLang",
+    "workload": "Large-scale PD-disaggregated serving with 2000-token input",
+    "metrics": [
+      { "name": "input_tokens_per_second_per_gpu", "value": 26156, "unit": "tokens/s/GPU", "scope": "prefill phase" },
+      { "name": "output_tokens_per_second_per_gpu", "value": 13386, "unit": "tokens/s/GPU", "scope": "decode phase" }
+    ],
+    "source": {
+      "title": "SGLang GB200 NVL72 inference optimization Part II",
+      "url": "https://www.lmsys.org/blog/2025-09-25-gb200-part-2/"
+    },
+    "importDecision": "needs-serving-schema",
+    "notes": "Prefill/decode-like phase metrics, but at serving scale and not as single-request llama-bench rows."
+  }
+]

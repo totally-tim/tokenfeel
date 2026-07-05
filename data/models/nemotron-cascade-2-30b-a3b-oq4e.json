@@ -1,0 +1,9 @@
+{
+  "id": "nemotron-cascade-2-30b-a3b-oq4e",
+  "name": "Nemotron-Cascade-2-30B-A3B-oQ4e",
+  "family": "Nemotron",
+  "params": "30B",
+  "activeParams": "3B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

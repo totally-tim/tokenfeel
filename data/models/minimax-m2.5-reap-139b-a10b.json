@@ -1,0 +1,9 @@
+{
+  "id": "minimax-m2.5-reap-139b-a10b",
+  "name": "MiniMax-M2.5-REAP-139B-A10B",
+  "family": "MiniMax",
+  "params": "139B",
+  "activeParams": "10B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

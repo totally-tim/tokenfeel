@@ -1,0 +1,9 @@
+{
+  "id": "glm-4.5-air-reap-82b-a12b-mxfp4",
+  "name": "GLM-4.5-Air-REAP-82B-A12B-mxfp4",
+  "family": "GLM",
+  "params": "82B",
+  "activeParams": "12B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

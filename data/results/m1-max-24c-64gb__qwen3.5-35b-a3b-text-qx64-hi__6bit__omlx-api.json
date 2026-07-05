@@ -1,0 +1,154 @@
+{
+  "id": "m1-max-24c-64gb__qwen3.5-35b-a3b-text-qx64-hi__6bit__omlx-api",
+  "hardware": "m1-max-24c-64gb",
+  "model": "qwen3.5-35b-a3b-text-qx64-hi",
+  "quant": "6bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.3.0",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 379.1,
+      "tg": 53,
+      "ppLabel": "6bit PP",
+      "tgLabel": "6bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/pvcmsjur",
+        "upstreamId": "pvcmsjur",
+        "createdAt": "2026-03-31T17:27:40Z",
+        "ttftMs": 2701.2,
+        "peakMemoryGb": 25.27
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 446.1,
+      "tg": 49.2,
+      "ppLabel": "6bit PP",
+      "tgLabel": "6bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/6cilbwrm",
+        "upstreamId": "6cilbwrm",
+        "createdAt": "2026-03-31T17:27:40Z",
+        "ttftMs": 9182.7,
+        "peakMemoryGb": 26.21
+      }
+    },
+    {
+      "depth": 8192,
+      "pp": 423.7,
+      "tg": 46.4,
+      "ppLabel": "6bit PP",
+      "tgLabel": "6bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/t30f12ve",
+        "upstreamId": "t30f12ve",
+        "createdAt": "2026-03-12T10:50:07Z",
+        "ttftMs": 19332.3,
+        "peakMemoryGb": 25.59
+      }
+    },
+    {
+      "depth": 16384,
+      "pp": 408,
+      "tg": 39.2,
+      "ppLabel": "6bit PP",
+      "tgLabel": "6bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/h90o4fo1",
+        "upstreamId": "h90o4fo1",
+        "createdAt": "2026-03-12T10:50:08Z",
+        "ttftMs": 40153.9,
+        "peakMemoryGb": 26.01
+      }
+    },
+    {
+      "depth": 32768,
+      "pp": 373.7,
+      "tg": 30.2,
+      "ppLabel": "6bit PP",
+      "tgLabel": "6bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/jpdyn3mw",
+        "upstreamId": "jpdyn3mw",
+        "createdAt": "2026-03-12T10:50:09Z",
+        "ttftMs": 87684.9,
+        "peakMemoryGb": 26.83
+      }
+    },
+    {
+      "depth": 65536,
+      "pp": 312.2,
+      "tg": 20.9,
+      "ppLabel": "6bit PP",
+      "tgLabel": "6bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/ll866zq3",
+        "upstreamId": "ll866zq3",
+        "createdAt": "2026-03-12T10:50:10Z",
+        "ttftMs": 209933.4,
+        "peakMemoryGb": 28.49
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:04.050Z",
+    "upstreamId": "pvcmsjur",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "pvcmsjur 2026-03-31T17:27:40Z ctx=1024 pp=379.1 tg=53 omlx=0.3.0 os=macOS 26.4 https://omlx.ai/benchmarks/pvcmsjur",
+      "6cilbwrm 2026-03-31T17:27:40Z ctx=4096 pp=446.1 tg=49.2 omlx=0.3.0 os=macOS 26.4 https://omlx.ai/benchmarks/6cilbwrm",
+      "t30f12ve 2026-03-12T10:50:07Z ctx=8192 pp=423.7 tg=46.4 omlx=0.2.7 os=macOS 26.3.1 https://omlx.ai/benchmarks/t30f12ve",
+      "h90o4fo1 2026-03-12T10:50:08Z ctx=16384 pp=408 tg=39.2 omlx=0.2.7 os=macOS 26.3.1 https://omlx.ai/benchmarks/h90o4fo1",
+      "jpdyn3mw 2026-03-12T10:50:09Z ctx=32768 pp=373.7 tg=30.2 omlx=0.2.7 os=macOS 26.3.1 https://omlx.ai/benchmarks/jpdyn3mw",
+      "ll866zq3 2026-03-12T10:50:10Z ctx=65536 pp=312.2 tg=20.9 omlx=0.2.7 os=macOS 26.3.1 https://omlx.ai/benchmarks/ll866zq3"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/pvcmsjur",
+      "https://omlx.ai/benchmarks/6cilbwrm",
+      "https://omlx.ai/benchmarks/t30f12ve",
+      "https://omlx.ai/benchmarks/h90o4fo1",
+      "https://omlx.ai/benchmarks/jpdyn3mw",
+      "https://omlx.ai/benchmarks/ll866zq3"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 10,
+      "selected_depths": 6,
+      "latest_upstream_id": "pvcmsjur",
+      "latest_created_at": "2026-03-31T17:27:40Z",
+      "selected_omlx_versions": "0.2.7, 0.3.0",
+      "selected_os_versions": "macOS 26.3.1, macOS 26.4"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.4",
+    "runtimeVersions": {
+      "omlx": "0.3.0"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Qwen3.5-35B-A3B-Text-qx64-hi on M1 Max (24c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/pvcmsjur",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-31",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 10 upstream row(s) were scraped for this hardware/model/quant group; the latest row at each context depth was selected for simulation. Selected depths may span oMLX or macOS versions, and each measurement links to its exact upstream row."
+}

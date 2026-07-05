@@ -1,0 +1,9 @@
+{
+  "id": "gpt-oss-120b",
+  "name": "gpt-oss 120B",
+  "family": "gpt-oss",
+  "params": "120B",
+  "activeParams": "MoE",
+  "license": "Open-weight license varies by release",
+  "notes": "Large open-weight MoE model with DGX Spark and Strix Halo seed rows."
+}

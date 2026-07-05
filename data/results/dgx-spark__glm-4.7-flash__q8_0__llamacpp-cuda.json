@@ -1,0 +1,31 @@
+{
+  "id": "dgx-spark__glm-4.7-flash__q8_0__llamacpp-cuda",
+  "hardware": "dgx-spark",
+  "model": "glm-4.7-flash",
+  "quant": "q8_0",
+  "runtime": {
+    "name": "llama.cpp",
+    "version": "b7941",
+    "backend": "CUDA",
+    "flags": "-fa 1 -ub 2048 -mmp 0",
+    "cache": "prefix"
+  },
+  "measurements": [
+    { "depth": 0, "pp": 2364.18, "tg": 48.68, "ppLabel": "pp2048", "tgLabel": "tg32" },
+    { "depth": 4096, "pp": 1684.13, "tg": 44.62, "ppLabel": "pp2048 @ d4096", "tgLabel": "tg32 @ d4096" },
+    { "depth": 8192, "pp": 1314.68, "tg": 42.59, "ppLabel": "pp2048 @ d8192", "tgLabel": "tg32 @ d8192" },
+    { "depth": 16384, "pp": 914.05, "tg": 38.72, "ppLabel": "pp2048 @ d16384", "tgLabel": "tg32 @ d16384" },
+    { "depth": 32768, "pp": 567.2, "tg": 32.65, "ppLabel": "pp2048 @ d32768", "tgLabel": "tg32 @ d32768" }
+  ],
+  "source": {
+    "kind": "llama-bench",
+    "title": "llama.cpp DGX Spark benchmark file",
+    "url": "https://github.com/ggml-org/llama.cpp/blob/master/benches/dgx-spark/dgx-spark.md",
+    "raw": "GLM-4.7-Flash-GGUF llama-bench table",
+    "license": "MIT"
+  },
+  "submitter": "ggml-org",
+  "date": "2026-02-05",
+  "status": "verified",
+  "overheadMs": 100
+}

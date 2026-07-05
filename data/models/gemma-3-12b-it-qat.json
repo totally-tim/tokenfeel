@@ -1,0 +1,8 @@
+{
+  "id": "gemma-3-12b-it-qat",
+  "name": "gemma-3-12b-it-qat",
+  "family": "Gemma",
+  "params": "12B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

@@ -1,0 +1,203 @@
+{
+  "id": "dgx-spark-dual-qsfp__deepseek-v4-flash__fp4-fp8-mixed__vllm-dspark",
+  "hardware": "dgx-spark-dual-qsfp",
+  "model": "deepseek-v4-flash",
+  "quant": "fp4-fp8-mixed",
+  "runtime": {
+    "name": "vLLM DSpark",
+    "version": "0.21.1rc1.dev339+g1967a5627bc3",
+    "backend": "CUDA/mp TP=2",
+    "flags": "llama-benchy 0.3.8 pp2048/tg128 c1; DeepSeek-V4-Flash-DSpark; max context 1048576; DSpark speculative decode",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 0,
+      "pp": 1373,
+      "tg": 38.5,
+      "ppLabel": "pp2048 @ d0 (c1)",
+      "tgLabel": "tg128 @ d0 (c1)",
+      "source": {
+        "url": "https://forums.developer.nvidia.com/t/deepseek-v4-flash-dspark-on-2x-dgx-spark-gb10-big-single-stream-speed-boost-60-67-tok-s-1m-context-now-with-concurrency/374846?page=2",
+        "upstreamId": "nvidia-forum-374846-post-41-d0",
+        "ttftMs": 1632
+      }
+    },
+    {
+      "depth": 2048,
+      "pp": 2114,
+      "tg": 34.8,
+      "ppLabel": "pp2048 @ d2048 (c1)",
+      "tgLabel": "tg128 @ d2048 (c1)",
+      "source": {
+        "url": "https://forums.developer.nvidia.com/t/deepseek-v4-flash-dspark-on-2x-dgx-spark-gb10-big-single-stream-speed-boost-60-67-tok-s-1m-context-now-with-concurrency/374846?page=2",
+        "upstreamId": "nvidia-forum-374846-post-41-d2048",
+        "ttftMs": 2079
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 2119,
+      "tg": 41.7,
+      "ppLabel": "pp2048 @ d4096 (c1)",
+      "tgLabel": "tg128 @ d4096 (c1)",
+      "source": {
+        "url": "https://forums.developer.nvidia.com/t/deepseek-v4-flash-dspark-on-2x-dgx-spark-gb10-big-single-stream-speed-boost-60-67-tok-s-1m-context-now-with-concurrency/374846?page=2",
+        "upstreamId": "nvidia-forum-374846-post-41-d4096",
+        "ttftMs": 3041
+      }
+    },
+    {
+      "depth": 8192,
+      "pp": 2110,
+      "tg": 36.7,
+      "ppLabel": "pp2048 @ d8192 (c1)",
+      "tgLabel": "tg128 @ d8192 (c1)",
+      "source": {
+        "url": "https://forums.developer.nvidia.com/t/deepseek-v4-flash-dspark-on-2x-dgx-spark-gb10-big-single-stream-speed-boost-60-67-tok-s-1m-context-now-with-concurrency/374846?page=2",
+        "upstreamId": "nvidia-forum-374846-post-41-d8192",
+        "ttftMs": 4994
+      }
+    },
+    {
+      "depth": 16384,
+      "pp": 2106,
+      "tg": 45.3,
+      "ppLabel": "pp2048 @ d16384 (c1)",
+      "tgLabel": "tg128 @ d16384 (c1)",
+      "source": {
+        "url": "https://forums.developer.nvidia.com/t/deepseek-v4-flash-dspark-on-2x-dgx-spark-gb10-big-single-stream-speed-boost-60-67-tok-s-1m-context-now-with-concurrency/374846?page=2",
+        "upstreamId": "nvidia-forum-374846-post-41-d16384",
+        "ttftMs": 8886
+      }
+    },
+    {
+      "depth": 32768,
+      "pp": 2065,
+      "tg": 26.1,
+      "ppLabel": "pp2048 @ d32768 (c1)",
+      "tgLabel": "tg128 @ d32768 (c1)",
+      "source": {
+        "url": "https://forums.developer.nvidia.com/t/deepseek-v4-flash-dspark-on-2x-dgx-spark-gb10-big-single-stream-speed-boost-60-67-tok-s-1m-context-now-with-concurrency/374846?page=2",
+        "upstreamId": "nvidia-forum-374846-post-41-d32768",
+        "ttftMs": 16996
+      }
+    },
+    {
+      "depth": 65536,
+      "pp": 2024,
+      "tg": 21.1,
+      "ppLabel": "pp2048 @ d65536 (c1)",
+      "tgLabel": "tg128 @ d65536 (c1)",
+      "source": {
+        "url": "https://forums.developer.nvidia.com/t/deepseek-v4-flash-dspark-on-2x-dgx-spark-gb10-big-single-stream-speed-boost-60-67-tok-s-1m-context-now-with-concurrency/374846?page=2",
+        "upstreamId": "nvidia-forum-374846-post-41-d65536",
+        "ttftMs": 33524
+      }
+    },
+    {
+      "depth": 131072,
+      "pp": 1899,
+      "tg": 29.2,
+      "ppLabel": "pp2048 @ d131072 (c1)",
+      "tgLabel": "tg128 @ d131072 (c1)",
+      "source": {
+        "url": "https://forums.developer.nvidia.com/t/deepseek-v4-flash-dspark-on-2x-dgx-spark-gb10-big-single-stream-speed-boost-60-67-tok-s-1m-context-now-with-concurrency/374846?page=2",
+        "upstreamId": "nvidia-forum-374846-post-41-d131072",
+        "ttftMs": 70244
+      }
+    },
+    {
+      "depth": 262144,
+      "pp": 1687,
+      "tg": 16.9,
+      "ppLabel": "pp2048 @ d262144 (c1)",
+      "tgLabel": "tg128 @ d262144 (c1)",
+      "source": {
+        "url": "https://forums.developer.nvidia.com/t/deepseek-v4-flash-dspark-on-2x-dgx-spark-gb10-big-single-stream-speed-boost-60-67-tok-s-1m-context-now-with-concurrency/374846?page=2",
+        "upstreamId": "nvidia-forum-374846-post-41-d262144",
+        "ttftMs": 156767
+      }
+    },
+    {
+      "depth": 524288,
+      "pp": 1352,
+      "tg": 33.2,
+      "ppLabel": "pp2048 @ d524288 (c1)",
+      "tgLabel": "tg128 @ d524288 (c1)",
+      "source": {
+        "url": "https://forums.developer.nvidia.com/t/deepseek-v4-flash-dspark-on-2x-dgx-spark-gb10-big-single-stream-speed-boost-60-67-tok-s-1m-context-now-with-concurrency/374846?page=2",
+        "upstreamId": "nvidia-forum-374846-post-41-d524288",
+        "ttftMs": 389366
+      }
+    },
+    {
+      "depth": 990000,
+      "pp": 997,
+      "tg": 35.8,
+      "ppLabel": "pp2048 @ d990000 (c1)",
+      "tgLabel": "tg128 @ d990000 (c1)",
+      "source": {
+        "url": "https://forums.developer.nvidia.com/t/deepseek-v4-flash-dspark-on-2x-dgx-spark-gb10-big-single-stream-speed-boost-60-67-tok-s-1m-context-now-with-concurrency/374846?page=2",
+        "upstreamId": "nvidia-forum-374846-post-41-d990000",
+        "ttftMs": 995290
+      }
+    }
+  ],
+  "evidence": {
+    "rawFormat": "llama-benchy forum excerpt",
+    "retrievedAt": "2026-07-05T19:45:00+02:00",
+    "upstreamId": "nvidia-forum-374846-post-41",
+    "upstreamUrls": [
+      "https://forums.developer.nvidia.com/t/deepseek-v4-flash-dspark-on-2x-dgx-spark-gb10-big-single-stream-speed-boost-60-67-tok-s-1m-context-now-with-concurrency/374846?page=2",
+      "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-DSpark",
+      "https://github.com/tonyd2wild/DeepSeek-v4-Flash-DSpark-1M-NVFP4-KV-2x-DGX-Spark"
+    ],
+    "rawRows": [
+      "llama-benchy 0.3.8; pp=[2048] tg=[128] depth=[0, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524288, 990000] concurrency=[1] runs=1 latency=generation",
+      "pp2048 tg128 @ d0 c1 pp=1373 tg=38.5 TTFT=1632ms Total=4815ms Tokens=2048+128",
+      "pp2048 tg128 @ d2048 c1 pp=2114 tg=34.8 TTFT=2079ms Total=5613ms Tokens=2048+128",
+      "pp2048 tg128 @ d4096 c1 pp=2119 tg=41.7 TTFT=3041ms Total=5964ms Tokens=2048+128",
+      "pp2048 tg128 @ d8192 c1 pp=2110 tg=36.7 TTFT=4994ms Total=8337ms Tokens=2048+128",
+      "pp2048 tg128 @ d16384 c1 pp=2106 tg=45.3 TTFT=8886ms Total=11574ms Tokens=2048+128",
+      "pp2048 tg128 @ d32768 c1 pp=2065 tg=26.1 TTFT=16996ms Total=21754ms Tokens=2048+128",
+      "pp2048 tg128 @ d65536 c1 pp=2024 tg=21.1 TTFT=33524ms Total=39457ms Tokens=2048+128",
+      "pp2048 tg128 @ d131072 c1 pp=1899 tg=29.2 TTFT=70244ms Total=74473ms Tokens=2048+128",
+      "pp2048 tg128 @ d262144 c1 pp=1687 tg=16.9 TTFT=156767ms Total=164213ms Tokens=2048+128",
+      "pp2048 tg128 @ d524288 c1 pp=1352 tg=33.2 TTFT=389366ms Total=393056ms Tokens=2048+128",
+      "pp2048 tg128 @ d990000 c1 pp=997 tg=35.8 TTFT=995290ms Total=998722ms Tokens=2048+128"
+    ]
+  },
+  "benchmark": {
+    "tool": "llama-benchy",
+    "command": "llama-benchy 0.3.8 --pp 2048 --tg 128 --depth 0 2048 4096 8192 16384 32768 65536 131072 262144 524288 990000 --concurrency 1 --runs 1 --latency generation",
+    "profile": "DeepSeek-V4-Flash-DSpark TP=2 single-stream context sweep",
+    "runs": 1,
+    "ppTokens": 2048,
+    "tgTokens": 128,
+    "concurrency": 1,
+    "latencyMode": "generation"
+  },
+  "topology": {
+    "nodeCount": 2,
+    "acceleratorCount": 2,
+    "interconnect": "QSFP / ConnectX-7 RoCE fabric",
+    "distributedRuntime": "vLLM mp, tensor parallel",
+    "tensorParallel": 2,
+    "runtimeVersions": {
+      "vllm": "0.21.1rc1.dev339+g1967a5627bc3",
+      "llama-benchy": "0.3.8"
+    }
+  },
+  "source": {
+    "kind": "llama-benchy",
+    "title": "NVIDIA forum llama-benchy DeepSeek-V4-Flash-DSpark TP=2 on 2x DGX Spark",
+    "url": "https://forums.developer.nvidia.com/t/deepseek-v4-flash-dspark-on-2x-dgx-spark-gb10-big-single-stream-speed-boost-60-67-tok-s-1m-context-now-with-concurrency/374846?page=2",
+    "notes": "Community forum result. The c1 rows are imported as simulator measurements; the same thread also shows c2/c4 rows that are not imported here because Tokenfeel currently models one visible stream per lane."
+  },
+  "submitter": "NVIDIA Developer Forums user 0rand",
+  "date": "2026-06-29",
+  "status": "community",
+  "overheadMs": 90,
+  "notes": "Imported from public llama-benchy rows for DeepSeek-V4-Flash-DSpark on two DGX Spark GB10 systems. The source thread reports thinking-enabled DSpark behavior and long-context throughput variability; use as community evidence, not vendor-certified performance."
+}

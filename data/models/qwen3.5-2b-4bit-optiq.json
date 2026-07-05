@@ -1,0 +1,8 @@
+{
+  "id": "qwen3.5-2b-4bit-optiq",
+  "name": "Qwen3.5-2B-4bit-OptiQ",
+  "family": "Qwen",
+  "params": "2B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

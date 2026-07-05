@@ -1,0 +1,9 @@
+{
+  "id": "m3-pro-18c-36gb",
+  "name": "Apple M3 Pro (18c) 36GB",
+  "shortName": "M3 Pro (18c)",
+  "vendor": "Apple",
+  "memory": "36GB unified",
+  "accelerator": "M3 Pro 18-core GPU",
+  "notes": "Generated from the oMLX community benchmark API import. Source hardware fields: chip=M3, variant=Pro, gpu_cores=18."
+}

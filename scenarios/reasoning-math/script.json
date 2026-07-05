@@ -1,0 +1,27 @@
+{
+  "id": "reasoning-math",
+  "title": "Reasoning math",
+  "type": "reasoning",
+  "systemPromptTokens": 620,
+  "description": "A single reasoning-heavy question with visible thinking and a compact final answer.",
+  "events": [
+    {
+      "id": "math-u1",
+      "role": "user",
+      "text": "A factory has three machines with different failure probabilities. Which maintenance schedule minimizes expected downtime?",
+      "tokens": 84
+    },
+    {
+      "id": "math-thinking",
+      "role": "thinking",
+      "text": "Compare the expected loss of preventive replacement against failure repair time, normalize by production value and search the weekly schedule space.",
+      "tokens": 2400
+    },
+    {
+      "id": "math-a1",
+      "role": "assistant",
+      "text": "The lowest expected downtime comes from servicing Machine B every second Friday, Machine A monthly and Machine C only after the vibration threshold crosses the warning band.",
+      "tokens": 430
+    }
+  ]
+}

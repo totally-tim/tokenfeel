@@ -1,0 +1,8 @@
+{
+  "id": "gemma-4-e4b-it-ud",
+  "name": "Gemma-4-E4B-IT-UD",
+  "family": "Gemma",
+  "params": "4B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

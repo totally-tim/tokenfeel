@@ -1,0 +1,9 @@
+{
+  "id": "m5-max-40c-128gb",
+  "name": "Apple M5 Max (40c) 128GB",
+  "shortName": "M5 Max (40c)",
+  "vendor": "Apple",
+  "memory": "128GB unified",
+  "accelerator": "M5 Max 40-core GPU",
+  "notes": "Generated from the oMLX community benchmark API import. Source hardware fields: chip=M5, variant=Max, gpu_cores=40."
+}

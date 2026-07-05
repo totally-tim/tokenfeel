@@ -1,0 +1,9 @@
+{
+  "id": "gpt-oss-20b",
+  "name": "gpt-oss 20B",
+  "family": "gpt-oss",
+  "params": "20B",
+  "activeParams": "MoE",
+  "license": "Apache-2.0",
+  "notes": "Smaller open-weight gpt-oss MoE model used for apples-to-apples local inference comparisons."
+}

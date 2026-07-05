@@ -1,0 +1,122 @@
+{
+  "id": "m3-max-40c-128gb__nvidia-nemotron-3-nano-30b-a3b__bf16__omlx-api",
+  "hardware": "m3-max-40c-128gb",
+  "model": "nvidia-nemotron-3-nano-30b-a3b",
+  "quant": "bf16",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.14",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 558.4,
+      "tg": 29.8,
+      "ppLabel": "bf16 PP",
+      "tgLabel": "bf16 TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/a56khbf3",
+        "upstreamId": "a56khbf3",
+        "createdAt": "2026-03-17T06:17:56Z",
+        "ttftMs": 1833.8,
+        "peakMemoryGb": 60.44
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 693.2,
+      "tg": 32.9,
+      "ppLabel": "bf16 PP",
+      "tgLabel": "bf16 TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/cgmttkht",
+        "upstreamId": "cgmttkht",
+        "createdAt": "2026-03-17T06:18:07Z",
+        "ttftMs": 5908.9,
+        "peakMemoryGb": 60.5
+      }
+    },
+    {
+      "depth": 8192,
+      "pp": 793.9,
+      "tg": 33.2,
+      "ppLabel": "bf16 PP",
+      "tgLabel": "bf16 TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/wb0q6vlo",
+        "upstreamId": "wb0q6vlo",
+        "createdAt": "2026-03-17T06:18:16Z",
+        "ttftMs": 10318.2,
+        "peakMemoryGb": 60.52
+      }
+    },
+    {
+      "depth": 16384,
+      "pp": 754.1,
+      "tg": 30.5,
+      "ppLabel": "bf16 PP",
+      "tgLabel": "bf16 TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/p9yi8d00",
+        "upstreamId": "p9yi8d00",
+        "createdAt": "2026-03-17T06:18:19Z",
+        "ttftMs": 21727.9,
+        "peakMemoryGb": 60.57
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:04.065Z",
+    "upstreamId": "p9yi8d00",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "a56khbf3 2026-03-17T06:17:56Z ctx=1024 pp=558.4 tg=29.8 omlx=0.2.14 os=macOS 26.3.1 https://omlx.ai/benchmarks/a56khbf3",
+      "cgmttkht 2026-03-17T06:18:07Z ctx=4096 pp=693.2 tg=32.9 omlx=0.2.14 os=macOS 26.3.1 https://omlx.ai/benchmarks/cgmttkht",
+      "wb0q6vlo 2026-03-17T06:18:16Z ctx=8192 pp=793.9 tg=33.2 omlx=0.2.14 os=macOS 26.3.1 https://omlx.ai/benchmarks/wb0q6vlo",
+      "p9yi8d00 2026-03-17T06:18:19Z ctx=16384 pp=754.1 tg=30.5 omlx=0.2.14 os=macOS 26.3.1 https://omlx.ai/benchmarks/p9yi8d00"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/a56khbf3",
+      "https://omlx.ai/benchmarks/cgmttkht",
+      "https://omlx.ai/benchmarks/wb0q6vlo",
+      "https://omlx.ai/benchmarks/p9yi8d00"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 4,
+      "selected_depths": 4,
+      "latest_upstream_id": "p9yi8d00",
+      "latest_created_at": "2026-03-17T06:18:19Z",
+      "selected_omlx_versions": "0.2.14",
+      "selected_os_versions": "macOS 26.3.1"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.3.1",
+    "runtimeVersions": {
+      "omlx": "0.2.14"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX NVIDIA-Nemotron-3-Nano-30B-A3B on M3 Max (40c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/p9yi8d00",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-17",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 4 upstream row(s) were scraped for this hardware/model/quant group; the latest row at each context depth was selected for simulation. Selected depths may span oMLX or macOS versions, and each measurement links to its exact upstream row."
+}

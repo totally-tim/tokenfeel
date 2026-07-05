@@ -1,0 +1,9 @@
+{
+  "id": "framework-strix-halo-128gb",
+  "name": "Framework Desktop Strix Halo 128GB",
+  "shortName": "Strix Halo",
+  "vendor": "AMD / Framework",
+  "memory": "128GB LPDDR5X",
+  "accelerator": "Ryzen AI MAX+ 395 / Radeon 8060S",
+  "notes": "Community-tested Strix Halo platform with Vulkan and ROCm benchmark paths."
+}

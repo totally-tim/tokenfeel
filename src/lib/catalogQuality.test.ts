@@ -1,0 +1,91 @@
+import { describe, expect, test } from "vitest";
+import type { BenchmarkResult, Catalog } from "../types";
+import { catalogQualityIssues, pruneCatalogForSimulation } from "./catalogQuality";
+
+const baseResult = {
+  id: "m4__qwen3.5-9b__4bit__omlx-api",
+  hardware: "m4",
+  model: "qwen3.5-9b",
+  quant: "4bit",
+  runtime: { name: "oMLX", version: "0.3", backend: "MLX", flags: "api", cache: "prefix" },
+  measurements: [
+    { depth: 1024, pp: 1000, tg: 50, source: { url: "https://example.com/1", upstreamId: "1", ttftMs: 1024 } },
+    { depth: 8192, pp: 900, tg: 45, source: { url: "https://example.com/2", upstreamId: "2", ttftMs: 9102 } }
+  ],
+  source: { kind: "community-benchmark", title: "Synthetic benchmark", url: "https://example.com/source" },
+  submitter: "tests",
+  date: "2026-01-01",
+  status: "community"
+} satisfies BenchmarkResult;
+
+function result(overrides: Partial<BenchmarkResult>): BenchmarkResult {
+  return { ...baseResult, ...overrides } as BenchmarkResult;
+}
+
+function catalog(results: BenchmarkResult[]): Catalog {
+  return {
+    hardware: [
+      { id: "m4", name: "M4", shortName: "M4", vendor: "Apple", memory: "64GB", accelerator: "GPU", notes: "Synthetic hardware" },
+      { id: "orphan-hardware", name: "Orphan", shortName: "Orphan", vendor: "Apple", memory: "8GB", accelerator: "GPU", notes: "Unreferenced" }
+    ],
+    models: [
+      { id: "qwen3.5-9b", name: "Qwen3.5 9B", family: "Qwen", params: "9B", license: "test", notes: "Synthetic model" },
+      {
+        id: "0123456789abcdef0123456789abcdef01234567",
+        name: "0123456789abcdef0123456789abcdef01234567",
+        family: "Unknown",
+        params: "unknown",
+        license: "test",
+        notes: "Hash model"
+      },
+      { id: "orphan-model", name: "Orphan", family: "Other", params: "1B", license: "test", notes: "Unreferenced" }
+    ],
+    results,
+    scenarios: [
+      { id: "s1", title: "Scenario", type: "chatbot", systemPromptTokens: 100, events: [{ id: "u1", role: "user", text: "Hello", tokens: 10 }] }
+    ]
+  };
+}
+
+describe("catalog quality", () => {
+  test("flags result rows that are not useful for the public simulation catalog", () => {
+    expect(catalogQualityIssues(result({ quant: "unknown" }))).toContain("unknown-quant");
+    expect(catalogQualityIssues(result({ model: "0123456789abcdef0123456789abcdef01234567" }))).toContain("hash-model-id");
+    expect(catalogQualityIssues(result({ measurements: [{ depth: 4096, pp: 1000, tg: 50 }] }))).toContain("low-context-under-8k");
+    expect(
+      catalogQualityIssues(
+        result({
+          measurements: [{ depth: 4096, pp: 1000, tg: 50, source: { url: "https://example.com/bad", upstreamId: "bad", ttftMs: 100_000 } }]
+        })
+      )
+    ).toContain("ttft-pp-mismatch");
+  });
+
+  test("accepts llama-benchy TTFT that includes the current prompt chunk", () => {
+    const issues = catalogQualityIssues(
+      result({
+        benchmark: { ppTokens: 2048 },
+        measurements: [
+          {
+            depth: 2048,
+            pp: 2114,
+            tg: 34.8,
+            source: { url: "https://example.com/d2048", upstreamId: "d2048", ttftMs: 2079 }
+          }
+        ]
+      })
+    );
+
+    expect(issues).not.toContain("ttft-pp-mismatch");
+  });
+
+  test("prunes bad results and orphaned metadata from the app-facing simulation catalog", () => {
+    const good = result({ id: "m4__qwen3.5-9b__4bit__omlx-api" });
+    const bad = result({ id: "m4__qwen3.5-9b__unknown__omlx-api", quant: "unknown" });
+    const pruned = pruneCatalogForSimulation(catalog([good, bad]));
+
+    expect(pruned.results.map((item) => item.id)).toEqual([good.id]);
+    expect(pruned.hardware.map((item) => item.id)).toEqual(["m4"]);
+    expect(pruned.models.map((item) => item.id)).toEqual(["qwen3.5-9b"]);
+  });
+});

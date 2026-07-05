@@ -1,0 +1,9 @@
+{
+  "id": "dgx-spark",
+  "name": "NVIDIA DGX Spark",
+  "shortName": "DGX Spark",
+  "vendor": "NVIDIA",
+  "memory": "128GB unified",
+  "accelerator": "GB10",
+  "notes": "Single-node DGX Spark local inference workstation."
+}

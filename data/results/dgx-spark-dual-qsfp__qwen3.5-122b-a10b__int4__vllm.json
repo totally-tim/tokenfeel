@@ -1,0 +1,33 @@
+{
+  "id": "dgx-spark-dual-qsfp__qwen3.5-122b-a10b__int4__vllm",
+  "hardware": "dgx-spark-dual-qsfp",
+  "model": "qwen3.5-122b-a10b",
+  "quant": "int4",
+  "runtime": {
+    "name": "vLLM",
+    "version": "spark-vllm-docker",
+    "backend": "CUDA/Ray",
+    "flags": "Spark Arena raw run sub1773073630192; llama-benchy pp2048/tg128 c1",
+    "cache": "prefix"
+  },
+  "measurements": [
+    { "depth": 0, "pp": 3153.06, "tg": 42.05, "ppLabel": "pp2048 (c1)", "tgLabel": "tg128 (c1)" },
+    { "depth": 4096, "pp": 1674.29, "tg": 42.34, "ppLabel": "pp2048 @ d4096 (c1)", "tgLabel": "tg128 @ d4096 (c1)" },
+    { "depth": 8192, "pp": 1633.05, "tg": 41.79, "ppLabel": "pp2048 @ d8192 (c1)", "tgLabel": "tg128 @ d8192 (c1)" },
+    { "depth": 16384, "pp": 1559.9, "tg": 41.41, "ppLabel": "pp2048 @ d16384 (c1)", "tgLabel": "tg128 @ d16384 (c1)" },
+    { "depth": 32768, "pp": 1463.58, "tg": 39.96, "ppLabel": "pp2048 @ d32768 (c1)", "tgLabel": "tg128 @ d32768 (c1)" },
+    { "depth": 65535, "pp": 1347.31, "tg": 37.47, "ppLabel": "pp2048 @ d65535 (c1)", "tgLabel": "tg128 @ d65535 (c1)" }
+  ],
+  "source": {
+    "kind": "llama-benchy",
+    "title": "Spark Arena raw benchmark sub1773073630192",
+    "url": "https://spark-arena.com/benchmark/sub1773073630192",
+    "raw": "https://spark-arena.com/api/benchmarks/sub1773073630192/raw",
+    "notes": "Community dual-DGX Spark raw log for Intel/Qwen3.5-122B-A10B-int4-AutoRound."
+  },
+  "submitter": "Spark Arena",
+  "date": "2026-07-04",
+  "status": "community",
+  "overheadMs": 90,
+  "notes": "Useful for large-MoE dual-Spark comparisons; not maintainer-verified."
+}

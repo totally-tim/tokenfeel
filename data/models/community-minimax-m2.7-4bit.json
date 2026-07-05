@@ -1,0 +1,8 @@
+{
+  "id": "community-minimax-m2.7-4bit",
+  "name": "community--MiniMax-M2.7-4bit",
+  "family": "community",
+  "params": "4B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

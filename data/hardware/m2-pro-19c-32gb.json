@@ -1,0 +1,9 @@
+{
+  "id": "m2-pro-19c-32gb",
+  "name": "Apple M2 Pro (19c) 32GB",
+  "shortName": "M2 Pro (19c)",
+  "vendor": "Apple",
+  "memory": "32GB unified",
+  "accelerator": "M2 Pro 19-core GPU",
+  "notes": "Generated from the oMLX community benchmark API import. Source hardware fields: chip=M2, variant=Pro, gpu_cores=19."
+}

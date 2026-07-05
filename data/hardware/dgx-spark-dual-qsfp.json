@@ -1,0 +1,9 @@
+{
+  "id": "dgx-spark-dual-qsfp",
+  "name": "NVIDIA DGX Spark Dual QSFP Cluster",
+  "shortName": "2x DGX Spark",
+  "vendor": "NVIDIA",
+  "memory": "256GB unified aggregate",
+  "accelerator": "2x GB10 over QSFP / ConnectX-7 fabric",
+  "notes": "Two DGX Spark systems connected over QSFP for distributed vLLM or SGLang tensor-parallel inference. Rows are community raw-log results, not NVIDIA-certified."
+}

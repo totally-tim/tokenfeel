@@ -1,0 +1,41 @@
+name: Request a hardware/model config
+description: Ask contributors to benchmark a missing combination.
+title: "Request config: "
+labels: ["data", "request"]
+body:
+  - type: input
+    id: hardware
+    attributes:
+      label: Hardware
+      placeholder: DGX Spark dual QSFP, M4 Max 128GB, Strix Halo 128GB
+    validations:
+      required: true
+  - type: input
+    id: model
+    attributes:
+      label: Model
+      placeholder: Qwen3 Coder Next, GPT-OSS 120B, GLM-4.7 Flash
+    validations:
+      required: true
+  - type: input
+    id: quant
+    attributes:
+      label: Quant or precision
+      placeholder: INT4, MXFP4, Q4_K_XL
+  - type: input
+    id: runtime
+    attributes:
+      label: Runtime/backend
+      placeholder: vLLM/CUDA, llama.cpp/ROCm, oMLX/MLX
+  - type: textarea
+    id: why
+    attributes:
+      label: Why this matters
+      description: Explain the buying decision or comparison this would unlock.
+    validations:
+      required: true
+  - type: textarea
+    id: candidate-sources
+    attributes:
+      label: Candidate sources
+      description: Link public benchmark threads, leaderboards, raw logs, or owners who may be able to run it.

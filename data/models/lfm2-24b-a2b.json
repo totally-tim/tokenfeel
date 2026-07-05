@@ -1,0 +1,9 @@
+{
+  "id": "lfm2-24b-a2b",
+  "name": "LFM2-24B-A2B",
+  "family": "LFM2",
+  "params": "24B",
+  "activeParams": "2B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

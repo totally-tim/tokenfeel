@@ -1,0 +1,9 @@
+{
+  "id": "m2-ultra-60c-192gb",
+  "name": "Apple M2 Ultra (60c) 192GB",
+  "shortName": "M2 Ultra (60c)",
+  "vendor": "Apple",
+  "memory": "192GB unified",
+  "accelerator": "M2 Ultra 60-core GPU",
+  "notes": "Generated from the oMLX community benchmark API import. Source hardware fields: chip=M2, variant=Ultra, gpu_cores=60."
+}

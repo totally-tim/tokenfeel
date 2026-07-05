@@ -1,0 +1,9 @@
+{
+  "id": "qwen3-coder-next",
+  "name": "Qwen3 Coder Next",
+  "family": "Qwen",
+  "params": "30B-class",
+  "activeParams": "MoE",
+  "license": "Model license varies by release",
+  "notes": "Spark Arena seed model for DGX Spark vLLM benchmark rows."
+}

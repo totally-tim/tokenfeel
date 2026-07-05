@@ -1,0 +1,106 @@
+{
+  "id": "m3-10c-24gb__hy-mt1.5-1.8b__bf16__omlx-api",
+  "hardware": "m3-10c-24gb",
+  "model": "hy-mt1.5-1.8b",
+  "quant": "bf16",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.3.2",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 750.1,
+      "tg": 22.1,
+      "ppLabel": "bf16 PP",
+      "tgLabel": "bf16 TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/hie563es",
+        "upstreamId": "hie563es",
+        "createdAt": "2026-04-04T08:28:05Z",
+        "ttftMs": 1365.2,
+        "peakMemoryGb": 3.71
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 753.7,
+      "tg": 19.9,
+      "ppLabel": "bf16 PP",
+      "tgLabel": "bf16 TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/mmj8k7y8",
+        "upstreamId": "mmj8k7y8",
+        "createdAt": "2026-04-04T08:28:06Z",
+        "ttftMs": 5434.3,
+        "peakMemoryGb": 4.05
+      }
+    },
+    {
+      "depth": 8192,
+      "pp": 642.9,
+      "tg": 19.1,
+      "ppLabel": "bf16 PP",
+      "tgLabel": "bf16 TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/6mgwvuwa",
+        "upstreamId": "6mgwvuwa",
+        "createdAt": "2026-04-04T08:28:07Z",
+        "ttftMs": 12742.7,
+        "peakMemoryGb": 4.28
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:04.128Z",
+    "upstreamId": "6mgwvuwa",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "hie563es 2026-04-04T08:28:05Z ctx=1024 pp=750.1 tg=22.1 omlx=0.3.2 os=macOS 26.4 https://omlx.ai/benchmarks/hie563es",
+      "mmj8k7y8 2026-04-04T08:28:06Z ctx=4096 pp=753.7 tg=19.9 omlx=0.3.2 os=macOS 26.4 https://omlx.ai/benchmarks/mmj8k7y8",
+      "6mgwvuwa 2026-04-04T08:28:07Z ctx=8192 pp=642.9 tg=19.1 omlx=0.3.2 os=macOS 26.4 https://omlx.ai/benchmarks/6mgwvuwa"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/hie563es",
+      "https://omlx.ai/benchmarks/mmj8k7y8",
+      "https://omlx.ai/benchmarks/6mgwvuwa"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 3,
+      "selected_depths": 3,
+      "latest_upstream_id": "6mgwvuwa",
+      "latest_created_at": "2026-04-04T08:28:07Z",
+      "selected_omlx_versions": "0.3.2",
+      "selected_os_versions": "macOS 26.4"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.4",
+    "runtimeVersions": {
+      "omlx": "0.3.2"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX HY-MT1.5-1.8B on M3 (10c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/6mgwvuwa",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-04-04",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 3 upstream row(s) were scraped for this hardware/model/quant group; the latest row at each context depth was selected for simulation. Selected depths may span oMLX or macOS versions, and each measurement links to its exact upstream row."
+}

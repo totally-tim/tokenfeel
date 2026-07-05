@@ -1,0 +1,8 @@
+{
+  "id": "jan-code-4b-oq4",
+  "name": "Jan-code-4b-oQ4",
+  "family": "Jan",
+  "params": "4B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

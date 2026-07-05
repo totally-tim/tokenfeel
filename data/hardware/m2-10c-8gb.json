@@ -1,0 +1,9 @@
+{
+  "id": "m2-10c-8gb",
+  "name": "Apple M2 (10c) 8GB",
+  "shortName": "M2 (10c)",
+  "vendor": "Apple",
+  "memory": "8GB unified",
+  "accelerator": "M2 10-core GPU",
+  "notes": "Generated from the oMLX community benchmark API import. Source hardware fields: chip=M2, variant=base, gpu_cores=10."
+}

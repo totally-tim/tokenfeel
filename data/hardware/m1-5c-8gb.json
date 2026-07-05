@@ -1,0 +1,9 @@
+{
+  "id": "m1-5c-8gb",
+  "name": "Apple M1 (5c) 8GB",
+  "shortName": "M1 (5c)",
+  "vendor": "Apple",
+  "memory": "8GB unified",
+  "accelerator": "M1 5-core GPU",
+  "notes": "Generated from the oMLX community benchmark API import. Source hardware fields: chip=M1, variant=base, gpu_cores=5."
+}
