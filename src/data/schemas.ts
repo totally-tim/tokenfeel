@@ -40,6 +40,8 @@ export const measurementSchema = z.object({
   tg: z.number().positive(),
   ppLabel: z.string().optional(),
   tgLabel: z.string().optional(),
+  ppStddev: z.number().nonnegative().optional(),
+  tgStddev: z.number().nonnegative().optional(),
   source: measurementSourceSchema.optional()
 });
 

@@ -24,6 +24,10 @@ const baseEvent: TimelineEvent = {
   withoutCachePrefillTokens: 1100,
   ppRate: 1000,
   tgRate: 50,
+  ppConfidence: "measured",
+  tgConfidence: "measured",
+  prefillRangeMs: { min: 100, max: 100 },
+  decodeRangeMs: { min: 400, max: 400 },
   extrapolated: false
 };
 

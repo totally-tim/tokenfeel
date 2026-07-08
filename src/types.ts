@@ -1,5 +1,25 @@
 export type CacheMode = "runtime" | "on" | "off";
 
+/**
+ * Confidence tier for a rate/time estimate at a given depth, from most to
+ * least trustworthy:
+ * - "measured": an exact submitted benchmark depth.
+ * - "interpolated": strictly between two measured depths.
+ * - "extrapolated-fitted": past the last measured depth, with >= 2
+ *   measurements so a least-squares trend line can be fit and extrapolated
+ *   forward.
+ * - "extrapolated-unsupported": beyond the measured range with no fit
+ *   applied — either only a single submitted measurement exists, or the
+ *   depth is before the first measured point (a trend is never run backward
+ *   across an unmeasured gap, regardless of how many measurements exist
+ *   elsewhere) — only a flat guess either way.
+ */
+export type RateConfidence =
+  | "measured"
+  | "interpolated"
+  | "extrapolated-fitted"
+  | "extrapolated-unsupported";
+
 export type ResultStatus = "community" | "verified" | "flagged" | "illustrative";
 
 export type SourceKind =
@@ -87,6 +107,8 @@ export interface BenchmarkMeasurement {
   tg: number;
   ppLabel?: string;
   tgLabel?: string;
+  ppStddev?: number;
+  tgStddev?: number;
   source?: {
     url: string;
     upstreamId: string;
@@ -188,6 +210,10 @@ export interface TimelineEvent extends ScenarioEvent {
   withoutCachePrefillTokens: number;
   ppRate: number;
   tgRate: number;
+  ppConfidence: RateConfidence;
+  tgConfidence: RateConfidence;
+  prefillRangeMs: { min: number; max: number };
+  decodeRangeMs: { min: number; max: number };
   extrapolated: boolean;
 }
 

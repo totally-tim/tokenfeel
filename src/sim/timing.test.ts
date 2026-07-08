@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   activeEventAt,
   buildTimeline,
-  integrateTimeMs,
-  msPerTokenAt,
+  fitTimePerTokenLinear,
+  integrateTimeRangeMs,
+  msPerTokenRangeAt,
+  rateConfidenceAt,
   summarizeTimeline
 } from "./timing";
 import type { BenchmarkMeasurement, BenchmarkResult, ScenarioScript } from "../types";
@@ -99,44 +101,178 @@ describe("interpolateRate", () => {
   });
 });
 
-describe("msPerTokenAt", () => {
-  it("interpolates linearly in ms/token (not in rate) between measured depths", () => {
+describe("rateConfidenceAt", () => {
+  it("is measured exactly at a submitted depth and interpolated strictly between two", () => {
+    expect(rateConfidenceAt(result.measurements, 0)).toBe("measured");
+    expect(rateConfidenceAt(result.measurements, 10_000)).toBe("measured");
+    expect(rateConfidenceAt(result.measurements, 5000)).toBe("interpolated");
+  });
+
+  it("is extrapolated-fitted beyond the last measured depth when >= 2 measurements exist", () => {
+    expect(rateConfidenceAt(result.measurements, 11_000)).toBe("extrapolated-fitted");
+  });
+
+  it("is extrapolated-unsupported below the first measured depth, even with >= 2 measurements (no backward fit)", () => {
+    expect(rateConfidenceAt(result.measurements, -50)).toBe("extrapolated-unsupported");
+  });
+
+  it("is extrapolated-unsupported beyond a single submitted measurement, on either side", () => {
+    const singlePoint: BenchmarkMeasurement[] = [{ depth: 1000, pp: 1000, tg: 20 }];
+    expect(rateConfidenceAt(singlePoint, 1000)).toBe("measured");
+    expect(rateConfidenceAt(singlePoint, 2000)).toBe("extrapolated-unsupported");
+    expect(rateConfidenceAt(singlePoint, 0)).toBe("extrapolated-unsupported");
+  });
+});
+
+describe("fitTimePerTokenLinear", () => {
+  it("is undefined with fewer than two measurements", () => {
+    expect(fitTimePerTokenLinear([{ depth: 0, pp: 1000, tg: 20 }], "tg")).toBeUndefined();
+  });
+
+  it("fits an exact line through perfectly monotonic degrading data", () => {
+    // ms/token: 10 @ depth 0, 20 @ depth 1000, 30 @ depth 2000 -> exact line
+    // msPerToken(d) = 10 + 0.01 * d (tg = 1000/msPerToken).
+    const monotonic: BenchmarkMeasurement[] = [
+      { depth: 0, pp: 1, tg: 100 },
+      { depth: 1000, pp: 1, tg: 50 },
+      { depth: 2000, pp: 1, tg: 1000 / 30 }
+    ];
+
+    const fit = fitTimePerTokenLinear(monotonic, "tg");
+    expect(fit?.intercept).toBeCloseTo(10);
+    expect(fit?.slope).toBeCloseTo(0.01);
+  });
+
+  it("clamps the slope to 0 (flat at the mean) for reversed/noisy data that would fit negative", () => {
+    // ms/token: 30 @ depth 0, 10 @ depth 1000 -- msPerToken decreasing with
+    // depth, which is physically implausible and must not extrapolate as such.
+    const reversed: BenchmarkMeasurement[] = [
+      { depth: 0, pp: 1, tg: 1000 / 30 },
+      { depth: 1000, pp: 1, tg: 100 }
+    ];
+
+    const fit = fitTimePerTokenLinear(reversed, "tg");
+    expect(fit?.slope).toBe(0);
+    expect(fit?.intercept).toBeCloseTo(20);
+  });
+});
+
+describe("msPerTokenRangeAt", () => {
+  it("interpolates linearly in ms/token (not in rate) between measured depths, with canonical === optimistic", () => {
     // tg: depth 0 -> 20 tok/s (50 ms/token), depth 10000 -> 10 tok/s (100 ms/token).
     // Linear in ms/token gives 75 ms/token at the midpoint, NOT the
     // rate-domain harmonic-mean value that interpolateRate's naive
     // point-sample would otherwise imply.
-    expect(msPerTokenAt(result.measurements, "tg", 5000)).toBeCloseTo(75);
-    expect(msPerTokenAt(result.measurements, "pp", 5000)).toBeCloseTo(1.5);
+    const tg = msPerTokenRangeAt(result.measurements, "tg", 5000);
+    expect(tg.canonicalMs).toBeCloseTo(75);
+    expect(tg.optimisticMs).toBeCloseTo(75);
+    expect(tg.confidence).toBe("interpolated");
+
+    const pp = msPerTokenRangeAt(result.measurements, "pp", 5000);
+    expect(pp.canonicalMs).toBeCloseTo(1.5);
+    expect(pp.optimisticMs).toBeCloseTo(1.5);
   });
 
-  it("flat-clamps beyond the min/max measured depth, identical to interpolateRate today", () => {
-    expect(msPerTokenAt(result.measurements, "tg", -50)).toBeCloseTo(50);
-    expect(msPerTokenAt(result.measurements, "tg", 100_000)).toBeCloseTo(100);
+  it("splits into a fitted canonical estimate and a flat-clamp optimistic bound beyond the last measured depth", () => {
+    // Fitted line for tg ms/token: 50 @ depth 0, 100 @ depth 10000 -> slope 0.005, intercept 50.
+    const beyond = msPerTokenRangeAt(result.measurements, "tg", 100_000);
+    expect(beyond.confidence).toBe("extrapolated-fitted");
+    expect(beyond.optimisticMs).toBeCloseTo(100); // old flat-clamp value, now the best case.
+    expect(beyond.canonicalMs).toBeCloseTo(550); // 50 + 0.005 * 100000, realistic/slower.
+    expect(beyond.canonicalMs).toBeGreaterThan(beyond.optimisticMs);
+  });
+
+  it("holds flat with no range for a single submitted measurement (extrapolated-unsupported)", () => {
+    const singlePoint: BenchmarkMeasurement[] = [{ depth: 1000, pp: 1000, tg: 20 }];
+    const range = msPerTokenRangeAt(singlePoint, "tg", 5000);
+    expect(range.confidence).toBe("extrapolated-unsupported");
+    expect(range.canonicalMs).toBeCloseTo(50);
+    expect(range.optimisticMs).toBeCloseTo(50);
+  });
+
+  it("never lets the canonical estimate undershoot the last measured point for convex (accelerating-degradation) data", () => {
+    // ms/token: 1 @ depth 0, 1 @ depth 1000, 10 @ depth 2000 (convex — most
+    // degradation happens late). The unconstrained global least-squares line
+    // dips to ~8.5 at depth 2000 (below the real 10), which would otherwise
+    // invert the canonical (worse-case) vs. optimistic (flat-clamp) contract
+    // just past the last measured point.
+    const convex: BenchmarkMeasurement[] = [
+      { depth: 0, pp: 1, tg: 1000 },
+      { depth: 1000, pp: 1, tg: 1000 },
+      { depth: 2000, pp: 1, tg: 100 }
+    ];
+
+    const atLast = msPerTokenRangeAt(convex, "tg", 2000);
+    expect(atLast.canonicalMs).toBeCloseTo(10);
+
+    const justBeyond = msPerTokenRangeAt(convex, "tg", 2001);
+    expect(justBeyond.canonicalMs).toBeGreaterThanOrEqual(justBeyond.optimisticMs);
+  });
+
+  it("holds flat with no range before the first measured depth even with >= 2 measurements (no grounded backward trend)", () => {
+    // A steep forward trend (10ms @ depth 9000 -> 1000ms @ depth 10000)
+    // extrapolated backward across the large unmeasured gap to depth 0 would
+    // go deeply negative and floor to 0 if naively applied in reverse.
+    const steep: BenchmarkMeasurement[] = [
+      { depth: 9000, pp: 100, tg: 100 },
+      { depth: 10_000, pp: 1, tg: 100 }
+    ];
+
+    const range = msPerTokenRangeAt(steep, "pp", 0);
+    expect(range.confidence).toBe("extrapolated-unsupported");
+    expect(range.canonicalMs).toBeCloseTo(10);
+    expect(range.optimisticMs).toBeCloseTo(10);
   });
 });
 
-describe("integrateTimeMs", () => {
+describe("integrateTimeRangeMs", () => {
   it("returns 0 for an empty or inverted range", () => {
-    expect(integrateTimeMs(result.measurements, "tg", 100, 100)).toBe(0);
-    expect(integrateTimeMs(result.measurements, "tg", 200, 100)).toBe(0);
+    expect(integrateTimeRangeMs(result.measurements, "tg", 100, 100)).toMatchObject({
+      canonicalMs: 0,
+      optimisticMs: 0
+    });
+    expect(integrateTimeRangeMs(result.measurements, "tg", 200, 100)).toMatchObject({
+      canonicalMs: 0,
+      optimisticMs: 0
+    });
   });
 
-  it("computes the exact trapezoidal integral across a single interior segment", () => {
+  it("computes the exact trapezoidal integral across a single interior segment, with canonical === optimistic", () => {
     // tg ms/token: 50 at depth 0, 100 at depth 10000, linear in between
     // (value(d) = 50 + 0.005 * d).
     // Over [2000, 9000]: value(2000) = 60, value(9000) = 95, avg 77.5 * width 7000 = 542500.
-    expect(integrateTimeMs(result.measurements, "tg", 2000, 9000)).toBeCloseTo(542_500);
+    const range = integrateTimeRangeMs(result.measurements, "tg", 2000, 9000);
+    expect(range.canonicalMs).toBeCloseTo(542_500);
+    expect(range.optimisticMs).toBeCloseTo(542_500);
+    expect(range.confidence).toBe("interpolated");
   });
 
-  it("computes the flat-clamped integral beyond the last measured depth", () => {
-    // Beyond depth 10000, tg is flat-clamped at 100 ms/token.
-    expect(integrateTimeMs(result.measurements, "tg", 10_000, 11_000)).toBeCloseTo(100_000);
+  it("splits beyond the last measured depth into a fitted canonical integral and a flat-clamp optimistic one", () => {
+    // Optimistic: flat 100 ms/token * 1000 width = 100000 (unchanged from Phase 1).
+    // Canonical: closed-form integral of the fitted line (intercept 50, slope 0.005)
+    // over [10000, 11000] = 50*1000 + 0.005*(11000^2-10000^2)/2 = 102500.
+    const range = integrateTimeRangeMs(result.measurements, "tg", 10_000, 11_000);
+    expect(range.optimisticMs).toBeCloseTo(100_000);
+    expect(range.canonicalMs).toBeCloseTo(102_500);
+    expect(range.confidence).toBe("extrapolated-fitted");
   });
 
-  it("splits a range that straddles the flat-clamp boundary and the measured span", () => {
-    // [8000, 12000]: [8000,10000] interior segment (value 90 -> 100, avg 95, width 2000 = 190000)
-    // plus [10000,12000] flat at 100 ms/token (200000). Total 390000.
-    expect(integrateTimeMs(result.measurements, "tg", 8000, 12_000)).toBeCloseTo(390_000);
+  it("splits a range that straddles the fitted-extrapolation boundary and the measured span, reporting the worst confidence", () => {
+    // [8000, 12000]: interior [8000,10000] contributes 190000 to both bounds.
+    // Beyond [10000,12000]: optimistic flat 100*2000=200000; canonical fitted
+    // integral 50*2000 + 0.005*(12000^2-10000^2)/2 = 210000.
+    const range = integrateTimeRangeMs(result.measurements, "tg", 8000, 12_000);
+    expect(range.optimisticMs).toBeCloseTo(390_000);
+    expect(range.canonicalMs).toBeCloseTo(400_000);
+    expect(range.confidence).toBe("extrapolated-fitted");
+  });
+
+  it("reports extrapolated-unsupported and a flat integral on both bounds for a single measurement", () => {
+    const singlePoint: BenchmarkMeasurement[] = [{ depth: 1000, pp: 1000, tg: 20 }];
+    const range = integrateTimeRangeMs(singlePoint, "tg", 1000, 2000);
+    expect(range.canonicalMs).toBeCloseTo(50_000);
+    expect(range.optimisticMs).toBeCloseTo(50_000);
+    expect(range.confidence).toBe("extrapolated-unsupported");
   });
 });
 
@@ -495,6 +631,38 @@ describe("buildTimeline rate integration (Phase 1)", () => {
     expect(timeline.events[1].tgRate).toBeCloseTo(20);
   });
 
+  it("never produces an infinite ppRate when prefilling well before the first measured depth over a steep trend", () => {
+    // Measurements only cover [9000, 10000], with a steep pp degradation
+    // (100 tok/s -> 1 tok/s). Prefilling 100 tokens starting at depth 0 is
+    // entirely below the first measured depth: extrapolating the steep
+    // forward trend backward across that gap used to floor the canonical
+    // integral to 0, sending ppRate = tokens / (0 / 1000) to Infinity.
+    const steepResult: BenchmarkResult = {
+      ...result,
+      measurements: [
+        { depth: 9000, pp: 100, tg: 100 },
+        { depth: 10_000, pp: 1, tg: 100 }
+      ]
+    };
+    const coldStartScenario: ScenarioScript = {
+      ...scenario,
+      systemPromptTokens: 0,
+      events: [{ id: "u1", role: "user", text: "hello", tokens: 100 }]
+    };
+
+    const timeline = buildTimeline({
+      result: steepResult,
+      scenario: coldStartScenario,
+      cacheMode: "off",
+      speed: 1
+    });
+
+    const event = timeline.events[0];
+    expect(event.prefillMs).toBeGreaterThan(0);
+    expect(Number.isFinite(event.ppRate)).toBe(true);
+    expect(event.ppRate).toBeGreaterThan(0);
+  });
+
   it("flags a decode event as extrapolated when it ends past the last measured depth, even if it starts before it", () => {
     const straddlingScenario: ScenarioScript = {
       ...scenario,
@@ -514,5 +682,78 @@ describe("buildTimeline rate integration (Phase 1)", () => {
     expect(event.contextAfter).toBe(11_000);
     expect(event.contextAfter).toBeGreaterThan(result.measurements.at(-1)!.depth);
     expect(event.extrapolated).toBe(true);
+  });
+});
+
+describe("buildTimeline confidence tiers and ranges (Phase 2)", () => {
+  it("threads measured/interpolated confidence and a zero-width range for in-range events", () => {
+    const timeline = buildTimeline({
+      result,
+      scenario,
+      cacheMode: "runtime",
+      speed: 1
+    });
+
+    const firstEvent = timeline.events[0];
+    expect(firstEvent.ppConfidence).toBe("interpolated");
+    expect(firstEvent.extrapolated).toBe(false);
+    expect(firstEvent.prefillRangeMs.min).toBeCloseTo(firstEvent.prefillRangeMs.max);
+    expect(firstEvent.prefillRangeMs.max).toBeCloseTo(firstEvent.prefillMs);
+  });
+
+  it("drives prefillMs/decodeMs from the canonical (not optimistic) estimate and ranges from both bounds beyond the measured depth", () => {
+    // tg: 50 ms/token @ depth 0, 100 ms/token @ depth 10000, linear between.
+    const straddlingScenario: ScenarioScript = {
+      ...scenario,
+      systemPromptTokens: 9000,
+      events: [{ id: "a1", role: "assistant", text: "runs past the last measured depth", tokens: 2000 }]
+    };
+
+    const timeline = buildTimeline({
+      result,
+      scenario: straddlingScenario,
+      cacheMode: "off",
+      speed: 1
+    });
+
+    const event = timeline.events[0];
+    expect(event.tgConfidence).toBe("extrapolated-fitted");
+    expect(event.extrapolated).toBe(true);
+
+    // Interior [9000,10000] contributes 97500 to both bounds (avg(95,100)*1000).
+    // Beyond [10000,11000]: optimistic flat 100*1000=100000; canonical fitted
+    // integral 50*1000 + 0.005*(11000^2-10000^2)/2 = 102500.
+    expect(event.decodeRangeMs.min).toBeCloseTo(197_500);
+    expect(event.decodeRangeMs.max).toBeCloseTo(200_000);
+    // decodeMs (drives playback) uses the canonical, worse-case bound.
+    expect(event.decodeMs).toBeCloseTo(200_000);
+    expect(event.decodeMs).toBeCloseTo(event.decodeRangeMs.max);
+  });
+
+  it("reports extrapolated-unsupported confidence for a single-measurement benchmark result beyond its only point", () => {
+    const singlePointResult: BenchmarkResult = {
+      ...result,
+      measurements: [{ depth: 0, pp: 1000, tg: 20 }]
+    };
+    const singleEventScenario: ScenarioScript = {
+      ...scenario,
+      systemPromptTokens: 0,
+      events: [{ id: "a1", role: "assistant", text: "generate", tokens: 5000 }]
+    };
+
+    const timeline = buildTimeline({
+      result: singlePointResult,
+      scenario: singleEventScenario,
+      cacheMode: "off",
+      speed: 1
+    });
+
+    const event = timeline.events[0];
+    expect(event.tgConfidence).toBe("extrapolated-unsupported");
+    expect(event.extrapolated).toBe(true);
+    // No real basis for a range with only one submitted measurement: both
+    // bounds hold flat at the same value.
+    expect(event.decodeRangeMs.min).toBeCloseTo(event.decodeRangeMs.max);
+    expect(event.decodeMs).toBeCloseTo(event.decodeRangeMs.max);
   });
 });

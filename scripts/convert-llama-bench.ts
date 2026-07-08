@@ -16,6 +16,7 @@ interface RawMetric {
   depth: number;
   tokens?: number;
   value: number;
+  stddev?: number;
   label: string;
   raw: string;
 }
@@ -83,7 +84,7 @@ function inferDepth(label: string, fallback = 0): number {
   return depthMatch ? Number(depthMatch[1]) : fallback;
 }
 
-function metricFromLabel(label: string, value: number, raw: string): RawMetric | undefined {
+function metricFromLabel(label: string, value: number, raw: string, stddev?: number): RawMetric | undefined {
   const metricMatch = label.match(/\b(pp|tg)\s*[-_ ]?(\d+)?/i);
   if (!metricMatch) return undefined;
   return {
@@ -91,6 +92,7 @@ function metricFromLabel(label: string, value: number, raw: string): RawMetric |
     depth: inferDepth(label),
     tokens: metricMatch[2] ? Number(metricMatch[2]) : undefined,
     value,
+    stddev,
     label: metricMatch[0],
     raw
   };
@@ -114,9 +116,16 @@ function parseJsonMetrics(input: unknown): RawMetric[] {
       asNumber(record.tokens_per_second) ??
       asNumber(record.avg_ts) ??
       asNumber(record.value);
+    // llama-bench's own JSON output emits a stddev alongside each avg_ts row
+    // (e.g. `stddev_ts`); other exporters use looser naming, so check a few.
+    const metricStddev =
+      asNumber(record.stddev_ts) ??
+      asNumber(record.ts_stddev) ??
+      asNumber(record.tps_stddev) ??
+      asNumber(record.stddev);
 
-    if (label && metricValue) {
-      const metric = metricFromLabel(label, metricValue, JSON.stringify(record));
+    if (label && metricValue !== undefined) {
+      const metric = metricFromLabel(label, metricValue, JSON.stringify(record), metricStddev);
       if (metric) {
         const depth = asNumber(record.depth) ?? asNumber(record.ctx) ?? inferDepth(label);
         rows.push({ ...metric, depth });
@@ -144,11 +153,30 @@ function parseTextMetrics(text: string): RawMetric[] {
         .filter(Boolean);
       const candidates = cells.length >= 2 ? cells : [line];
       const label = candidates.find((cell) => /\b(pp|tg)\s*[-_ ]?\d*/i.test(cell)) ?? line;
-      const numericCells = candidates
-        .map((cell) => cell.match(/(?:^|\s)(\d+(?:,\d{3})*(?:\.\d+)?)(?:\s*(?:t\/s|tok\/s))?(?:\s|$)/i)?.[1])
-        .filter(Boolean);
-      const value = asNumber(numericCells.at(-1));
-      const metric = value ? metricFromLabel(label, value, line) : undefined;
+
+      // llama-bench's real markdown output emits the value cell as
+      // "<avg> ± <stddev>" (e.g. "3234.20 ± 12.34 t/s"); pull both numbers
+      // from whichever cell carries them rather than only the last bare
+      // number, so submitted stddev survives the text-format conversion.
+      const valueCells = candidates
+        .map((cell) => ({
+          cell,
+          withStddev: cell.match(/(\d+(?:,\d{3})*(?:\.\d+)?)\s*±\s*(\d+(?:,\d{3})*(?:\.\d+)?)/),
+          plain: cell.match(/(?:^|\s)(\d+(?:,\d{3})*(?:\.\d+)?)(?:\s*(?:t\/s|tok\/s))?(?:\s|$)/i)
+        }))
+        .filter((entry) => entry.withStddev || entry.plain);
+      // An "<avg> ± <stddev>" cell is an unambiguous measurement signal, so it
+      // wins over any trailing bare number (e.g. a thread-count or run-count
+      // column after the value cell) even if it isn't the last matching cell.
+      const stddevCells = valueCells.filter((entry) => entry.withStddev);
+      const selectedCell = stddevCells.length > 0 ? stddevCells.at(-1) : valueCells.at(-1);
+
+      const value = selectedCell
+        ? asNumber(selectedCell.withStddev?.[1] ?? selectedCell.plain?.[1])
+        : undefined;
+      const stddev = selectedCell?.withStddev ? asNumber(selectedCell.withStddev[2]) : undefined;
+
+      const metric = value !== undefined ? metricFromLabel(label, value, line, stddev) : undefined;
       return metric ? [metric] : [];
     });
 }
@@ -168,12 +196,13 @@ export function parseLlamaBenchMeasurements(text: string): { measurements: Bench
     item[`${metric.kind}Label` as "ppLabel" | "tgLabel"] = metric.tokens
       ? `${metric.kind}${metric.tokens}${metric.depth ? ` @ d${metric.depth}` : ""}`
       : metric.label;
+    item[`${metric.kind}Stddev` as "ppStddev" | "tgStddev"] = metric.stddev;
     item.rawRows.push(metric.raw);
     byDepth.set(metric.depth, item);
   }
 
   const measurements = [...byDepth.values()]
-    .filter((item): item is BenchmarkMeasurement & { rawRows: string[] } => Boolean(item.pp && item.tg))
+    .filter((item): item is BenchmarkMeasurement & { rawRows: string[] } => item.pp !== undefined && item.tg !== undefined)
     .sort((left, right) => left.depth - right.depth)
     .map(({ rawRows: _rawRows, ...measurement }) => measurement);
 

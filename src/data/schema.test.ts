@@ -166,6 +166,35 @@ describe("catalog schema hardening", () => {
     expect(parsed.results[0].topology?.nodeCount).toBe(2);
   });
 
+  it("accepts optional ppStddev/tgStddev, and validates fine when they're absent", () => {
+    const withStddev = catalogSchema.parse(
+      validCatalogWithResult({
+        measurements: [
+          { depth: 0, pp: 100, tg: 50, ppStddev: 1.2, tgStddev: 0.8 },
+          { depth: 4096, pp: 90, tg: 45 }
+        ]
+      })
+    );
+
+    expect(withStddev.results[0].measurements[0].ppStddev).toBeCloseTo(1.2);
+    expect(withStddev.results[0].measurements[0].tgStddev).toBeCloseTo(0.8);
+    expect(withStddev.results[0].measurements[1].ppStddev).toBeUndefined();
+    expect(withStddev.results[0].measurements[1].tgStddev).toBeUndefined();
+  });
+
+  it("rejects a negative ppStddev/tgStddev", () => {
+    expect(() =>
+      catalogSchema.parse(
+        validCatalogWithResult({
+          measurements: [
+            { depth: 0, pp: 100, tg: 50, ppStddev: -1 },
+            { depth: 4096, pp: 90, tg: 45 }
+          ]
+        })
+      )
+    ).toThrow();
+  });
+
   it("rejects duplicate measurement depths", () => {
     expect(() =>
       catalogSchema.parse(
