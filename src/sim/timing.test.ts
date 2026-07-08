@@ -8,7 +8,7 @@ import {
   rateConfidenceAt,
   summarizeTimeline
 } from "./timing";
-import type { BenchmarkMeasurement, BenchmarkResult, ScenarioScript } from "../types";
+import type { BenchmarkMeasurement, BenchmarkResult, ScenarioEvent, ScenarioScript } from "../types";
 
 /**
  * Pre-Phase-1 baseline: point-samples the rate at a single depth instead of
@@ -324,8 +324,7 @@ describe("buildTimeline", () => {
     const timeline = buildTimeline({
       result: measuredResult,
       scenario: measuredScenario,
-      cacheMode: "off",
-      speed: 1
+      cacheMode: "off"
     });
 
     expect(timeline.events[0].prefillTokens).toBe(1000);
@@ -348,8 +347,7 @@ describe("buildTimeline", () => {
     const timeline = buildTimeline({
       result,
       scenario: generatedScenario,
-      cacheMode: "runtime",
-      speed: 1
+      cacheMode: "runtime"
     });
 
     expect(timeline.events[0]).toMatchObject({
@@ -370,8 +368,7 @@ describe("buildTimeline", () => {
     const timeline = buildTimeline({
       result,
       scenario,
-      cacheMode: "runtime",
-      speed: 1
+      cacheMode: "runtime"
     });
 
     const toolCall = timeline.events[2];
@@ -394,8 +391,7 @@ describe("buildTimeline", () => {
     const timeline = buildTimeline({
       result,
       scenario,
-      cacheMode: "runtime",
-      speed: 1
+      cacheMode: "runtime"
     });
 
     expect(timeline.events).toHaveLength(5);
@@ -434,8 +430,7 @@ describe("buildTimeline", () => {
     const timeline = buildTimeline({
       result,
       scenario: cacheBustScenario,
-      cacheMode: "runtime",
-      speed: 1
+      cacheMode: "runtime"
     });
 
     expect(timeline.events[2]).toMatchObject({
@@ -464,8 +459,7 @@ describe("buildTimeline", () => {
     const timeline = buildTimeline({
       result,
       scenario: toolCallScenario,
-      cacheMode: "runtime",
-      speed: 1
+      cacheMode: "runtime"
     });
 
     expect(summarizeTimeline(timeline).generatedTokens).toBe(20);
@@ -475,20 +469,12 @@ describe("buildTimeline", () => {
     const timeline = buildTimeline({
       result,
       scenario,
-      cacheMode: "runtime",
-      speed: 1
+      cacheMode: "runtime"
     });
 
     expect(activeEventAt(timeline, timeline.events[0].endMs).id).toBe(timeline.events[1].id);
   });
 
-  it("keeps timeline timestamps canonical regardless of playback speed", () => {
-    const normal = buildTimeline({ result, scenario, cacheMode: "runtime", speed: 1 });
-    const fast = buildTimeline({ result, scenario, cacheMode: "runtime", speed: 8 });
-
-    expect(fast.totalMs).toBeCloseTo(normal.totalMs);
-    expect(fast.events.map((event) => event.endMs)).toEqual(normal.events.map((event) => event.endMs));
-  });
 });
 
 describe("buildTimeline rate integration (Phase 1)", () => {
@@ -503,8 +489,7 @@ describe("buildTimeline rate integration (Phase 1)", () => {
     const timeline = buildTimeline({
       result,
       scenario: longDecodeScenario,
-      cacheMode: "off",
-      speed: 1
+      cacheMode: "off"
     });
 
     const event = timeline.events[0];
@@ -541,8 +526,7 @@ describe("buildTimeline rate integration (Phase 1)", () => {
     const timeline = buildTimeline({
       result,
       scenario: cacheBustScenario,
-      cacheMode: "runtime",
-      speed: 1
+      cacheMode: "runtime"
     });
 
     const bustEvent = timeline.events[1];
@@ -580,8 +564,7 @@ describe("buildTimeline rate integration (Phase 1)", () => {
     const timeline = buildTimeline({
       result: measuredResult,
       scenario: coldScenario,
-      cacheMode: "off",
-      speed: 1
+      cacheMode: "off"
     });
 
     const event = timeline.events[0];
@@ -612,8 +595,7 @@ describe("buildTimeline rate integration (Phase 1)", () => {
     const timeline = buildTimeline({
       result: measuredResult,
       scenario: coldScenario,
-      cacheMode: "off",
-      speed: 1
+      cacheMode: "off"
     });
 
     const event = timeline.events[0];
@@ -641,8 +623,7 @@ describe("buildTimeline rate integration (Phase 1)", () => {
     const timeline = buildTimeline({
       result,
       scenario: instantScenario,
-      cacheMode: "off",
-      speed: 1
+      cacheMode: "off"
     });
 
     for (const event of timeline.events) {
@@ -682,8 +663,7 @@ describe("buildTimeline rate integration (Phase 1)", () => {
     const timeline = buildTimeline({
       result: steepResult,
       scenario: coldStartScenario,
-      cacheMode: "off",
-      speed: 1
+      cacheMode: "off"
     });
 
     const event = timeline.events[0];
@@ -702,8 +682,7 @@ describe("buildTimeline rate integration (Phase 1)", () => {
     const timeline = buildTimeline({
       result,
       scenario: straddlingScenario,
-      cacheMode: "off",
-      speed: 1
+      cacheMode: "off"
     });
 
     const event = timeline.events[0];
@@ -719,8 +698,7 @@ describe("buildTimeline confidence tiers and ranges (Phase 2)", () => {
     const timeline = buildTimeline({
       result,
       scenario,
-      cacheMode: "runtime",
-      speed: 1
+      cacheMode: "runtime"
     });
 
     const firstEvent = timeline.events[0];
@@ -741,8 +719,7 @@ describe("buildTimeline confidence tiers and ranges (Phase 2)", () => {
     const timeline = buildTimeline({
       result,
       scenario: straddlingScenario,
-      cacheMode: "off",
-      speed: 1
+      cacheMode: "off"
     });
 
     const event = timeline.events[0];
@@ -773,8 +750,7 @@ describe("buildTimeline confidence tiers and ranges (Phase 2)", () => {
     const timeline = buildTimeline({
       result: singlePointResult,
       scenario: singleEventScenario,
-      cacheMode: "off",
-      speed: 1
+      cacheMode: "off"
     });
 
     const event = timeline.events[0];
@@ -792,8 +768,7 @@ describe("summarizeTimeline wall-time range and non-measured share (Phase 3)", (
     const timeline = buildTimeline({
       result,
       scenario,
-      cacheMode: "runtime",
-      speed: 1
+      cacheMode: "runtime"
     });
 
     const summary = summarizeTimeline(timeline);
@@ -821,8 +796,7 @@ describe("summarizeTimeline wall-time range and non-measured share (Phase 3)", (
     const timeline = buildTimeline({
       result,
       scenario: straddlingScenario,
-      cacheMode: "off",
-      speed: 1
+      cacheMode: "off"
     });
 
     const summary = summarizeTimeline(timeline);
@@ -852,10 +826,10 @@ describe("summarizeTimeline wall-time range and non-measured share (Phase 3)", (
     ];
     const resultWithStddev: BenchmarkResult = { ...result, measurements: measurementsWithStddev };
 
-    const plainTimeline = buildTimeline({ result, scenario, cacheMode: "runtime", speed: 1 });
+    const plainTimeline = buildTimeline({ result, scenario, cacheMode: "runtime" });
     const plainSummary = summarizeTimeline(plainTimeline);
 
-    const stddevTimeline = buildTimeline({ result: resultWithStddev, scenario, cacheMode: "runtime", speed: 1 });
+    const stddevTimeline = buildTimeline({ result: resultWithStddev, scenario, cacheMode: "runtime" });
     const stddevSummary = summarizeTimeline(stddevTimeline);
 
     // Entirely within the measured range (as asserted by the no-uncertainty
@@ -866,5 +840,336 @@ describe("summarizeTimeline wall-time range and non-measured share (Phase 3)", (
     expect(stddevSummary.wallTimeMs).toBeCloseTo(plainSummary.wallTimeMs);
     expect(stddevSummary.wallTimeRangeMs.min).toBeLessThan(stddevSummary.wallTimeMs);
     expect(stddevSummary.wallTimeRangeMs.max).toBeGreaterThan(stddevSummary.wallTimeMs);
+  });
+});
+
+describe("buildTimeline cache_bust marker events (T1)", () => {
+  it("treats a valid zero-token standalone cache_bust event as a pure no-op", () => {
+    const withoutMarker: ScenarioScript = {
+      ...scenario,
+      systemPromptTokens: 1000,
+      events: [
+        { id: "u1", role: "user", text: "Start.", tokens: 200 },
+        { id: "a1", role: "assistant", text: "Reply.", tokens: 60 }
+      ]
+    };
+    const withMarker: ScenarioScript = {
+      ...scenario,
+      systemPromptTokens: 1000,
+      events: [
+        { id: "u1", role: "user", text: "Start.", tokens: 200 },
+        { id: "marker", role: "cache_bust", text: "cache invalidated here", tokens: 0 },
+        { id: "a1", role: "assistant", text: "Reply.", tokens: 60 }
+      ]
+    };
+
+    const baseline = buildTimeline({ result, scenario: withoutMarker, cacheMode: "runtime" });
+    const withMarkerTimeline = buildTimeline({ result, scenario: withMarker, cacheMode: "runtime" });
+
+    const markerEvent = withMarkerTimeline.events[1];
+    expect(markerEvent.role).toBe("cache_bust");
+    expect(markerEvent.contextBefore).toBe(markerEvent.contextAfter);
+    expect(markerEvent.prefillTokens).toBe(0);
+    expect(markerEvent.prefillMs).toBe(0);
+    expect(markerEvent.decodeMs).toBe(0);
+    expect(markerEvent.phase).toBe("instant");
+
+    // Inserting the marker changes nothing about the surrounding timeline:
+    // the final assistant event's context/timing is identical either way.
+    const baselineFinal = baseline.events.at(-1)!;
+    const markedFinal = withMarkerTimeline.events.at(-1)!;
+    expect(markedFinal.contextBefore).toBe(baselineFinal.contextBefore);
+    expect(markedFinal.contextAfter).toBe(baselineFinal.contextAfter);
+    expect(markedFinal.decodeMs).toBeCloseTo(baselineFinal.decodeMs);
+    expect(withMarkerTimeline.totalMs).toBeCloseTo(baseline.totalMs);
+  });
+
+  it("never inflates contextDepth/cachedPrefixTokens even for a malformed cache_bust event that bypasses schema validation with nonzero tokens (old bug proof)", () => {
+    // scenarioEventSchema now rejects this at the data layer (see the schema
+    // test below); this proves buildTimeline itself no longer trusts a
+    // standalone cache_bust event's token count even if one slips through.
+    const malformedScenario: ScenarioScript = {
+      ...scenario,
+      systemPromptTokens: 1000,
+      events: [
+        { id: "u1", role: "user", text: "Start.", tokens: 200 },
+        { id: "marker", role: "cache_bust", text: "should be a no-op", tokens: 5000 },
+        { id: "a1", role: "assistant", text: "Reply.", tokens: 60 }
+      ]
+    };
+    const noopEquivalentScenario: ScenarioScript = {
+      ...scenario,
+      systemPromptTokens: 1000,
+      events: [
+        { id: "u1", role: "user", text: "Start.", tokens: 200 },
+        { id: "marker", role: "cache_bust", text: "should be a no-op", tokens: 0 },
+        { id: "a1", role: "assistant", text: "Reply.", tokens: 60 }
+      ]
+    };
+
+    const malformed = buildTimeline({ result, scenario: malformedScenario, cacheMode: "runtime" });
+    const noopEquivalent = buildTimeline({ result, scenario: noopEquivalentScenario, cacheMode: "runtime" });
+
+    const markerEvent = malformed.events[1];
+    // The old bug: contextDepth += event.tokens unconditionally, so a
+    // nonzero-token cache_bust event would inflate context depth by 5000
+    // while contributing zero prefill/decode cost. Confirm that no longer
+    // happens: the marker's own tokens never reach contextDepth.
+    expect(markerEvent.contextAfter).toBe(markerEvent.contextBefore);
+    expect(markerEvent.prefillMs).toBe(0);
+    expect(markerEvent.decodeMs).toBe(0);
+
+    // The malformed (nonzero-token) event produces the exact same
+    // context-depth/timing effect as its zero-token no-op equivalent.
+    expect(malformed.events.at(-1)!.contextAfter).toBe(noopEquivalent.events.at(-1)!.contextAfter);
+    expect(malformed.totalMs).toBeCloseTo(noopEquivalent.totalMs);
+  });
+
+  it("never adds wall-clock time for a malformed cache_bust event that bypasses schema validation with nonzero toolLatencyMs", () => {
+    const malformedScenario: ScenarioScript = {
+      ...scenario,
+      systemPromptTokens: 1000,
+      events: [
+        { id: "u1", role: "user", text: "Start.", tokens: 200 },
+        { id: "marker", role: "cache_bust", text: "should be a no-op", tokens: 0, toolLatencyMs: 5000 },
+        { id: "a1", role: "assistant", text: "Reply.", tokens: 60 }
+      ]
+    };
+    const noopEquivalentScenario: ScenarioScript = {
+      ...scenario,
+      systemPromptTokens: 1000,
+      events: [
+        { id: "u1", role: "user", text: "Start.", tokens: 200 },
+        { id: "marker", role: "cache_bust", text: "should be a no-op", tokens: 0 },
+        { id: "a1", role: "assistant", text: "Reply.", tokens: 60 }
+      ]
+    };
+
+    const malformed = buildTimeline({ result, scenario: malformedScenario, cacheMode: "runtime" });
+    const noopEquivalent = buildTimeline({ result, scenario: noopEquivalentScenario, cacheMode: "runtime" });
+
+    const markerEvent = malformed.events[1];
+    expect(markerEvent.toolLatencyMs).toBe(0);
+    expect(markerEvent.phase).toBe("instant");
+    expect(malformed.totalMs).toBeCloseTo(noopEquivalent.totalMs);
+  });
+
+  it("never reports a bogus cachedPrefixTokens for a malformed cache_bust event that bypasses schema validation with a cacheBust property", () => {
+    const malformedScenario: ScenarioScript = {
+      ...scenario,
+      systemPromptTokens: 1000,
+      events: [
+        { id: "u1", role: "user", text: "Start.", tokens: 200 },
+        {
+          id: "marker",
+          role: "cache_bust",
+          text: "should be a no-op",
+          tokens: 0,
+          cacheBust: { retainedPrefixTokens: 999999 }
+        } as ScenarioEvent,
+        { id: "a1", role: "assistant", text: "Reply.", tokens: 60 }
+      ]
+    };
+    const noopEquivalentScenario: ScenarioScript = {
+      ...scenario,
+      systemPromptTokens: 1000,
+      events: [
+        { id: "u1", role: "user", text: "Start.", tokens: 200 },
+        { id: "marker", role: "cache_bust", text: "should be a no-op", tokens: 0 },
+        { id: "a1", role: "assistant", text: "Reply.", tokens: 60 }
+      ]
+    };
+
+    const malformed = buildTimeline({ result, scenario: malformedScenario, cacheMode: "runtime" });
+    const noopEquivalent = buildTimeline({ result, scenario: noopEquivalentScenario, cacheMode: "runtime" });
+
+    const markerEvent = malformed.events[1];
+    expect(markerEvent.cachedPrefixTokens).toBe(noopEquivalent.events[1].cachedPrefixTokens);
+    expect(malformed.totalMs).toBeCloseTo(noopEquivalent.totalMs);
+  });
+});
+
+describe("TTFT depth-convention normalization (T3)", () => {
+  it("looks up TTFT directly by measurement.depth when benchmark.ppTokens is absent (oMLX convention)", () => {
+    // oMLX imports never set benchmark.ppTokens: measurement.depth already
+    // is the full prompt length the ttftMs reading was taken at, so the
+    // lookup must use it unshifted.
+    const omlxStyleResult: BenchmarkResult = {
+      ...result,
+      measurements: [
+        { depth: 0, pp: 1000, tg: 20, source: { url: "https://example.com/d0", upstreamId: "0", ttftMs: 0 } },
+        { depth: 2000, pp: 1000, tg: 20, source: { url: "https://example.com/d2000", upstreamId: "2000", ttftMs: 6000 } }
+      ]
+    };
+    const scenarioAt800: ScenarioScript = {
+      ...scenario,
+      systemPromptTokens: 0,
+      events: [{ id: "u1", role: "user", text: "hello", tokens: 800 }]
+    };
+
+    const timeline = buildTimeline({ result: omlxStyleResult, scenario: scenarioAt800, cacheMode: "off" });
+    const event = timeline.events[0];
+
+    // Linear interpolation between (0, 0ms) and (2000, 6000ms) at depth 800
+    // is 2400ms. pp is flat 1ms/token across [0, 2000] so the full pp
+    // integral over [0, 800] is exactly 800ms, making impliedOverheadMs
+    // 1600ms and reproducing this interpolated value exactly.
+    expect(event.prefillMs).toBeCloseTo(2400);
+    expect(event.ttftMs).toBeCloseTo(2400);
+  });
+
+  it("shifts measurement.depth forward by benchmark.ppTokens before interpolating TTFT (llama-benchy convention)", () => {
+    // llama-benchy-style sweeps report `depth` as the context ALREADY
+    // present before the pp-test's own chunk, with ttftMs measured for
+    // `depth + ppTokens` total tokens -- the same convention
+    // ttftMismatchesPromptRate in catalogQuality.ts already checks for.
+    const llamaBenchyStyleResult: BenchmarkResult = {
+      ...result,
+      benchmark: { ppTokens: 1000 },
+      measurements: [
+        { depth: 0, pp: 1000, tg: 20, source: { url: "https://example.com/d0", upstreamId: "0", ttftMs: 500 } },
+        { depth: 1000, pp: 1000, tg: 20, source: { url: "https://example.com/d1000", upstreamId: "1000", ttftMs: 1500 } }
+      ]
+    };
+    // Total prompt tokens actually processed: 1500, which sits at effective
+    // depth 1500 on the (depth + ppTokens) axis -- halfway between the
+    // shifted points at 1000 (ttft 500ms) and 2000 (ttft 1500ms).
+    const scenarioAt1500: ScenarioScript = {
+      ...scenario,
+      systemPromptTokens: 0,
+      events: [{ id: "u1", role: "user", text: "hello", tokens: 1500 }]
+    };
+
+    const timeline = buildTimeline({ result: llamaBenchyStyleResult, scenario: scenarioAt1500, cacheMode: "off" });
+    const event = timeline.events[0];
+
+    // Correctly normalized: interpolates to 1000ms (halfway between 500ms
+    // and 1500ms on the shifted axis), reproduced exactly since the pp
+    // curve is flat at 1ms/token across the whole span.
+    expect(event.prefillMs).toBeCloseTo(1000);
+    expect(event.ttftMs).toBeCloseTo(1000);
+
+    // The old (unnormalized) behavior would have looked up depth 1500
+    // directly against the raw (unshifted) measurement depths [0, 1000],
+    // fallen past the last one, and flat-clamped to the last raw ttftMs
+    // (1500ms) instead -- a materially different, wrong answer.
+    expect(event.prefillMs).not.toBeCloseTo(1500);
+  });
+});
+
+describe("buildTimeline additional coverage (audit item 4)", () => {
+  it("asserts the extrapolated flag directly: false when both rates are measured/interpolated, true when only one is extrapolated", () => {
+    const withinRange = buildTimeline({ result, scenario, cacheMode: "runtime" });
+    expect(withinRange.events.every((event) => event.extrapolated === false)).toBe(true);
+
+    // ppConfidence stays interpolated (contextBefore/withoutCachePrefillTokens
+    // both within [0, 10000]) while tgConfidence for the same event is never
+    // evaluated (it's a prefill-only user event), so use a mixed scenario:
+    // a decode event whose start is within range but whose end straddles
+    // past the last measured depth -- tgConfidence becomes extrapolated
+    // while nothing else in the timeline is.
+    const mixedScenario: ScenarioScript = {
+      ...scenario,
+      systemPromptTokens: 9500,
+      events: [{ id: "a1", role: "assistant", text: "straddles the boundary", tokens: 1000 }]
+    };
+    const mixed = buildTimeline({ result, scenario: mixedScenario, cacheMode: "off" });
+    const mixedEvent = mixed.events[0];
+    expect(mixedEvent.ppConfidence).not.toBe("extrapolated-fitted");
+    expect(mixedEvent.ppConfidence).not.toBe("extrapolated-unsupported");
+    expect(mixedEvent.tgConfidence).toBe("extrapolated-fitted");
+    expect(mixedEvent.extrapolated).toBe(true);
+  });
+
+  it("interpolates linearly between two measured TTFT points at a non-endpoint depth", () => {
+    const measuredResult: BenchmarkResult = {
+      ...result,
+      measurements: [
+        { depth: 0, pp: 1000, tg: 20, source: { url: "https://example.com/d0", upstreamId: "0", ttftMs: 0 } },
+        { depth: 2000, pp: 1000, tg: 20, source: { url: "https://example.com/d2000", upstreamId: "2000", ttftMs: 6000 } }
+      ]
+    };
+    const scenarioAt800: ScenarioScript = {
+      ...scenario,
+      systemPromptTokens: 0,
+      events: [{ id: "u1", role: "user", text: "hello", tokens: 800 }]
+    };
+
+    const timeline = buildTimeline({ result: measuredResult, scenario: scenarioAt800, cacheMode: "off" });
+    const event = timeline.events[0];
+
+    // depth 800 is 40% of the way from 0 to 2000: 0 + (6000 - 0) * 0.4 = 2400ms.
+    // Not the midpoint average (3000ms) of the two endpoints, proving the
+    // lookup is a proper depth-proportional linear interpolation.
+    expect(event.ttftMs).toBeCloseTo(2400);
+    expect(event.ttftMs).not.toBeCloseTo(3000);
+  });
+
+  it("exercises cacheMode 'on', which forces caching even when the result's own runtime does not report a prefix cache", () => {
+    const noCacheRuntimeResult: BenchmarkResult = {
+      ...result,
+      runtime: { ...result.runtime, cache: "none" }
+    };
+
+    const runtimeMode = buildTimeline({ result: noCacheRuntimeResult, scenario, cacheMode: "runtime" });
+    const onMode = buildTimeline({ result: noCacheRuntimeResult, scenario, cacheMode: "on" });
+
+    // cacheMode "runtime" respects the result's own (non-prefix) cache
+    // setting, so every user/tool_result event repays the full prefix.
+    expect(runtimeMode.events[1].role).toBe("assistant");
+    const toolResultRuntime = runtimeMode.events[3];
+    expect(toolResultRuntime.role).toBe("tool_result");
+    expect(toolResultRuntime.prefillTokens).toBe(toolResultRuntime.withoutCachePrefillTokens);
+
+    // cacheMode "on" overrides that and caches regardless, so the same
+    // tool_result event only repays its cache-busted-and-beyond remainder.
+    const toolResultOn = onMode.events[3];
+    expect(toolResultOn.role).toBe("tool_result");
+    expect(toolResultOn.prefillTokens).toBeLessThan(toolResultOn.withoutCachePrefillTokens);
+    expect(toolResultOn.prefillTokens).toBe(1390);
+  });
+
+  it("runs a single-measurement result end-to-end through buildTimeline and summarizeTimeline without NaN, throw, or a broken pipeline", () => {
+    const singlePointResult: BenchmarkResult = {
+      ...result,
+      measurements: [{ depth: 1000, pp: 800, tg: 25 }]
+    };
+    const smallScenario: ScenarioScript = {
+      ...scenario,
+      systemPromptTokens: 500,
+      events: [
+        { id: "u1", role: "user", text: "Hello there.", tokens: 300 },
+        { id: "a1", role: "assistant", text: "Hi! How can I help?", tokens: 40 }
+      ]
+    };
+
+    const timeline = buildTimeline({ result: singlePointResult, scenario: smallScenario, cacheMode: "runtime" });
+    const summary = summarizeTimeline(timeline);
+
+    expect(timeline.events).toHaveLength(2);
+    for (const event of timeline.events) {
+      expect(Number.isFinite(event.ppRate)).toBe(true);
+      expect(Number.isFinite(event.tgRate)).toBe(true);
+      expect(Number.isNaN(event.prefillMs)).toBe(false);
+      expect(Number.isNaN(event.decodeMs)).toBe(false);
+    }
+
+    expect(timeline.events[0].ppConfidence).toBe("extrapolated-unsupported");
+    expect(timeline.events[1].tgConfidence).toBe("extrapolated-unsupported");
+    expect(summary.wallTimeMs).toBeGreaterThan(0);
+    expect(Number.isFinite(summary.wallTimeMs)).toBe(true);
+    expect(summary.extrapolatedEvents).toBe(2);
+    expect(summary.totalTokens).toBe(840);
+  });
+
+  it("returns the final event when activeEventAt is called with elapsedMs past totalMs, instead of throwing or returning undefined", () => {
+    const timeline = buildTimeline({ result, scenario, cacheMode: "runtime" });
+
+    const farPastEnd = activeEventAt(timeline, timeline.totalMs + 1_000_000);
+    expect(farPastEnd).toBeDefined();
+    expect(farPastEnd.id).toBe(timeline.events.at(-1)!.id);
+
+    // Also exactly at totalMs (the final event's own endMs boundary).
+    expect(activeEventAt(timeline, timeline.totalMs).id).toBe(timeline.events.at(-1)!.id);
   });
 });

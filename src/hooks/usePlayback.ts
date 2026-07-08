@@ -12,7 +12,7 @@ interface UsePlaybackInput {
 
 export function usePlayback({ result, scenario, cacheMode, speed, autoStart = false }: UsePlaybackInput) {
   const timeline = useMemo(
-    () => buildTimeline({ result, scenario, cacheMode, speed }),
+    () => buildTimeline({ result, scenario, cacheMode }),
     [result, scenario, cacheMode]
   );
   const summary = useMemo(() => summarizeTimeline(timeline), [timeline]);

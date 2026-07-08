@@ -440,38 +440,60 @@ function buildDecodeCumulativeMs(
   return cumulative;
 }
 
-function interpolateTtftMs(measurements: BenchmarkMeasurement[], depth: number): number | undefined {
+/**
+ * Interpolates measured TTFT at `depth`, where `depth` is expressed in the
+ * SAME convention as `measurement.depth + ttftDepthOffset` -- see
+ * `ttftDepthOffset`'s doc comment on the two conventions this normalizes
+ * between. `ttftDepthOffset` shifts every measurement's depth onto the
+ * "total prompt tokens actually processed for that TTFT reading" axis before
+ * sorting/interpolating, so the lookup key (`depth`, always expressed as a
+ * total-prompt-tokens count by callers) lines up with the measurements
+ * regardless of which convention the source used.
+ */
+function interpolateTtftMs(
+  measurements: BenchmarkMeasurement[],
+  depth: number,
+  ttftDepthOffset: number
+): number | undefined {
   const points = measurements
     .filter((measurement) => typeof measurement.source?.ttftMs === "number")
-    .sort((a, b) => a.depth - b.depth);
+    .map((measurement) => ({ effectiveDepth: measurement.depth + ttftDepthOffset, ttftMs: measurement.source!.ttftMs! }))
+    .sort((a, b) => a.effectiveDepth - b.effectiveDepth);
 
   if (points.length === 0) return undefined;
-  if (depth <= points[0].depth) return points[0].source?.ttftMs;
+  if (depth <= points[0].effectiveDepth) return points[0].ttftMs;
 
   const last = points[points.length - 1];
-  if (depth >= last.depth) return last.source?.ttftMs;
+  if (depth >= last.effectiveDepth) return last.ttftMs;
 
   for (let index = 0; index < points.length - 1; index += 1) {
     const left = points[index];
     const right = points[index + 1];
-    if (depth >= left.depth && depth <= right.depth) {
-      const leftTtft = left.source?.ttftMs;
-      const rightTtft = right.source?.ttftMs;
-      if (leftTtft === undefined || rightTtft === undefined) return undefined;
-      const span = right.depth - left.depth;
-      const progress = span === 0 ? 0 : (depth - left.depth) / span;
-      return leftTtft + (rightTtft - leftTtft) * progress;
+    if (depth >= left.effectiveDepth && depth <= right.effectiveDepth) {
+      const span = right.effectiveDepth - left.effectiveDepth;
+      const progress = span === 0 ? 0 : (depth - left.effectiveDepth) / span;
+      return left.ttftMs + (right.ttftMs - left.ttftMs) * progress;
     }
   }
 
-  return last.source?.ttftMs;
+  return last.ttftMs;
 }
 
 export function buildTimeline(input: TimelineInput): Timeline {
-  const { result, scenario, speed } = input;
+  const { result, scenario } = input;
   const cacheEnabled =
     input.cacheMode === "on" || (input.cacheMode === "runtime" && result.runtime.cache === "prefix");
   const overheadMs = result.overheadMs ?? DEFAULT_OVERHEAD_MS;
+  // Depth-axis normalization for TTFT lookups (T3): oMLX imports set
+  // `measurement.depth` to the full prompt length the TTFT reading was taken
+  // at, so no offset is needed. llama-bench/llama-benchy-style sweeps instead
+  // report `depth` as the context ALREADY present before the pp-test's own
+  // chunk, with TTFT measured for `depth + ppTokens` total tokens (mirroring
+  // the two conventions `ttftMismatchesPromptRate` in catalogQuality.ts
+  // already checks). `benchmark.ppTokens` is the signal that distinguishes
+  // them: unset (oMLX) means depth already is the total, set means depth
+  // must be shifted forward by that chunk size to reach the true total.
+  const ttftDepthOffset = result.benchmark?.ppTokens ?? 0;
   let cursorMs = 0;
   let contextDepth = scenario.systemPromptTokens;
   let cachedPrefixTokens = 0;
@@ -482,8 +504,17 @@ export function buildTimeline(input: TimelineInput): Timeline {
       event.role === "user" || event.role === "tool_result";
     const shouldDecode =
       event.role === "assistant" || event.role === "thinking" || event.role === "tool_call";
+    // "cache_bust" is a zero-content, zero-duration marker role (see
+    // ScenarioRole in types.ts): a standalone event using it must never
+    // advance context depth or add wall-clock time. The schema rejects
+    // nonzero tokens/toolLatencyMs (and any cacheBust property at all) on
+    // it, but this is enforced again here defensively so a malformed event
+    // can never silently inflate contextDepth/cachedPrefixTokens or add
+    // tool latency for zero timing cost (T1).
+    const isCacheBustMarker = event.role === "cache_bust";
+    const contextTokens = isCacheBustMarker ? 0 : event.tokens;
     const withoutCachePrefillTokens = shouldPrefill ? contextBefore + event.tokens : 0;
-    const cacheBustPrefix = event.cacheBust?.retainedPrefixTokens;
+    const cacheBustPrefix = isCacheBustMarker ? undefined : event.cacheBust?.retainedPrefixTokens;
     const effectiveCachedPrefix = cacheEnabled
       ? Math.min(cacheBustPrefix ?? cachedPrefixTokens, contextBefore)
       : 0;
@@ -509,7 +540,7 @@ export function buildTimeline(input: TimelineInput): Timeline {
       prefillStddevMs = prefillRange.stddevMs;
       ppConfidence = prefillRange.confidence;
 
-      const measuredTtftMs = interpolateTtftMs(result.measurements, withoutCachePrefillTokens);
+      const measuredTtftMs = interpolateTtftMs(result.measurements, withoutCachePrefillTokens, ttftDepthOffset);
       if (measuredTtftMs !== undefined) {
         const fullPrefillRange = integrateTimeRangeMs(
           result.measurements,
@@ -596,14 +627,14 @@ export function buildTimeline(input: TimelineInput): Timeline {
       max: Math.max(decodeOptimisticMs, decodeMs) + decodeStddevMs
     };
 
-    const toolLatencyMs = event.toolLatencyMs ?? 0;
+    const toolLatencyMs = isCacheBustMarker ? 0 : event.toolLatencyMs ?? 0;
     const startMs = cursorMs;
     const toolDoneMs = startMs + toolLatencyMs;
     const prefillDoneMs = toolDoneMs + prefillMs;
     const endMs = prefillDoneMs + decodeMs;
     const ttftMs = toolLatencyMs + prefillMs;
 
-    contextDepth += event.tokens;
+    contextDepth += contextTokens;
     cachedPrefixTokens = cacheEnabled ? contextDepth : 0;
 
     cursorMs = endMs;
@@ -651,7 +682,6 @@ export function buildTimeline(input: TimelineInput): Timeline {
     result,
     scenario,
     cacheMode: input.cacheMode,
-    speed,
     events,
     totalMs: cursorMs
   };

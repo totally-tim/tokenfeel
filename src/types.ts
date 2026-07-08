@@ -147,6 +147,15 @@ export interface BenchmarkResult {
 
 export type ScenarioType = "chatbot" | "agent" | "reasoning" | "rag";
 
+/**
+ * "cache_bust" is a zero-content, zero-duration marker role: a standalone
+ * event using it must carry `tokens === 0` and no `toolLatencyMs`/`cacheBust`
+ * (enforced by `scenarioEventSchema`) and never prefills, decodes, advances
+ * context depth, or adds wall-clock time in `buildTimeline` -- it exists
+ * purely to annotate a point in the scenario timeline. To model an actual
+ * partial cache invalidation with real content, set the `cacheBust` property
+ * on a normal "user"/"tool_result" event instead.
+ */
 export type ScenarioRole =
   | "user"
   | "assistant"
@@ -189,7 +198,6 @@ export interface TimelineInput {
   result: BenchmarkResult;
   scenario: ScenarioScript;
   cacheMode: CacheMode;
-  speed: number;
 }
 
 export interface TimelineEvent extends ScenarioEvent {
@@ -229,7 +237,6 @@ export interface Timeline {
   result: BenchmarkResult;
   scenario: ScenarioScript;
   cacheMode: CacheMode;
-  speed: number;
   events: TimelineEvent[];
   totalMs: number;
 }

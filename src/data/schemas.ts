@@ -161,19 +161,53 @@ export const researchItemSchema = z.object({
 
 export const researchItemsSchema = z.array(researchItemSchema);
 
-export const scenarioEventSchema = z.object({
-  id: idSchema,
-  role: z.enum(["user", "assistant", "tool_call", "tool_result", "thinking", "cache_bust"]),
-  text: z.string(),
-  tokens: z.number().int().nonnegative(),
-  toolLatencyMs: z.number().nonnegative().optional(),
-  cacheBust: z
-    .object({
-      retainedPrefixTokens: z.number().int().nonnegative(),
-      reason: z.string().optional()
-    })
-    .optional()
-});
+export const scenarioEventSchema = z
+  .object({
+    id: idSchema,
+    role: z.enum(["user", "assistant", "tool_call", "tool_result", "thinking", "cache_bust"]),
+    text: z.string(),
+    tokens: z.number().int().nonnegative(),
+    toolLatencyMs: z.number().nonnegative().optional(),
+    cacheBust: z
+      .object({
+        retainedPrefixTokens: z.number().int().nonnegative(),
+        reason: z.string().optional()
+      })
+      .optional()
+  })
+  .superRefine((event, ctx) => {
+    // A standalone "cache_bust"-role event is a zero-content, zero-duration
+    // marker (see ScenarioRole in types.ts) -- it never prefills, decodes,
+    // or adds tool latency, so nonzero tokens/toolLatencyMs would silently
+    // inflate contextDepth/cachedPrefixTokens or wall-clock time in
+    // buildTimeline for what must be zero timing cost. Its own `cacheBust`
+    // property is also meaningless: buildTimeline never applies it for this
+    // role, since only "user"/"tool_result" events prefill. Model an actual
+    // partial cache invalidation with real content via the `cacheBust`
+    // property on a "user"/"tool_result" event instead.
+    if (event.role !== "cache_bust") return;
+    if (event.tokens !== 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Event "${event.id}" has role "cache_bust" but nonzero tokens (${event.tokens}) -- a standalone cache_bust-role event must be a zero-token marker; use the cacheBust property on a user/tool_result event to model a partial cache invalidation with real content`,
+        path: ["tokens"]
+      });
+    }
+    if (event.toolLatencyMs) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Event "${event.id}" has role "cache_bust" but nonzero toolLatencyMs (${event.toolLatencyMs}) -- a standalone cache_bust-role event must be a zero-duration marker; use toolLatencyMs on a user/tool_result event instead`,
+        path: ["toolLatencyMs"]
+      });
+    }
+    if (event.cacheBust) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Event "${event.id}" has role "cache_bust" and a cacheBust property, which buildTimeline never applies to this role (it only prefills on user/tool_result events) -- set cacheBust on a user/tool_result event instead`,
+        path: ["cacheBust"]
+      });
+    }
+  });
 
 export const scenarioSchema = z.object({
   id: idSchema,

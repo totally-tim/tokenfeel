@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { catalog, results, scenarios, validateCatalog } from "./index";
-import { catalogSchema } from "./schemas";
+import { catalogSchema, scenarioEventSchema } from "./schemas";
 import { analyzeCatalogQuality } from "../../scripts/validate-data";
 
 describe("seed data", () => {
@@ -294,5 +294,43 @@ describe("catalog schema hardening", () => {
     expect(quality.issues).toEqual([]);
     expect(quality.warnings).toHaveLength(2);
     expect(quality.warnings[0]).toContain("known cold-start warm-up artifact");
+  });
+});
+
+describe("scenarioEventSchema cache_bust marker role (T1)", () => {
+  it("rejects a standalone cache_bust-role event with nonzero tokens", () => {
+    expect(() =>
+      scenarioEventSchema.parse({ id: "marker1", role: "cache_bust", text: "invalidate", tokens: 500 })
+    ).toThrow(/cache_bust.*nonzero tokens/);
+  });
+
+  it("accepts a standalone cache_bust-role event with zero tokens as a valid marker", () => {
+    const parsed = scenarioEventSchema.parse({ id: "marker1", role: "cache_bust", text: "invalidate", tokens: 0 });
+    expect(parsed.role).toBe("cache_bust");
+    expect(parsed.tokens).toBe(0);
+  });
+
+  it("rejects a standalone cache_bust-role event with nonzero toolLatencyMs", () => {
+    expect(() =>
+      scenarioEventSchema.parse({
+        id: "marker1",
+        role: "cache_bust",
+        text: "invalidate",
+        tokens: 0,
+        toolLatencyMs: 500
+      })
+    ).toThrow(/cache_bust.*nonzero toolLatencyMs/);
+  });
+
+  it("rejects a standalone cache_bust-role event with a cacheBust property", () => {
+    expect(() =>
+      scenarioEventSchema.parse({
+        id: "marker1",
+        role: "cache_bust",
+        text: "invalidate",
+        tokens: 0,
+        cacheBust: { retainedPrefixTokens: 100 }
+      })
+    ).toThrow(/cache_bust.*cacheBust property/);
   });
 });

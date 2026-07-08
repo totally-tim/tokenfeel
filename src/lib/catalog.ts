@@ -74,7 +74,7 @@ export function computeScenarioSeconds(
   scenario: ScenarioScript,
   cacheMode: CacheMode = "runtime"
 ): number {
-  const timeline = buildTimeline({ result, scenario, cacheMode, speed: 1 });
+  const timeline = buildTimeline({ result, scenario, cacheMode });
   return summarizeTimeline(timeline).wallTimeMs / 1000;
 }
 
@@ -88,7 +88,7 @@ export function rankedResults(catalog: Catalog, scenario: ScenarioScript = defau
         seconds,
         hardware: lookups.hardwareById(result.hardware),
         model: lookups.modelById(result.model),
-        summary: summarizeTimeline(buildTimeline({ result, scenario, cacheMode: "runtime", speed: 1 }))
+        summary: summarizeTimeline(buildTimeline({ result, scenario, cacheMode: "runtime" }))
       };
     })
     .sort((a, b) => a.seconds - b.seconds);
