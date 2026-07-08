@@ -4,7 +4,6 @@ import { StatusBadge } from "../components/StatusBadge";
 import { SearchSelect } from "../components/SimulatorPieces";
 import { DepthRateCurve, EvidencePanel, QualityFlags } from "../components/Visualizations";
 import { createCatalogLookups, rankedResults, DEFAULT_SCENARIO_ID } from "../lib/catalog";
-import { baselineMeasurement } from "../lib/catalogQuality";
 import { formatNumber, formatRate, formatSeconds } from "../lib/format";
 import { defaultScenario } from "../lib/catalog";
 import { buildRaceShareUrl } from "../lib/raceShare";
@@ -19,11 +18,27 @@ import {
   updateConfigFilterSelection,
   type ConfigSelection
 } from "../lib/configMatrix";
-import type { BenchmarkMeasurement, BenchmarkResult } from "../types";
+import {
+  baselineMetric,
+  buildBaselineByResultId,
+  buildRangeLabel,
+  compareRowLabel,
+  computeCoverage,
+  computeFrontierRows,
+  countDistinctHardware,
+  filterRowsBySelectionAndQuery,
+  labelFor,
+  paginateRows,
+  plural,
+  sortRows,
+  toggleCompareSelection,
+  topCoverageEntries,
+  withAllOption,
+  type ConfigsSortKey
+} from "../lib/configsFilter";
+import type { BenchmarkResult } from "../types";
 
-type SortKey = "seconds" | "pp" | "tg";
-
-const SORTS: Array<{ key: SortKey; label: string }> = [
+const SORTS: Array<{ key: ConfigsSortKey; label: string }> = [
   { key: "seconds", label: "Agent loop" },
   { key: "pp", label: "Prefill" },
   { key: "tg", label: "Decode" }
@@ -31,50 +46,18 @@ const SORTS: Array<{ key: SortKey; label: string }> = [
 
 const pageSize = 80;
 
-function plural(count: number, singular: string, pluralForm = `${singular}s`) {
-  return count === 1 ? singular : pluralForm;
-}
-
-// Safe accessor for "the baseline (lowest-depth) measurement's pp/tg" --
-// replaces raw `result.measurements[0]` indexing, which silently assumed
-// index 0 was always the lowest-depth point and always present. Reads from
-// a pre-sorted map (see `baselineByResultId` below) instead of resorting
-// `result.measurements` on every call -- this page invokes it many times
-// per row across sorting and rendering.
-function baselineMetric(baselineByResultId: Map<string, BenchmarkMeasurement | undefined>, resultId: string, key: "pp" | "tg"): number {
-  return baselineByResultId.get(resultId)?.[key] ?? 0;
-}
-
-// Filters here are optional/clearable (unlike Race's SearchSelect fields,
-// which always resolve to a real result). Prepend a synthetic "All X" option
-// so the shared SearchSelect combobox can represent "no filter" the same way
-// the previous native <select>'s blank option did.
-function withAllOption(allLabel: string, options: Array<{ value: string; label: string; sub?: string }>) {
-  return [{ value: "", label: allLabel }, ...options];
-}
-
 export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
   const [query, setQuery] = useState("");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [selection, setSelection] = useState<ConfigSelection>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [sortKey, setSortKey] = useState<SortKey>("seconds");
+  const [sortKey, setSortKey] = useState<ConfigsSortKey>("seconds");
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [pageIndex, setPageIndex] = useState(0);
   const [detailsById, setDetailsById] = useState<Record<string, BenchmarkResult>>({});
   const lookups = useMemo(() => createCatalogLookups(catalog), [catalog]);
   const rows = useMemo(() => rankedResults(catalog, defaultScenario(catalog)), [catalog]);
-  const baselineByResultId = useMemo(() => {
-    const map = new Map<string, BenchmarkMeasurement | undefined>();
-    for (const result of catalog.results) {
-      const baseline = baselineMeasurement(result);
-      if (!baseline) {
-        console.warn(`Result ${result.id} has no measurements; baseline pp/tg is falling back to 0`);
-      }
-      map.set(result.id, baseline);
-    }
-    return map;
-  }, [catalog.results]);
+  const baselineByResultId = useMemo(() => buildBaselineByResultId(catalog.results), [catalog.results]);
   const hardwareOptions = useMemo(() => getHardwareOptions(catalog.results, lookups), [catalog.results, lookups]);
   const modelOptions = useMemo(
     () => (selection.hardwareId ? getModelOptions(catalog.results, selection, lookups) : []),
@@ -92,18 +75,15 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
     () => new Set(filterResultsBySelection(catalog.results, selection).map((result) => result.id)),
     [catalog.results, selection]
   );
-  const filtered = useMemo(() => rows.filter(({ result, hardware, model }) => {
-    const haystack = `${hardware?.name} ${model?.name} ${result.runtime.name} ${result.runtime.backend} ${result.quant}`.toLowerCase();
-    return selectedIds.has(result.id) && haystack.includes(query.toLowerCase()) && (!verifiedOnly || result.status === "verified");
-  }), [query, rows, selectedIds, verifiedOnly]);
-  const sorted = useMemo(() => sortKey === "seconds"
-      ? filtered
-      : [...filtered].sort((a, b) => baselineMetric(baselineByResultId, b.result.id, sortKey) - baselineMetric(baselineByResultId, a.result.id, sortKey)),
-    [filtered, sortKey, baselineByResultId]
+  const filtered = useMemo(
+    () => filterRowsBySelectionAndQuery(rows, selectedIds, query, verifiedOnly),
+    [query, rows, selectedIds, verifiedOnly]
   );
-  const pageCount = Math.max(1, Math.ceil(sorted.length / pageSize));
-  const safePageIndex = Math.min(pageIndex, pageCount - 1);
-  const visibleRows = sorted.slice(safePageIndex * pageSize, safePageIndex * pageSize + pageSize);
+  const sorted = useMemo(() => sortRows(filtered, sortKey, baselineByResultId), [filtered, sortKey, baselineByResultId]);
+  const { pageCount, safePageIndex, visibleRows, firstVisible, lastVisible } = useMemo(
+    () => paginateRows(sorted, pageIndex, pageSize),
+    [sorted, pageIndex]
+  );
   const top = filtered.slice(0, 4);
 
   useEffect(() => {
@@ -132,22 +112,7 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
     };
   }, [catalog, detailsById, expandedId]);
 
-  const coverage = useMemo(() => {
-    return sorted.reduce(
-      (map, { result }) => {
-        const item = map.get(result.hardware) ?? { hardware: result.hardware, total: 0, verified: 0, raw: 0 };
-        item.total += 1;
-        if (result.status === "verified") item.verified += 1;
-        if (result.evidence?.rawUrl || result.source.raw) item.raw += 1;
-        map.set(result.hardware, item);
-        return map;
-      },
-      new Map<string, { hardware: string; total: number; verified: number; raw: number }>()
-    );
-  }, [sorted]);
-
-  const labelFor = (options: Array<{ value: string; label: string }>, value?: string) =>
-    options.find((option) => option.value === value)?.label ?? value ?? "";
+  const coverage = useMemo(() => computeCoverage(sorted), [sorted]);
 
   const activeChips: Array<{ id: string; label: string; clear: () => void }> = [];
   if (query.trim()) activeChips.push({ id: "query", label: `“${query.trim()}”`, clear: () => setQuery("") });
@@ -183,10 +148,7 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
     setVerifiedOnly(false);
   };
 
-  const toggleCompare = (id: string) =>
-    setCompareIds((current) =>
-      current.includes(id) ? current.filter((value) => value !== id) : current.length >= 2 ? [current[1], id] : [...current, id]
-    );
+  const toggleCompare = (id: string) => setCompareIds((current) => toggleCompareSelection(current, id));
 
   const raceCompare = () => {
     if (compareIds.length !== 2) return;
@@ -194,25 +156,12 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
     window.location.hash = url.hash;
   };
 
-  const compareLabel = (id: string) => {
-    const row = rows.find(({ result }) => result.id === id);
-    return row?.hardware?.shortName ?? id;
-  };
+  const compareLabel = (id: string) => compareRowLabel(rows, id);
 
-  const firstVisible = sorted.length === 0 ? 0 : safePageIndex * pageSize + 1;
-  const lastVisible = Math.min(sorted.length, (safePageIndex + 1) * pageSize);
-  const rangeLabel =
-    sorted.length === 0
-      ? "No results"
-      : `Showing ${formatNumber(firstVisible)}-${formatNumber(lastVisible)} of ${formatNumber(sorted.length)}`;
-  const frontierRows = filtered.slice(0, 8);
-  const maxFrontierSeconds = Math.max(...frontierRows.map((row) => row.seconds), 1);
-  const minFrontierSeconds = Math.min(...frontierRows.map((row) => row.seconds), maxFrontierSeconds);
-  const frontierSecondsRange = maxFrontierSeconds - minFrontierSeconds;
-  const maxFrontierTg = Math.max(...frontierRows.map((row) => baselineMetric(baselineByResultId, row.result.id, "tg")), 1);
-  const coverageRows = [...coverage.values()].sort((a, b) => b.total - a.total).slice(0, 8);
-  const maxCoverageTotal = Math.max(...coverageRows.map((item) => item.total), 1);
-  const configCount = new Set(sorted.map(({ result }) => result.hardware)).size;
+  const rangeLabel = buildRangeLabel(sorted.length, firstVisible, lastVisible);
+  const frontierRows = useMemo(() => computeFrontierRows(filtered, baselineByResultId, 8), [filtered, baselineByResultId]);
+  const { rows: coverageRows, maxTotal: maxCoverageTotal } = useMemo(() => topCoverageEntries(coverage, 8), [coverage]);
+  const configCount = countDistinctHardware(sorted);
 
   return (
     <main className="configs-page">
@@ -342,17 +291,12 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
             <div className="frontier-bars">
               {frontierRows.length === 0 ? (
                 <p className="empty-panel">No frontier rows match the current filters.</p>
-              ) : frontierRows.map(({ result, seconds, hardware, model }) => {
-                const loopPct =
-                  frontierSecondsRange === 0
-                    ? 100
-                    : Math.max(6, 6 + ((maxFrontierSeconds - seconds) / frontierSecondsRange) * 94);
-                const decodePct = Math.max(4, (baselineMetric(baselineByResultId, result.id, "tg") / maxFrontierTg) * 100);
+              ) : frontierRows.map(({ result, seconds, hardware, model, tgRate, loopPct, decodePct }) => {
                 return (
                   <article
                     key={result.id}
                     className="frontier-bar-row"
-                    title={`${hardware?.shortName ?? result.hardware}: ${formatSeconds(seconds)} · ${formatRate(baselineMetric(baselineByResultId, result.id, "tg"))}`}
+                    title={`${hardware?.shortName ?? result.hardware}: ${formatSeconds(seconds)} · ${formatRate(tgRate)}`}
                   >
                     <span>
                       <strong>{hardware?.shortName ?? result.hardware}</strong>
@@ -368,7 +312,7 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
                     </div>
                     <span className="frontier-values">
                       <strong>{formatSeconds(seconds)}</strong>
-                      <small>{formatRate(baselineMetric(baselineByResultId, result.id, "tg"))}</small>
+                      <small>{formatRate(tgRate)}</small>
                     </span>
                   </article>
                 );

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { TopNav } from "./components/TopNav";
 import { loadStaticCatalog, type StaticCatalog } from "./data/staticCatalog";
 import { ConfigsPage } from "./pages/ConfigsPage";
@@ -88,7 +89,7 @@ export default function App() {
   return (
     <div className="app-shell">
       <TopNav page={page} onNavigate={navigate} />
-      {content}
+      <ErrorBoundary key={page}>{content}</ErrorBoundary>
     </div>
   );
 }

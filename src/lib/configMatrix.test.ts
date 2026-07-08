@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import type { BenchmarkResult } from "../types";
-import { catalog, results } from "../data";
+import { readPrunedCatalogFromDisk } from "../../scripts/validate-data";
 import { createCatalogLookups } from "./catalog";
 import {
   compareResultPreference,
@@ -14,6 +14,8 @@ import {
   updateConfigSelection
 } from "./configMatrix";
 
+const catalog = readPrunedCatalogFromDisk();
+const { results } = catalog;
 const refs = createCatalogLookups(catalog);
 
 function makeResult(overrides: Partial<BenchmarkResult> & { id: string }): BenchmarkResult {
@@ -118,6 +120,51 @@ describe("configuration matrix", () => {
       quant: "4bit",
       resultId: "m2-max-32gb__gemma-4-26b-a4b-it__4bit__omlx-api-0.3.5.dev1-macos-26.5-78fd5c70d0"
     });
+  });
+
+  test("updateConfigSelection used directly (no redundant second resolve) keeps a cleared field cleared -- PlaygroundPage regression", () => {
+    // This is exactly how PlaygroundPage's onChange handlers must consume the
+    // return value: assign it straight to state, with no outer
+    // resolveConfigSelection wrap. updateConfigSelection already resolves
+    // internally for non-clearing changes; wrapping it again only matters
+    // (and only breaks things) on the clearing path.
+    const current = resolveConfigSelection(results, {
+      hardwareId: "m4-max-40c-64gb",
+      modelId: "qwen3.5-9b",
+      quant: "4bit"
+    }, refs);
+
+    const cleared = updateConfigSelection(results, current, "modelId", "", refs);
+
+    expect(cleared).toEqual({ hardwareId: "m4-max-40c-64gb" });
+    expect(cleared).not.toHaveProperty("modelId");
+    expect(cleared).not.toHaveProperty("resultId");
+
+    // A page can still derive a resolved view (e.g. to know which result to
+    // actually play) without persisting that resolution back into state.
+    const resolvedView = resolveConfigSelection(results, cleared, refs);
+    expect(resolvedView.modelId).toBeDefined();
+    expect(resolvedView.resultId).toBeDefined();
+
+    // The stored selection itself must remain untouched by deriving that view.
+    expect(cleared).not.toHaveProperty("modelId");
+  });
+
+  test("wrapping updateConfigSelection's clear result in a second resolveConfigSelection call defeats clearing (the bug this guards against)", () => {
+    const current = resolveConfigSelection(results, {
+      hardwareId: "m4-max-40c-64gb",
+      modelId: "qwen3.5-9b",
+      quant: "4bit"
+    }, refs);
+
+    const cleared = updateConfigSelection(results, current, "modelId", "", refs);
+    // The buggy pattern PlaygroundPage used to have: re-resolve the clear
+    // result immediately, snapping modelId back to a concrete value instead
+    // of showing the user their clear actually took effect.
+    const doubleResolved = resolveConfigSelection(results, cleared, refs);
+
+    expect(doubleResolved.modelId).toBeDefined();
+    expect(doubleResolved).not.toEqual(cleared);
   });
 
   test("allows clearing a filter dimension for broad result filtering", () => {

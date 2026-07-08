@@ -32,6 +32,21 @@ export function maxMeasuredDepth(result: BenchmarkResult): number {
   return Math.max(...result.measurements.map((measurement) => measurement.depth));
 }
 
+/**
+ * The lowest-context-depth ("baseline") measurement for a result -- what
+ * callers actually mean when they reach for a single representative pp/tg
+ * snapshot (summary cards, default sort key, etc). `measurements` is
+ * schema-validated to be non-empty and sorted ascending by depth at catalog
+ * build time, but call sites should not assume raw array index 0 is always
+ * safe/meaningful (hand-built fixtures, future loaders with different
+ * assumptions) -- this re-sorts defensively and returns undefined instead of
+ * throwing/crashing when a result unexpectedly has no measurements.
+ */
+export function baselineMeasurement(result: BenchmarkResult): BenchmarkMeasurement | undefined {
+  if (result.measurements.length === 0) return undefined;
+  return [...result.measurements].sort((a, b) => a.depth - b.depth)[0];
+}
+
 function issueSet(issues: CatalogQualityIssue[]): CatalogQualityIssue[] {
   return [...new Set(issues)];
 }

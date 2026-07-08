@@ -1,7 +1,13 @@
 import { describe, expect, test } from "vitest";
-import { DEFAULT_LEFT_RESULT_ID, DEFAULT_RIGHT_RESULT_ID, DEFAULT_SCENARIO_ID } from "./catalog";
+import { DEFAULT_SCENARIO_ID } from "./catalog";
 import { buildRaceShareUrl, parseRaceShareHash } from "./raceShare";
 import { buildPageHash, pageFromHashValue, parseHashRoute } from "./routing";
+
+// These ids only need to be opaque strings -- raceShare round-trips
+// whatever result ids it's given through the URL, it doesn't validate them
+// against a catalog.
+const DEFAULT_LEFT_RESULT_ID = "left-config__model__4bit__runtime-1.0.0-os-abc123";
+const DEFAULT_RIGHT_RESULT_ID = "right-config__model__4bit__runtime-1.0.0-os-def456";
 
 describe("race share links", () => {
   test("builds a GitHub Pages compatible hash URL from the current repo path", () => {

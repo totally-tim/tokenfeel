@@ -1,5 +1,72 @@
 import { describe, expect, test } from "vitest";
-import { formatTokens } from "./format";
+import { formatClock, formatNumber, formatRate, formatSeconds, formatTokens, percent } from "./format";
+
+describe("formatSeconds", () => {
+  test("renders sub-minute durations as one-decimal seconds", () => {
+    expect(formatSeconds(0)).toBe("0.0s");
+    expect(formatSeconds(12.34)).toBe("12.3s");
+    expect(formatSeconds(59.9)).toBe("59.9s");
+  });
+
+  test("renders minute-scale durations as m:ss.s", () => {
+    expect(formatSeconds(60)).toBe("1:00.0");
+    expect(formatSeconds(125.4)).toBe("2:05.4");
+  });
+
+  test("drops decimal seconds once past the 10-minute boundary", () => {
+    expect(formatSeconds(600)).toBe("10:00");
+    expect(formatSeconds(3661)).toBe("61:01");
+  });
+
+  test("falls back to 0:00 for non-finite input instead of throwing or rendering NaN", () => {
+    expect(formatSeconds(Number.NaN)).toBe("0:00");
+    expect(formatSeconds(Number.POSITIVE_INFINITY)).toBe("0:00");
+  });
+});
+
+describe("formatClock", () => {
+  test("converts milliseconds to the same format as formatSeconds", () => {
+    expect(formatClock(1500)).toBe(formatSeconds(1.5));
+    expect(formatClock(65_000)).toBe("1:05.0");
+  });
+});
+
+describe("formatNumber", () => {
+  test("uses one decimal of precision below 100", () => {
+    expect(formatNumber(42.36)).toBe("42.4");
+    expect(formatNumber(9.95)).toBe("10");
+  });
+
+  test("rounds to whole numbers at and above 100", () => {
+    expect(formatNumber(100)).toBe("100");
+    expect(formatNumber(1234.6)).toBe("1,235");
+  });
+
+  test("handles zero and negative values", () => {
+    expect(formatNumber(0)).toBe("0");
+    expect(formatNumber(-42.36)).toBe("-42.4");
+  });
+});
+
+describe("formatRate", () => {
+  test("appends the t/s unit to a formatted number", () => {
+    expect(formatRate(42.36)).toBe("42.4 t/s");
+    expect(formatRate(1234.6)).toBe("1,235 t/s");
+  });
+});
+
+describe("percent", () => {
+  test("renders a 0-1 fraction as a rounded whole-number percentage", () => {
+    expect(percent(0)).toBe("0%");
+    expect(percent(0.5)).toBe("50%");
+    expect(percent(1)).toBe("100%");
+  });
+
+  test("rounds fractional percentages to the nearest whole number", () => {
+    expect(percent(0.334)).toBe("33%");
+    expect(percent(0.336)).toBe("34%");
+  });
+});
 
 describe("formatTokens", () => {
   test("renders sub-1000 values as plain rounded integers", () => {

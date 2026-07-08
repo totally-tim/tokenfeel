@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { catalog, results, scenarios, validateCatalog } from "./index";
-import { catalogSchema, scenarioEventSchema } from "./schemas";
-import { analyzeCatalogQuality } from "../../scripts/validate-data";
+import { catalogSchema, scenarioEventSchema, staticCatalogSchema } from "./schemas";
+import { analyzeCatalogQuality, readPrunedCatalogFromDisk } from "../../scripts/validate-data";
+
+const catalog = readPrunedCatalogFromDisk();
+const { results, scenarios } = catalog;
 
 describe("seed data", () => {
   it("contains source-grounded benchmark results with usable pp/tg measurements", () => {
-    const parsed = validateCatalog(catalog);
+    const parsed = catalog;
 
     expect(parsed.results.length).toBeGreaterThanOrEqual(19);
     expect(parsed.hardware.length).toBeGreaterThanOrEqual(4);
@@ -294,6 +296,69 @@ describe("catalog schema hardening", () => {
     expect(quality.issues).toEqual([]);
     expect(quality.warnings).toHaveLength(2);
     expect(quality.warnings[0]).toContain("known cold-start warm-up artifact");
+  });
+});
+
+function validStaticCatalog(resultOverrides: Record<string, unknown> = {}) {
+  const base = validCatalogWithResult(resultOverrides);
+  return {
+    version: 1 as const,
+    generatedAt: "2026-01-01T00:00:00Z",
+    resultCount: base.results.length,
+    hardware: base.hardware,
+    models: base.models,
+    scenarios: base.scenarios,
+    results: base.results.map((result) => ({ ...result, detailChunk: "chunk-000.json" }))
+  };
+}
+
+describe("staticCatalogSchema (runtime catalog re-validation, A2)", () => {
+  it("accepts a well-formed static catalog payload", () => {
+    const parsed = staticCatalogSchema.parse(validStaticCatalog());
+    expect(parsed.results[0].detailChunk).toBe("chunk-000.json");
+  });
+
+  it("accepts a verified result whose only evidence is source.raw stripped away (the compacted-index shape), unlike full catalogSchema", () => {
+    // build-static-catalog.ts's compactResult intentionally drops source.raw
+    // from the index summary (kept only in the per-result detail chunk).
+    // staticCatalogSchema must not resurrect the "verified needs raw
+    // evidence" rule against data that structurally cannot carry it.
+    const payload = validStaticCatalog({ status: "verified" });
+
+    expect(() => staticCatalogSchema.parse(payload)).not.toThrow();
+    expect(() => catalogSchema.parse(validCatalogWithResult({ status: "verified" }))).toThrow(
+      /no raw evidence/
+    );
+  });
+
+  it("rejects a payload missing the detailChunk pointer", () => {
+    const payload = validStaticCatalog();
+    // @ts-expect-error -- intentionally malformed for the test
+    delete payload.results[0].detailChunk;
+
+    expect(() => staticCatalogSchema.parse(payload)).toThrow();
+  });
+
+  it("rejects duplicate result ids, just like catalogSchema does", () => {
+    const payload = validStaticCatalog();
+    payload.results.push({ ...payload.results[0] });
+
+    expect(() => staticCatalogSchema.parse(payload)).toThrow(/Duplicate id/);
+  });
+
+  it("rejects a result referencing unknown hardware, just like catalogSchema does", () => {
+    const payload = validStaticCatalog();
+    payload.results[0].hardware = "ghost-hardware";
+
+    expect(() => staticCatalogSchema.parse(payload)).toThrow(/Unknown hardware/);
+  });
+
+  it("rejects a non-1 version tag (e.g. a stale/incompatible catalog build)", () => {
+    const payload = validStaticCatalog();
+    // @ts-expect-error -- intentionally malformed for the test
+    payload.version = 2;
+
+    expect(() => staticCatalogSchema.parse(payload)).toThrow();
   });
 });
 

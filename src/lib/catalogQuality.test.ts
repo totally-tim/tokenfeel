@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import type { BenchmarkResult, Catalog } from "../types";
-import { catalogQualityIssues, pruneCatalogForSimulation } from "./catalogQuality";
+import { baselineMeasurement, catalogQualityIssues, pruneCatalogForSimulation } from "./catalogQuality";
 
 const baseResult = {
   id: "m4__qwen3.5-9b__4bit__omlx-api",
@@ -87,5 +87,39 @@ describe("catalog quality", () => {
     expect(pruned.results.map((item) => item.id)).toEqual([good.id]);
     expect(pruned.hardware.map((item) => item.id)).toEqual(["m4"]);
     expect(pruned.models.map((item) => item.id)).toEqual(["qwen3.5-9b"]);
+  });
+});
+
+describe("baselineMeasurement", () => {
+  test("returns the lowest-depth measurement when already sorted ascending", () => {
+    expect(baselineMeasurement(result({}))?.depth).toBe(1024);
+  });
+
+  test("re-sorts defensively when measurements are not ascending by depth", () => {
+    const unsorted = result({
+      measurements: [
+        { depth: 8192, pp: 900, tg: 45 },
+        { depth: 1024, pp: 1000, tg: 50 },
+        { depth: 4096, pp: 950, tg: 48 }
+      ]
+    });
+
+    expect(baselineMeasurement(unsorted)?.depth).toBe(1024);
+  });
+
+  test("returns undefined instead of throwing when there are no measurements", () => {
+    expect(baselineMeasurement(result({ measurements: [] }))).toBeUndefined();
+  });
+
+  test("does not mutate the original measurements array", () => {
+    const original = [
+      { depth: 8192, pp: 900, tg: 45 },
+      { depth: 1024, pp: 1000, tg: 50 }
+    ];
+    const unsorted = result({ measurements: [...original] });
+
+    baselineMeasurement(unsorted);
+
+    expect(unsorted.measurements.map((measurement) => measurement.depth)).toEqual([8192, 1024]);
   });
 });

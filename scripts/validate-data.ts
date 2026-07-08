@@ -3,6 +3,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { catalogSchema, researchItemsSchema } from "../src/data/schemas";
 import type { ParsedCatalog } from "../src/data/schemas";
+import { DEFAULT_LEFT_CONFIG, DEFAULT_RIGHT_CONFIG, defaultLeftResultId, defaultRightResultId } from "../src/lib/catalog";
+import { pruneCatalogForSimulation } from "../src/lib/catalogQuality";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const suspiciousIncreaseRatio = 0.1;
@@ -92,6 +94,15 @@ export function readCatalogFromDisk() {
   });
 }
 
+// The same catalog the production build ships (scripts/build-static-catalog.ts
+// feeds readCatalogFromDisk() straight into pruneCatalogForSimulation). This
+// is the single "real catalog" fixture tests should use instead of
+// re-implementing catalog assembly -- see src/lib/catalog.test.ts,
+// src/lib/configMatrix.test.ts, and src/data/schema.test.ts.
+export function readPrunedCatalogFromDisk(): ParsedCatalog {
+  return pruneCatalogForSimulation(readCatalogFromDisk());
+}
+
 function main() {
   const parsed = readCatalogFromDisk();
   const research = readResearchItems();
@@ -105,6 +116,21 @@ function main() {
   }
 
   const quality = analyzeCatalogQuality(parsed, allowlist);
+
+  for (const pinned of [
+    { name: "DEFAULT_LEFT_CONFIG", config: DEFAULT_LEFT_CONFIG, resolve: defaultLeftResultId },
+    { name: "DEFAULT_RIGHT_CONFIG", config: DEFAULT_RIGHT_CONFIG, resolve: defaultRightResultId }
+  ]) {
+    try {
+      pinned.resolve(parsed);
+    } catch (error) {
+      quality.issues.push(
+        `${pinned.name} (hardware=${pinned.config.hardwareId}, model=${pinned.config.modelId}, quant=${pinned.config.quant}) no longer resolves against the catalog: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    }
+  }
 
   for (const warning of quality.warnings) {
     console.warn(`warning: ${warning}`);
