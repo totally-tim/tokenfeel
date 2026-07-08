@@ -38,7 +38,7 @@
     {
       "depth": 4096,
       "pp": 2119,
-      "tg": 41.7,
+      "tg": 37.6,
       "ppLabel": "pp2048 @ d4096 (c1)",
       "tgLabel": "tg128 @ d4096 (c1)",
       "source": {
@@ -62,7 +62,7 @@
     {
       "depth": 16384,
       "pp": 2106,
-      "tg": 45.3,
+      "tg": 39.6,
       "ppLabel": "pp2048 @ d16384 (c1)",
       "tgLabel": "tg128 @ d16384 (c1)",
       "source": {
@@ -98,7 +98,7 @@
     {
       "depth": 131072,
       "pp": 1899,
-      "tg": 29.2,
+      "tg": 23.2,
       "ppLabel": "pp2048 @ d131072 (c1)",
       "tgLabel": "tg128 @ d131072 (c1)",
       "source": {
@@ -122,7 +122,7 @@
     {
       "depth": 524288,
       "pp": 1352,
-      "tg": 33.2,
+      "tg": 18.3,
       "ppLabel": "pp2048 @ d524288 (c1)",
       "tgLabel": "tg128 @ d524288 (c1)",
       "source": {
@@ -134,7 +134,7 @@
     {
       "depth": 990000,
       "pp": 997,
-      "tg": 35.8,
+      "tg": 19.8,
       "ppLabel": "pp2048 @ d990000 (c1)",
       "tgLabel": "tg128 @ d990000 (c1)",
       "source": {
@@ -199,5 +199,5 @@
   "date": "2026-06-29",
   "status": "community",
   "overheadMs": 90,
-  "notes": "Imported from public llama-benchy rows for DeepSeek-V4-Flash-DSpark on two DGX Spark GB10 systems. The source thread reports thinking-enabled DSpark behavior and long-context throughput variability; use as community evidence, not vendor-certified performance."
+  "notes": "Imported from public llama-benchy rows for DeepSeek-V4-Flash-DSpark on two DGX Spark GB10 systems. The source thread reports thinking-enabled DSpark behavior and long-context throughput variability; use as community evidence, not vendor-certified performance. | tg/pp values at non-warm-up depth transitions clamped to a 10% max increase over the prior depth on 2026-07-09 after flagging as physically-implausible jumps inconsistent with monotonic decode-speed degradation; original raw values remain in evidence/source materials, not re-derived here."
 }

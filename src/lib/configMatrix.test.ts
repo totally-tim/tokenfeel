@@ -62,11 +62,11 @@ describe("configuration matrix", () => {
 
   test("cascades quant and runtime options from the selected upper dimensions", () => {
     const quantOptions = getQuantOptions(results, {
-      hardwareId: "m4-max-40c-64gb",
+      hardwareId: "m2-pro-19c-32gb",
       modelId: "qwen3.5-9b"
     });
     const runtimeOptions = getRuntimeOptions(results, {
-      hardwareId: "m4-max-40c-64gb",
+      hardwareId: "m2-pro-19c-32gb",
       modelId: "qwen3.5-9b",
       quant: "4bit"
     });
