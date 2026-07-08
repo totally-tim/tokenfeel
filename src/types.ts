@@ -214,6 +214,14 @@ export interface TimelineEvent extends ScenarioEvent {
   tgConfidence: RateConfidence;
   prefillRangeMs: { min: number; max: number };
   decodeRangeMs: { min: number; max: number };
+  /**
+   * Cumulative canonical decode ms from decode-start to each token count —
+   * length `tokens + 1`, `decodeCumulativeMs[0] === 0`. Built from the real
+   * depth-dependent per-token rate curve (`integrateTimeRangeMs`), so token
+   * reveal pacing can follow actual deceleration with context depth instead
+   * of a flat linear fraction of elapsed time. `[0]` for non-decode events.
+   */
+  decodeCumulativeMs: number[];
   extrapolated: boolean;
 }
 

@@ -2,6 +2,22 @@ import { describe, expect, test } from "vitest";
 import type { TimelineEvent } from "../types";
 import { isGeneratedEvent, streamFrameForEvent } from "./streaming";
 
+/**
+ * Flat/uniform per-token cumulative timing — every token costs the same
+ * `decodeMs / tokens`, which reduces `decodeCumulativeProgress` to the same
+ * continuous fraction the old flat-elapsed-time formula produced. Used for
+ * every fixture below that isn't specifically testing real depth-dependent
+ * deceleration, so those tests keep asserting the same reveal pacing they
+ * always have.
+ */
+function linearCumulativeMs(tokens: number, decodeMs: number): number[] {
+  const cumulative: number[] = [0];
+  for (let index = 1; index <= tokens; index += 1) {
+    cumulative.push(tokens === 0 ? 0 : (decodeMs * index) / tokens);
+  }
+  return cumulative;
+}
+
 const baseEvent: TimelineEvent = {
   id: "e1",
   role: "assistant",
@@ -28,6 +44,7 @@ const baseEvent: TimelineEvent = {
   tgConfidence: "measured",
   prefillRangeMs: { min: 100, max: 100 },
   decodeRangeMs: { min: 400, max: 400 },
+  decodeCumulativeMs: linearCumulativeMs(100, 400),
   extrapolated: false
 };
 
@@ -56,7 +73,8 @@ describe("streaming output", () => {
       ...baseEvent,
       text: "The failing case sits exactly at the final measured depth.",
       tokens: 18,
-      endMs: 1100
+      endMs: 1100,
+      decodeCumulativeMs: linearCumulativeMs(18, 1000)
     };
     const text = streamFrameForEvent(event, 350).text;
 
@@ -71,7 +89,8 @@ describe("streaming output", () => {
       prefillDoneMs: 0,
       decodeMs: 1000,
       endMs: 1000,
-      ttftMs: 0
+      ttftMs: 0,
+      decodeCumulativeMs: linearCumulativeMs(100, 1000)
     };
 
     const text = streamFrameForEvent(event, 250).text;
@@ -87,7 +106,8 @@ describe("streaming output", () => {
       prefillDoneMs: 0,
       decodeMs: 1200,
       endMs: 1200,
-      ttftMs: 0
+      ttftMs: 0,
+      decodeCumulativeMs: linearCumulativeMs(12, 1200)
     };
 
     expect(streamFrameForEvent(event, 100).text).toBe("Why");
@@ -100,7 +120,8 @@ describe("streaming output", () => {
       ...baseEvent,
       text: "The model emits grouped deltas with small pauses.",
       tokens: 24,
-      endMs: 1100
+      endMs: 1100,
+      decodeCumulativeMs: linearCumulativeMs(24, 1000)
     };
     const early = streamFrameForEvent(event, 160);
     const later = streamFrameForEvent(event, 650);
@@ -120,7 +141,8 @@ describe("streaming output", () => {
       prefillDoneMs: 0,
       decodeMs: 1000,
       endMs: 1000,
-      ttftMs: 0
+      ttftMs: 0,
+      decodeCumulativeMs: linearCumulativeMs(100, 1000)
     };
 
     expect(streamFrameForEvent(event, 1)).toEqual({
@@ -142,7 +164,8 @@ describe("streaming output", () => {
       decodeMs: 2500,
       endMs: 2500,
       ttftMs: 0,
-      tgRate: 40
+      tgRate: 40,
+      decodeCumulativeMs: linearCumulativeMs(100, 2500)
     };
 
     expect(streamFrameForEvent(event, 250).tokens).toBe(10);
@@ -162,7 +185,8 @@ describe("streaming output", () => {
       decodeMs: 2500,
       endMs: 2500,
       ttftMs: 0,
-      tgRate: 40
+      tgRate: 40,
+      decodeCumulativeMs: linearCumulativeMs(100, 2500)
     };
 
     const before = streamFrameForEvent(event, 1750);
@@ -183,7 +207,8 @@ describe("streaming output", () => {
       decodeMs: 34500,
       endMs: 34500,
       ttftMs: 0,
-      tgRate: 69.5
+      tgRate: 69.5,
+      decodeCumulativeMs: linearCumulativeMs(2400, 34500)
     };
 
     const before = streamFrameForEvent(event, 7100);
@@ -199,5 +224,42 @@ describe("streaming output", () => {
 
   test("shows non-generated text immediately when its event is visible", () => {
     expect(streamFrameForEvent({ ...baseEvent, role: "user" }, 0).text).toBe("streaming output");
+  });
+
+  test("reveals tokens progressively slower as decode proceeds over a depth-degrading rate curve", () => {
+    // Fixture models context growing through the decode window: each
+    // successive token costs more ms than the last (the real behavior of a
+    // degrading-with-depth measurement set), unlike the flat per-token cost
+    // every other fixture in this file uses.
+    const tokens = 100;
+    const perTokenMsStart = 5;
+    const perTokenMsEnd = 15;
+    const decodeCumulativeMs: number[] = [0];
+    for (let index = 1; index <= tokens; index += 1) {
+      const perTokenMs = perTokenMsStart + ((perTokenMsEnd - perTokenMsStart) * (index - 1)) / (tokens - 1);
+      decodeCumulativeMs.push(decodeCumulativeMs[index - 1] + perTokenMs);
+    }
+    const totalMs = decodeCumulativeMs[tokens];
+
+    const event: TimelineEvent = {
+      ...baseEvent,
+      text: "x".repeat(tokens),
+      tokens,
+      prefillDoneMs: 0,
+      decodeMs: totalMs,
+      endMs: totalMs,
+      ttftMs: 0,
+      decodeCumulativeMs
+    };
+
+    const windowMs = totalMs / 5;
+    const tokensAt = (elapsedMs: number) => streamFrameForEvent(event, elapsedMs).tokens;
+
+    const earlyWindowTokens = tokensAt(windowMs) - tokensAt(0);
+    const lateWindowTokens = tokensAt(totalMs) - tokensAt(totalMs - windowMs);
+
+    // Equal-length time windows reveal fewer tokens later in decode, since
+    // later tokens individually cost more ms — pacing decelerates.
+    expect(earlyWindowTokens).toBeGreaterThan(lateWindowTokens);
   });
 });

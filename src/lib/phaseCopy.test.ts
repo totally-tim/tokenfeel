@@ -28,6 +28,7 @@ const baseEvent: TimelineEvent = {
   tgConfidence: "measured",
   prefillRangeMs: { min: 100, max: 100 },
   decodeRangeMs: { min: 1000, max: 1000 },
+  decodeCumulativeMs: [],
   extrapolated: false
 };
 

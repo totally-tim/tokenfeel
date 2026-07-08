@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { CacheModeSelector, Disclosure, PhaseState, PlayButton, ScenarioCard, SearchSelect, SessionHeader, SourceNote, SpeedSelector, StatFoot, Transcript, ContextMeter } from "../components/SimulatorPieces";
 import { CacheLedger, DepthRateCurve, QualityFlags, TimelineStrip } from "../components/Visualizations";
 import { createCatalogLookups, scenarioOptions, getResult, getScenario, DEFAULT_LEFT_RESULT_ID, DEFAULT_SCENARIO_ID } from "../lib/catalog";
+import { maxMeasuredDepth } from "../lib/catalogQuality";
 import {
   getHardwareOptions,
   getModelOptions,
@@ -12,6 +13,7 @@ import {
   updateConfigSelection
 } from "../lib/configMatrix";
 import { usePlayback } from "../hooks/usePlayback";
+import { liveDepthForEvent } from "../lib/streaming";
 import { formatNumber } from "../lib/format";
 import type { CacheMode, Catalog } from "../types";
 
@@ -196,13 +198,17 @@ export function PlaygroundPage({ catalog }: { catalog: Catalog }) {
                 cached={playback.activeEvent.cachedPrefixTokens}
                 reprefill={playback.activeEvent.prefillTokens}
                 total={playback.activeEvent.contextAfter}
+                dataHorizon={maxMeasuredDepth(result)}
               />
             </div>
           </div>
           <Disclosure label="Cache ledger · phase map · depth curve · provenance">
             <div className="playback-details">
               <CacheLedger summary={playback.summary} activeEvent={playback.activeEvent} />
-              <DepthRateCurve result={result} />
+              <DepthRateCurve
+                result={result}
+                activeDepth={liveDepthForEvent(playback.activeEvent, playback.elapsedMs)}
+              />
               <div className="detail-extra">
                 <TimelineStrip timeline={playback.timeline} activeIndex={activeIndex} />
                 <div className="legend-row">

@@ -1,4 +1,5 @@
 import { filterResultsBySelection, runtimeKey, type ConfigSelection, type ConfigSelectionField, type ConfigMatrixRefs, type MatrixOption } from "./configMatrix";
+import { maxMeasuredDepth } from "./catalogQuality";
 import type { BenchmarkResult, Catalog, TimelineSummary } from "../types";
 
 export type RaceSetupField = ConfigSelectionField;
@@ -124,10 +125,6 @@ export function constraintsForFieldChange(
 
   constraints[field] = value;
   return constraints;
-}
-
-function maxMeasuredDepth(result: BenchmarkResult): number {
-  return Math.max(...result.measurements.map((measurement) => measurement.depth));
 }
 
 function modelFamily(catalog: Catalog, result: BenchmarkResult): string | undefined {

@@ -1,10 +1,11 @@
 import { Brain, Check, ChevronDown, ChevronRight, Clock, Cpu, Gauge, MessageSquare, Play, Square, Terminal, Wrench } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { formatClock, formatNumber, formatRate, formatTokens, percent } from "../lib/format";
-import type { BenchmarkResult, CacheMode, Catalog, RuntimeMetadata, ScenarioEvent, Timeline, TimelineEvent, TimelineSummary } from "../types";
+import type { BenchmarkResult, CacheMode, Catalog, RateConfidence, RuntimeMetadata, ScenarioEvent, Timeline, TimelineEvent, TimelineSummary } from "../types";
 import { compactResultLabel, resultMeta } from "../lib/catalog";
+import { maxMeasuredDepth } from "../lib/catalogQuality";
 import { StatusBadge } from "./StatusBadge";
-import { isGeneratedEvent, streamFrameForEvent } from "../lib/streaming";
+import { decodeProgressForEvent, isGeneratedEvent, streamFrameForEvent } from "../lib/streaming";
 import { PhaseWaterfall, QualityFlags } from "./Visualizations";
 import { filterPickerOptions } from "../lib/pickerOptions";
 import type { MatrixOption } from "../lib/configMatrix";
@@ -71,7 +72,7 @@ function activePhaseForEvent(event: TimelineEvent, elapsedMs: number, hasStarted
       kind: "decode",
       elapsedMs: Math.max(0, elapsedMs - event.prefillDoneMs),
       totalMs: Math.max(1, event.decodeMs),
-      progress: phaseProgress(elapsedMs, event.prefillDoneMs, event.endMs)
+      progress: decodeProgressForEvent(event, elapsedMs)
     };
   }
 
@@ -89,6 +90,16 @@ function PhaseIcon({ kind }: { kind: PhaseKind }) {
   if (kind === "tool") return <Wrench size={15} />;
   if (kind === "complete") return <Check size={15} />;
   return <Clock size={15} />;
+}
+
+// Badge copy for the dominant "NOW" readout when the active phase's rate
+// isn't backed by measured/interpolated data — surfaced inline instead of
+// buried in QualityFlags inside a Disclosure, since this is the primary
+// reading path during playback.
+function confidenceBadgeLabel(confidence: RateConfidence): string | undefined {
+  if (confidence === "extrapolated-fitted") return "fitted estimate";
+  if (confidence === "extrapolated-unsupported") return "no depth data";
+  return undefined;
 }
 
 function compactPhaseLabel(kind: PhaseKind) {
@@ -138,6 +149,9 @@ export function PhaseState({
           : phase.kind === "complete"
             ? "done"
             : "idle";
+  const activeConfidence =
+    phase.kind === "prefill" ? event.ppConfidence : phase.kind === "decode" ? event.tgConfidence : undefined;
+  const confidenceBadge = activeConfidence ? confidenceBadgeLabel(activeConfidence) : undefined;
   const trackVisual = phaseTrackVisualState(phase.progress, waiting);
   const trackStyle = {
     "--phase-fill-width": trackVisual.fillWidth,
@@ -171,7 +185,12 @@ export function PhaseState({
       </div>
       <div className="phase-state-meta">
         <span>{phaseTokens}</span>
-        <span>{phaseRate}</span>
+        <span className="phase-rate-group">
+          {phaseRate}
+          {confidenceBadge && activeConfidence && (
+            <em className={`confidence-badge confidence-badge-${activeConfidence}`}>{confidenceBadge}</em>
+          )}
+        </span>
       </div>
       <p>{copy.detail}</p>
     </div>
@@ -432,11 +451,20 @@ interface ContextMeterProps {
   total: number;
   max?: number;
   compact?: boolean;
+  /**
+   * Depth of the last measured benchmark point (from `maxMeasuredDepth`,
+   * shared with `catalogQuality`/`raceComparison`). When provided, renders a
+   * "data ends here" tick on the meter track so it's visible how much of the
+   * context window rests on measured versus extrapolated rates.
+   */
+  dataHorizon?: number;
 }
 
-export function ContextMeter({ cached, reprefill, total, max = 128_000, compact = false }: ContextMeterProps) {
+export function ContextMeter({ cached, reprefill, total, max = 128_000, compact = false, dataHorizon }: ContextMeterProps) {
   const cachedPct = Math.min(100, (cached / max) * 100);
   const reprefillPct = Math.min(100 - cachedPct, (reprefill / max) * 100);
+  const dataHorizonPct =
+    dataHorizon !== undefined && dataHorizon >= 0 ? Math.min(100, (dataHorizon / max) * 100) : undefined;
 
   return (
     <div className={`context-meter ${compact ? "compact" : ""}`}>
@@ -449,7 +477,19 @@ export function ContextMeter({ cached, reprefill, total, max = 128_000, compact 
       <div className="meter-track">
         <span className="meter-cached" style={{ width: `${cachedPct}%` }} />
         <span className="meter-reprefill" style={{ width: `${reprefillPct}%` }} />
+        {dataHorizonPct !== undefined && (
+          <i
+            className="meter-data-horizon"
+            style={{ left: `${dataHorizonPct}%` }}
+            title={`data ends here · ${formatTokens(dataHorizon ?? 0)} ctx`}
+          />
+        )}
       </div>
+      {dataHorizonPct !== undefined && (
+        <div className="meter-data-horizon-label" style={{ left: `${dataHorizonPct}%` }}>
+          data ends here
+        </div>
+      )}
     </div>
   );
 }
@@ -705,6 +745,7 @@ export function RaceLane({ catalog, label, result, timeline, summary, activeEven
             cached={activeEvent.cachedPrefixTokens}
             reprefill={activeEvent.prefillTokens}
             total={activeEvent.contextAfter}
+            dataHorizon={maxMeasuredDepth(result)}
           />
           <PhaseWaterfall event={activeEvent} elapsedMs={elapsedMs} />
           <QualityFlags result={result} extrapolatedEvents={summary.extrapolatedEvents} />

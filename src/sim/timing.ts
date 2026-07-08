@@ -31,7 +31,7 @@ function sortMeasurementsByDepth(measurements: BenchmarkMeasurement[]): Benchmar
   return points;
 }
 
-function rateToMsPerToken(rate: number): number {
+export function rateToMsPerToken(rate: number): number {
   if (!(rate > 0)) {
     throw new Error(`Measurement rate must be positive, got ${rate}`);
   }
@@ -260,45 +260,50 @@ export function msPerTokenRangeAt(
   return { canonicalMs: fittedMs, optimisticMs: clampedMs, stddevMs, confidence };
 }
 
+interface PreparedIntegration {
+  points: BenchmarkMeasurement[];
+  first: BenchmarkMeasurement;
+  last: BenchmarkMeasurement;
+  firstMs: number;
+  lastMs: number;
+  firstStddevMs: number;
+  lastStddevMs: number;
+  fit: { intercept: number; slope: number } | undefined;
+}
+
 /**
- * Range-returning integral of msPerToken over [fromDepth, toDepth]
- * (fromDepth <= toDepth). Mirrors `msPerTokenRangeAt`'s tiers per segment:
- * measured/interpolated interior segments contribute the same value to both
- * bounds. The segment past the last measured depth contributes the
- * closed-form integral of the fitted line — anchored to the last measured
- * point, so it can never dip below the flat-clamp rectangle — to
- * `canonicalMs`, and the flat-clamp rectangle to `optimisticMs`. The segment
- * before the first measured depth has no grounded trend to extrapolate
- * backward across a potentially large unmeasured gap (never fitted,
- * regardless of how many measurements exist elsewhere), so both bounds hold
- * flat at the first measured value and it is always tagged
- * "extrapolated-unsupported" (same treatment as a single measurement).
- * `confidence` is the LOWEST-confidence tier encountered anywhere in the span.
- * `stddevMs` is the trapezoidal integral of `msStddevClampedAt` over the same
- * span — purely additive uncertainty widening from contributor-submitted
- * `ppStddev`/`tgStddev`, zero when none was supplied.
+ * Sorts measurements and fits the trend line once so a run of many
+ * `integrateTimeRangeMsPrepared` calls (e.g. one per decode token in
+ * `buildDecodeCumulativeMs`) doesn't re-sort and re-fit the same measurement
+ * set on every call.
  */
-export function integrateTimeRangeMs(
-  measurements: BenchmarkMeasurement[],
+function prepareIntegration(measurements: BenchmarkMeasurement[], field: "pp" | "tg"): PreparedIntegration {
+  const points = sortMeasurementsByDepth(measurements);
+  const first = points[0];
+  const last = points[points.length - 1];
+  return {
+    points,
+    first,
+    last,
+    firstMs: rateToMsPerToken(first[field]),
+    lastMs: rateToMsPerToken(last[field]),
+    firstStddevMs: stddevMsAtPoint(first, field),
+    lastStddevMs: stddevMsAtPoint(last, field),
+    fit: fitTimePerTokenLinear(points, field)
+  };
+}
+
+function integrateTimeRangeMsPrepared(
+  prepared: PreparedIntegration,
   field: "pp" | "tg",
   fromDepth: number,
   toDepth: number
 ): { canonicalMs: number; optimisticMs: number; stddevMs: number; confidence: RateConfidence } {
-  if (measurements.length === 0) {
-    throw new Error("Cannot integrate an empty measurement set");
-  }
   if (toDepth <= fromDepth) {
-    return { canonicalMs: 0, optimisticMs: 0, stddevMs: 0, confidence: rateConfidenceAt(measurements, fromDepth) };
+    return { canonicalMs: 0, optimisticMs: 0, stddevMs: 0, confidence: rateConfidenceAt(prepared.points, fromDepth) };
   }
 
-  const points = sortMeasurementsByDepth(measurements);
-  const first = points[0];
-  const last = points[points.length - 1];
-  const firstMs = rateToMsPerToken(first[field]);
-  const lastMs = rateToMsPerToken(last[field]);
-  const firstStddevMs = stddevMsAtPoint(first, field);
-  const lastStddevMs = stddevMsAtPoint(last, field);
-  const fit = fitTimePerTokenLinear(points, field);
+  const { points, first, last, firstMs, lastMs, firstStddevMs, lastStddevMs, fit } = prepared;
 
   function integrateFittedMs(from: number, to: number): number {
     if (!fit) return 0;
@@ -371,6 +376,68 @@ export function integrateTimeRangeMs(
   }
 
   return { canonicalMs: canonicalTotal, optimisticMs: optimisticTotal, stddevMs: stddevTotal, confidence };
+}
+
+/**
+ * Range-returning integral of msPerToken over [fromDepth, toDepth]
+ * (fromDepth <= toDepth). Mirrors `msPerTokenRangeAt`'s tiers per segment:
+ * measured/interpolated interior segments contribute the same value to both
+ * bounds. The segment past the last measured depth contributes the
+ * closed-form integral of the fitted line — anchored to the last measured
+ * point, so it can never dip below the flat-clamp rectangle — to
+ * `canonicalMs`, and the flat-clamp rectangle to `optimisticMs`. The segment
+ * before the first measured depth has no grounded trend to extrapolate
+ * backward across a potentially large unmeasured gap (never fitted,
+ * regardless of how many measurements exist elsewhere), so both bounds hold
+ * flat at the first measured value and it is always tagged
+ * "extrapolated-unsupported" (same treatment as a single measurement).
+ * `confidence` is the LOWEST-confidence tier encountered anywhere in the span.
+ * `stddevMs` is the trapezoidal integral of `msStddevClampedAt` over the same
+ * span — purely additive uncertainty widening from contributor-submitted
+ * `ppStddev`/`tgStddev`, zero when none was supplied.
+ */
+export function integrateTimeRangeMs(
+  measurements: BenchmarkMeasurement[],
+  field: "pp" | "tg",
+  fromDepth: number,
+  toDepth: number
+): { canonicalMs: number; optimisticMs: number; stddevMs: number; confidence: RateConfidence } {
+  if (measurements.length === 0) {
+    throw new Error("Cannot integrate an empty measurement set");
+  }
+  return integrateTimeRangeMsPrepared(prepareIntegration(measurements, field), field, fromDepth, toDepth);
+}
+
+/**
+ * Cumulative canonical decode ms from decode-start (token 0) to each token
+ * count in `[0, tokens]`, integrating the real depth-dependent per-token
+ * rate curve one token at a time via `integrateTimeRangeMs`. This is the
+ * data source for realistic (non-flat) decode cadence in playback: summing
+ * these per-token integrals over the full span is mathematically equal (up
+ * to floating-point rounding) to integrating over `[contextBefore,
+ * contextBefore + tokens]` directly, so `decodeCumulativeMs[tokens]` tracks
+ * the event's `decodeMs`.
+ */
+function buildDecodeCumulativeMs(
+  measurements: BenchmarkMeasurement[],
+  contextBefore: number,
+  tokens: number
+): number[] {
+  const prepared = prepareIntegration(measurements, "tg");
+  const cumulative = new Array<number>(tokens + 1);
+  cumulative[0] = 0;
+  let running = 0;
+  for (let tokenIndex = 1; tokenIndex <= tokens; tokenIndex += 1) {
+    const stepRange = integrateTimeRangeMsPrepared(
+      prepared,
+      "tg",
+      contextBefore + tokenIndex - 1,
+      contextBefore + tokenIndex
+    );
+    running += stepRange.canonicalMs;
+    cumulative[tokenIndex] = running;
+  }
+  return cumulative;
 }
 
 function interpolateTtftMs(measurements: BenchmarkMeasurement[], depth: number): number | undefined {
@@ -473,7 +540,8 @@ export function buildTimeline(input: TimelineInput): Timeline {
     let decodeOptimisticMs = 0;
     let decodeStddevMs = 0;
     let tgConfidence: RateConfidence = "measured";
-    if (shouldDecode && event.tokens > 0) {
+    const decodeIsActive = shouldDecode && event.tokens > 0;
+    if (decodeIsActive) {
       const decodeRange = integrateTimeRangeMs(
         result.measurements,
         "tg",
@@ -485,6 +553,22 @@ export function buildTimeline(input: TimelineInput): Timeline {
       decodeStddevMs = decodeRange.stddevMs;
       tgConfidence = decodeRange.confidence;
     }
+
+    // Per-token cumulative decode timing is only needed by playback's live
+    // streaming reveal (`decodeCumulativeProgress` in lib/streaming.ts), not
+    // by callers that only read the aggregate summary (e.g. the catalog-wide
+    // leaderboard). Computing it costs one `integrateTimeRangeMs` call per
+    // decode token, so it's deferred behind a getter and cached on first
+    // access rather than paid unconditionally for every event.
+    let cachedDecodeCumulativeMs: number[] | undefined;
+    const decodeCumulativeMsGetter = (): number[] => {
+      if (cachedDecodeCumulativeMs === undefined) {
+        cachedDecodeCumulativeMs = decodeIsActive
+          ? buildDecodeCumulativeMs(result.measurements, contextBefore, event.tokens)
+          : [0];
+      }
+      return cachedDecodeCumulativeMs;
+    };
 
     const ppRate =
       prefillTokens > 0
@@ -553,6 +637,9 @@ export function buildTimeline(input: TimelineInput): Timeline {
       tgConfidence,
       prefillRangeMs,
       decodeRangeMs,
+      get decodeCumulativeMs() {
+        return decodeCumulativeMsGetter();
+      },
       toolLatencyMs,
       extrapolated:
         (ppConfidence !== "measured" && ppConfidence !== "interpolated") ||

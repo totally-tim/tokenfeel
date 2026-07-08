@@ -1229,6 +1229,7 @@ mark {
 }
 
 .meter-track {
+  position: relative;
   display: flex;
   width: 100%;
   height: 14px;
@@ -1242,6 +1243,31 @@ mark {
 
 .meter-reprefill {
   background: var(--warn);
+}
+
+/* "data ends here" tick: the last measured benchmark depth, so it's visible
+   how much of the context window rests on measured vs. extrapolated rates. */
+.meter-data-horizon {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--fg-primary);
+  pointer-events: none;
+}
+
+.meter-data-horizon-label {
+  position: relative;
+  width: 0;
+  margin-top: -3px;
+  color: var(--fg-muted);
+  font-family: "Geist Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transform: translateX(-50%);
 }
 
 .legend-row {
@@ -1348,7 +1374,6 @@ mark {
 .phase-labels,
 .quality-flags,
 .gap-row,
-.depth-row,
 .evidence-panel a {
   display: flex;
   align-items: center;
@@ -1474,6 +1499,33 @@ mark {
   min-width: 1px;
 }
 
+/* Confidence-tier overlays for prefill/decode segments: "fitted" keeps the
+   phase color but hatches + dims it (a real, if speculative, trend); the
+   dashed white outline is a stronger tell but the pattern must still read
+   distinctly from "unsupported", which drops further in opacity and swaps
+   to a coarser cross-hatch with a dashed outline of its own — no depth
+   data at all, not even a trend. */
+.timeline-strip i.confidence-fitted {
+  opacity: 0.68;
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0) 0 3px,
+    rgba(255, 255, 255, 0.4) 3px 4px
+  );
+}
+
+.timeline-strip i.confidence-unsupported {
+  opacity: 0.42;
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0) 0 2px,
+    rgba(255, 255, 255, 0.6) 2px 3px,
+    rgba(255, 255, 255, 0) 3px 5px
+  );
+  outline: 1px dashed rgba(255, 255, 255, 0.7);
+  outline-offset: -1px;
+}
+
 .cache-ledger {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1491,7 +1543,8 @@ mark {
 }
 
 .cache-ledger span,
-.depth-row span,
+.rate-curve-head span,
+.rate-curve-foot span,
 .evidence-panel dt,
 .gap-row span,
 .result-quality-panel dt {
@@ -1503,7 +1556,7 @@ mark {
 }
 
 .cache-ledger strong,
-.depth-row strong,
+.rate-curve-head strong,
 .gap-row strong,
 .result-quality-panel dd {
   color: var(--fg-primary);
@@ -1521,35 +1574,101 @@ mark {
   font-size: 10px;
 }
 
-.depth-rows {
+.rate-curve-grid {
   display: grid;
-  gap: 6px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
   margin-top: 8px;
 }
 
-.depth-row {
-  display: grid;
-  grid-template-columns: 56px minmax(0, 1fr) 74px;
-  gap: 8px;
+.rate-curve {
+  min-width: 0;
 }
 
-.depth-row div {
-  display: grid;
-  gap: 3px;
-  align-self: center;
+.rate-curve-pp {
+  --curve-color: var(--accent);
 }
 
-.depth-row i {
+.rate-curve-tg {
+  --curve-color: var(--warn);
+}
+
+.rate-curve-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.rate-curve-svg {
   display: block;
-  height: 5px;
+  width: 100%;
+  height: auto;
+  margin-top: 4px;
 }
 
-.curve-pp {
-  background: var(--accent);
+.rate-curve-line-measured {
+  stroke: var(--curve-color);
+  stroke-width: 1.75;
+  stroke-linejoin: round;
+  stroke-linecap: round;
 }
 
-.curve-tg {
-  background: var(--warn);
+.rate-curve-line-fitted {
+  stroke: var(--curve-color);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  stroke-dasharray: 3 3;
+  opacity: 0.55;
+}
+
+.rate-curve-dot {
+  fill: var(--surface-primary);
+  stroke: var(--curve-color);
+  stroke-width: 1.5;
+}
+
+.rate-curve-band {
+  fill: var(--curve-color);
+  opacity: 0.14;
+  stroke: none;
+}
+
+.rate-curve-no-data-fill {
+  opacity: 0.5;
+}
+
+.rate-curve-hatch-line {
+  stroke: var(--fg-muted);
+  stroke-width: 1;
+}
+
+.rate-curve-no-data {
+  stroke: var(--fg-muted);
+  stroke-width: 1.5;
+  stroke-dasharray: 1 3;
+  stroke-linecap: round;
+}
+
+.rate-curve-active line {
+  stroke: var(--fg-primary);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+
+.rate-curve-active circle {
+  fill: var(--fg-primary);
+  stroke: var(--surface-primary);
+  stroke-width: 1.5;
+}
+
+.rate-curve-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 2px;
 }
 
 .depth-curve small {
@@ -2331,6 +2450,43 @@ mark {
 
 .phase-state-meta span:last-child {
   color: var(--fg-muted);
+}
+
+.phase-rate-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Inline confidence badge next to the live rate readout — surfaced in the
+   primary reading path rather than buried in QualityFlags. Fitted keeps a
+   warm (still-a-real-trend) tone; unsupported drops to a neutral dashed
+   pill since there's no trend basis at all, only a flat guess. */
+.confidence-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-family: "Geist Mono", monospace;
+  font-size: 9.5px;
+  font-style: normal;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.confidence-badge-extrapolated-fitted {
+  border-color: rgba(192, 109, 19, 0.35);
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.confidence-badge-extrapolated-unsupported {
+  border-color: var(--border-primary);
+  border-style: dashed;
+  background: var(--surface-control);
+  color: var(--fg-secondary);
 }
 
 .phase-state > p {
