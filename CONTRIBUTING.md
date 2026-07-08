@@ -60,7 +60,7 @@ point, so its range width comes only from stddev, while a two-or-more-point
 submission gets a fitted trend for depths past the last measurement — if
 that trend is genuinely degrading, the fitted estimate diverges from the
 flat optimistic bound more the steeper the slope and the farther past the
-last measured depth you go, which can make the range *wider* than a
+last measured depth you go, which can make the range _wider_ than a
 single-point submission's, not narrower. Submit enough depths to capture the
 real shape of the curve; don't assume adding points automatically tightens
 your result's range. Race mode compares those ranges, not point estimates —

@@ -1,7 +1,39 @@
-import { Brain, Check, ChevronDown, ChevronRight, Clock, Cpu, Gauge, MessageSquare, Play, Square, Terminal, Wrench } from "lucide-react";
-import { useEffect, useId, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
-import { formatClock, formatNumber, formatRate, formatTokens, percent } from "../lib/format";
-import type { BenchmarkResult, CacheMode, Catalog, RateConfidence, RuntimeMetadata, ScenarioEvent, Timeline, TimelineEvent, TimelineSummary } from "../types";
+import {
+  Brain,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  Cpu,
+  Gauge,
+  MessageSquare,
+  Play,
+  Square,
+  Terminal,
+  Wrench
+} from "lucide-react";
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type ReactNode
+} from "react";
+import { formatClock, formatNumber, formatRate, formatTokens } from "../lib/format";
+import type {
+  BenchmarkResult,
+  CacheMode,
+  Catalog,
+  RateConfidence,
+  RuntimeMetadata,
+  ScenarioEvent,
+  Timeline,
+  TimelineEvent,
+  TimelineSummary
+} from "../types";
 import { compactResultLabel, resultMeta } from "../lib/catalog";
 import { maxMeasuredDepth } from "../lib/catalogQuality";
 import { StatusBadge } from "./StatusBadge";
@@ -64,7 +96,7 @@ export function PhaseState({
       ? `${formatTokens(processedPromptTokens)} / ${formatTokens(event.prefillTokens)} ${copy.tokenLabel}`
       : phase.kind === "decode"
         ? `${formatNumber(streamFrame.tokens)} / ${formatNumber(event.tokens)} ${copy.tokenLabel}`
-      : phase.kind === "tool"
+        : phase.kind === "tool"
           ? copy.tokenLabel
           : phase.kind === "complete"
             ? copy.tokenLabel
@@ -95,7 +127,9 @@ export function PhaseState({
           <PhaseIcon kind={phase.kind} />
           {copy.label}
         </span>
-        <strong>{formatClock(phase.elapsedMs)} / {formatClock(phase.totalMs)}</strong>
+        <strong>
+          {formatClock(phase.elapsedMs)} / {formatClock(phase.totalMs)}
+        </strong>
       </div>
       <div
         className="phase-state-track"
@@ -108,9 +142,7 @@ export function PhaseState({
         style={trackStyle}
       >
         {waiting && <em className="phase-dot" />}
-        <span className="phase-fill">
-          {phase.kind === "prefill" && <i className="phase-sweep" />}
-        </span>
+        <span className="phase-fill">{phase.kind === "prefill" && <i className="phase-sweep" />}</span>
         {phase.kind === "decode" && <b className="phase-pip" />}
       </div>
       <div className="phase-state-meta">
@@ -141,7 +173,12 @@ export function Disclosure({
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div className={`disclosure ${open ? "open" : ""}`}>
-      <button type="button" className="disclosure-toggle" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
+      <button
+        type="button"
+        className="disclosure-toggle"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+      >
         <ChevronRight size={13} />
         {label}
       </button>
@@ -328,7 +365,10 @@ export function SearchSelect({
                   id={`${listboxId}-${index}`}
                   type="button"
                   tabIndex={-1}
-                  className={[option.value === selectedValue ? "active" : "", index === highlightedIndex ? "focused" : ""]
+                  className={[
+                    option.value === selectedValue ? "active" : "",
+                    index === highlightedIndex ? "focused" : ""
+                  ]
                     .filter(Boolean)
                     .join(" ")}
                   onClick={() => choose(option.value)}
@@ -365,12 +405,7 @@ export function SpeedSelector({ speed, onSpeed }: SpeedSelectorProps) {
   return (
     <div className="speed-grid" role="group" aria-label="Playback speed">
       {[1, 2, 4, 8].map((item) => (
-        <button
-          key={item}
-          type="button"
-          className={speed === item ? "active" : ""}
-          onClick={() => onSpeed(item)}
-        >
+        <button key={item} type="button" className={speed === item ? "active" : ""} onClick={() => onSpeed(item)}>
           {item}×
         </button>
       ))}
@@ -444,7 +479,14 @@ interface ContextMeterProps {
   dataHorizon?: number;
 }
 
-export function ContextMeter({ cached, reprefill, total, max = 128_000, compact = false, dataHorizon }: ContextMeterProps) {
+export function ContextMeter({
+  cached,
+  reprefill,
+  total,
+  max = 128_000,
+  compact = false,
+  dataHorizon
+}: ContextMeterProps) {
   const cachedPct = Math.min(100, (cached / max) * 100);
   const reprefillPct = Math.min(100 - cachedPct, (reprefill / max) * 100);
   const dataHorizonPct =
@@ -525,17 +567,29 @@ export function Transcript({
           >
             <div className="event-head">
               <span>{eventLabel(event)}</span>
-              <span>{isGeneratedEvent(event) && active ? `${formatNumber(streamedTokens)} / ${formatNumber(event.tokens)} tok` : `${formatNumber(event.tokens)} tok`}</span>
+              <span>
+                {isGeneratedEvent(event) && active
+                  ? `${formatNumber(streamedTokens)} / ${formatNumber(event.tokens)} tok`
+                  : `${formatNumber(event.tokens)} tok`}
+              </span>
               {event.cacheBust && <span className="warn-text">re-prefilled · cache bust</span>}
             </div>
             {event.role === "tool_call" ? (
-              <pre>{streamedText}{showCursor ? <span className="cursor">▍</span> : null}</pre>
+              <pre>
+                {streamedText}
+                {showCursor ? <span className="cursor">▍</span> : null}
+              </pre>
             ) : event.role === "tool_result" ? (
               <div className="tool-result">{event.text}</div>
             ) : event.role === "thinking" ? (
               <div className="thinking-row">
-                <span>› THINKING · {formatNumber(streamedTokens)} / {formatNumber(event.tokens)} tokens</span>
-                <p>{streamedText}{showCursor ? <span className="cursor">▍</span> : null}</p>
+                <span>
+                  › THINKING · {formatNumber(streamedTokens)} / {formatNumber(event.tokens)} tokens
+                </span>
+                <p>
+                  {streamedText}
+                  {showCursor ? <span className="cursor">▍</span> : null}
+                </p>
               </div>
             ) : (
               <p>
@@ -555,17 +609,19 @@ interface SessionHeaderProps {
   title: string;
   result: BenchmarkResult;
   activeEvent: TimelineEvent;
-  summary: TimelineSummary;
   hasStarted: boolean;
   isComplete: boolean;
 }
 
-export function SessionHeader({ catalog, title, result, activeEvent, summary, hasStarted, isComplete }: SessionHeaderProps) {
+export function SessionHeader({ catalog, title, result, activeEvent, hasStarted, isComplete }: SessionHeaderProps) {
   return (
     <div className="session-header">
       <div>
         <h1>{title}</h1>
-        <p>{compactResultLabel(catalog, result)} · {result.quant.toUpperCase()} · {result.runtime.name}/{result.runtime.backend}</p>
+        <p>
+          {compactResultLabel(catalog, result)} · {result.quant.toUpperCase()} · {result.runtime.name}/
+          {result.runtime.backend}
+        </p>
       </div>
       <div className="session-header-right">
         <StatusBadge status={!hasStarted ? "idle" : isComplete ? "finished" : "generating"} />
@@ -604,7 +660,17 @@ interface LaneProps {
   winner?: boolean;
 }
 
-export function RaceLane({ catalog, label, result, timeline, summary, activeEvent, elapsedMs, hasStarted, winner = false }: LaneProps) {
+export function RaceLane({
+  catalog,
+  label,
+  result,
+  timeline,
+  summary,
+  activeEvent,
+  elapsedMs,
+  hasStarted,
+  winner = false
+}: LaneProps) {
   const complete = hasStarted && elapsedMs >= timeline.totalMs;
   const active = hasStarted && !complete;
   const phase = activePhaseForEvent(activeEvent, elapsedMs, hasStarted, complete);
@@ -619,7 +685,11 @@ export function RaceLane({ catalog, label, result, timeline, summary, activeEven
         ? "tool wait"
         : "decode";
   const labelParts = compactResultLabel(catalog, result).split(" · ");
-  const laneStatus = complete ? formatClock(summary.wallTimeMs) : active ? `turn ${activeEvent.index + 1} live` : "ready";
+  const laneStatus = complete
+    ? formatClock(summary.wallTimeMs)
+    : active
+      ? `turn ${activeEvent.index + 1} live`
+      : "ready";
   const primaryLabel = complete ? "FINAL ELAPSED" : active ? "CURRENT PHASE" : "READY";
   const primaryValue = complete ? formatClock(summary.wallTimeMs) : active ? compactPhaseLabel(phase.kind) : "Ready";
   const progressValue = active ? `${Math.round(phase.progress * 100)}% phase` : `${timeline.events.length} turns`;
@@ -629,7 +699,9 @@ export function RaceLane({ catalog, label, result, timeline, summary, activeEven
   }, [activeEvent.index]);
 
   return (
-    <section className={`race-lane ${label === "B" ? "lane-b" : "lane-a"} ${winner && complete ? "winner" : ""} ${active ? "active" : ""}`}>
+    <section
+      className={`race-lane ${label === "B" ? "lane-b" : "lane-a"} ${winner && complete ? "winner" : ""} ${active ? "active" : ""}`}
+    >
       <div className="lane-stripe" />
       <div className="lane-inner">
         <div className="lane-head">
@@ -638,11 +710,11 @@ export function RaceLane({ catalog, label, result, timeline, summary, activeEven
               <span className="lane-tag">LANE {label}</span>
               <h2>{labelParts[0]}</h2>
             </div>
-            <p>{labelParts.slice(1).join(" · ")} · {result.runtime.name}/{result.runtime.backend}</p>
+            <p>
+              {labelParts.slice(1).join(" · ")} · {result.runtime.name}/{result.runtime.backend}
+            </p>
           </div>
-          <span className={`lane-state-text ${active ? "live" : complete ? "done" : ""}`}>
-            {laneStatus}
-          </span>
+          <span className={`lane-state-text ${active ? "live" : complete ? "done" : ""}`}>{laneStatus}</span>
         </div>
         <div className="lane-big">
           <div>
@@ -659,62 +731,78 @@ export function RaceLane({ catalog, label, result, timeline, summary, activeEven
         <div className="race-output-panel">
           <div className="race-output-head">
             <span>LIVE OUTPUT</span>
-            <strong>turn {activeEvent.index + 1} · {eventLabel(activeEvent).toLowerCase()}</strong>
+            <strong>
+              turn {activeEvent.index + 1} · {eventLabel(activeEvent).toLowerCase()}
+            </strong>
           </div>
           <div className="race-output-scroll" aria-label={`Lane ${label} live transcript`}>
             {outputEvents.length === 0 ? (
-              <div className="race-output-empty">
-                Start the race to stream this lane's transcript.
-              </div>
-            ) : outputEvents.map((event) => {
-              const eventActive = event.index === activeEvent.index;
-              const eventElapsedMs = eventActive ? elapsedMs : event.endMs;
-              const streamFrame = streamFrameForEvent(event, eventElapsedMs);
-              const streamedText = streamFrame.text;
-              const waitingForOutput =
-                eventActive && isGeneratedEvent(event) && streamedText.length === 0 && streamFrame.tokens === 0 && elapsedMs < event.endMs;
-              const waitingCopy =
-                event.toolLatencyMs > 0 && elapsedMs < event.toolDoneMs
-                  ? "Waiting on tool latency before output can stream."
-                  : "Decode will stream here as soon as the first token arrives.";
-              const showCursor = eventActive && isGeneratedEvent(event) && streamFrame.progress < 1;
-              const eventMetric =
-                eventActive && isGeneratedEvent(event)
-                  ? `${formatNumber(streamFrame.tokens)} / ${formatNumber(event.tokens)} tok`
-                  : eventActive
-                    ? turnMetricForEvent(event)
-                    : `${formatNumber(event.tokens)} tok`;
+              <div className="race-output-empty">Start the race to stream this lane's transcript.</div>
+            ) : (
+              outputEvents.map((event) => {
+                const eventActive = event.index === activeEvent.index;
+                const eventElapsedMs = eventActive ? elapsedMs : event.endMs;
+                const streamFrame = streamFrameForEvent(event, eventElapsedMs);
+                const streamedText = streamFrame.text;
+                const waitingForOutput =
+                  eventActive &&
+                  isGeneratedEvent(event) &&
+                  streamedText.length === 0 &&
+                  streamFrame.tokens === 0 &&
+                  elapsedMs < event.endMs;
+                const waitingCopy =
+                  event.toolLatencyMs > 0 && elapsedMs < event.toolDoneMs
+                    ? "Waiting on tool latency before output can stream."
+                    : "Decode will stream here as soon as the first token arrives.";
+                const showCursor = eventActive && isGeneratedEvent(event) && streamFrame.progress < 1;
+                const eventMetric =
+                  eventActive && isGeneratedEvent(event)
+                    ? `${formatNumber(streamFrame.tokens)} / ${formatNumber(event.tokens)} tok`
+                    : eventActive
+                      ? turnMetricForEvent(event)
+                      : `${formatNumber(event.tokens)} tok`;
 
-              return (
-                <article
-                  key={event.id}
-                  ref={eventActive ? activeOutputRef : undefined}
-                  className={`race-output-event event-${event.role} ${eventActive ? "current" : ""}`}
-                >
-                  <div className="event-head">
-                    <span>turn {event.index + 1} · {eventLabel(event)}</span>
-                    <span>{eventMetric}</span>
-                  </div>
-                  {waitingForOutput ? (
-                    <p className="race-output-waiting">{waitingCopy}</p>
-                  ) : event.role === "tool_call" ? (
-                    <pre>{streamedText}{showCursor ? <span className="cursor">▍</span> : null}</pre>
-                  ) : event.role === "tool_result" ? (
-                    <div className="tool-result">{event.text}</div>
-                  ) : event.role === "thinking" ? (
-                    <div className="thinking-row">
-                      <span>› THINKING · {formatNumber(streamFrame.tokens)} / {formatNumber(event.tokens)} tokens</span>
-                      <p>{streamedText}{showCursor ? <span className="cursor">▍</span> : null}</p>
+                return (
+                  <article
+                    key={event.id}
+                    ref={eventActive ? activeOutputRef : undefined}
+                    className={`race-output-event event-${event.role} ${eventActive ? "current" : ""}`}
+                  >
+                    <div className="event-head">
+                      <span>
+                        turn {event.index + 1} · {eventLabel(event)}
+                      </span>
+                      <span>{eventMetric}</span>
                     </div>
-                  ) : (
-                    <p>
-                      {streamedText}
-                      {showCursor ? <span className="cursor">▍</span> : null}
-                    </p>
-                  )}
-                </article>
-              );
-            })}
+                    {waitingForOutput ? (
+                      <p className="race-output-waiting">{waitingCopy}</p>
+                    ) : event.role === "tool_call" ? (
+                      <pre>
+                        {streamedText}
+                        {showCursor ? <span className="cursor">▍</span> : null}
+                      </pre>
+                    ) : event.role === "tool_result" ? (
+                      <div className="tool-result">{event.text}</div>
+                    ) : event.role === "thinking" ? (
+                      <div className="thinking-row">
+                        <span>
+                          › THINKING · {formatNumber(streamFrame.tokens)} / {formatNumber(event.tokens)} tokens
+                        </span>
+                        <p>
+                          {streamedText}
+                          {showCursor ? <span className="cursor">▍</span> : null}
+                        </p>
+                      </div>
+                    ) : (
+                      <p>
+                        {streamedText}
+                        {showCursor ? <span className="cursor">▍</span> : null}
+                      </p>
+                    )}
+                  </article>
+                );
+              })
+            )}
           </div>
           {complete && (
             <p className="done-line">

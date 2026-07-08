@@ -6,7 +6,9 @@ describe("contribution agent prompt", () => {
     expect(contributionAgentPrompt).toContain("Do not invent");
     expect(contributionAgentPrompt).toContain("raw output");
     expect(contributionAgentPrompt).toContain("data/results/<hardware>__<model>__<quant>__<runtime>.json");
-    expect(contributionAgentPrompt).toContain("Include id, hardware, model, quant, runtime, measurements, source, submitter, date, and status");
+    expect(contributionAgentPrompt).toContain(
+      "Include id, hardware, model, quant, runtime, measurements, source, submitter, date, and status"
+    );
     expect(contributionAgentPrompt).toContain("npm run validate:data");
     expect(contributionAgentPrompt).toContain("npm test");
     expect(contributionAgentPrompt).toContain("npm run build");

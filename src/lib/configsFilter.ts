@@ -67,8 +67,13 @@ export function filterRowsBySelectionAndQuery(
 ): RankedResultRow[] {
   const normalizedQuery = query.toLowerCase();
   return rows.filter(({ result, hardware, model }) => {
-    const haystack = `${hardware?.name} ${model?.name} ${result.runtime.name} ${result.runtime.backend} ${result.quant}`.toLowerCase();
-    return selectedIds.has(result.id) && haystack.includes(normalizedQuery) && (!verifiedOnly || result.status === "verified");
+    const haystack =
+      `${hardware?.name} ${model?.name} ${result.runtime.name} ${result.runtime.backend} ${result.quant}`.toLowerCase();
+    return (
+      selectedIds.has(result.id) &&
+      haystack.includes(normalizedQuery) &&
+      (!verifiedOnly || result.status === "verified")
+    );
   });
 }
 
@@ -79,7 +84,9 @@ export function sortRows(
 ): RankedResultRow[] {
   if (sortKey === "seconds") return rows;
   return [...rows].sort(
-    (a, b) => baselineMetric(baselineByResultId, b.result.id, sortKey) - baselineMetric(baselineByResultId, a.result.id, sortKey)
+    (a, b) =>
+      baselineMetric(baselineByResultId, b.result.id, sortKey) -
+      baselineMetric(baselineByResultId, a.result.id, sortKey)
   );
 }
 
@@ -157,7 +164,10 @@ export function computeCoverage(rows: RankedResultRow[]): Map<string, CoverageEn
   }, new Map<string, CoverageEntry>());
 }
 
-export function topCoverageEntries(coverage: Map<string, CoverageEntry>, limit = 8): { rows: CoverageEntry[]; maxTotal: number } {
+export function topCoverageEntries(
+  coverage: Map<string, CoverageEntry>,
+  limit = 8
+): { rows: CoverageEntry[]; maxTotal: number } {
   const rows = [...coverage.values()].sort((a, b) => b.total - a.total).slice(0, limit);
   const maxTotal = Math.max(...rows.map((item) => item.total), 1);
   return { rows, maxTotal };

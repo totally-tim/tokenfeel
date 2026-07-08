@@ -68,7 +68,8 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
     [catalog.results, selection.hardwareId, selection.modelId]
   );
   const runtimeOptions = useMemo(
-    () => (selection.hardwareId && selection.modelId && selection.quant ? getRuntimeOptions(catalog.results, selection) : []),
+    () =>
+      selection.hardwareId && selection.modelId && selection.quant ? getRuntimeOptions(catalog.results, selection) : [],
     [catalog.results, selection.hardwareId, selection.modelId, selection.quant]
   );
   const selectedIds = useMemo(
@@ -79,7 +80,10 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
     () => filterRowsBySelectionAndQuery(rows, selectedIds, query, verifiedOnly),
     [query, rows, selectedIds, verifiedOnly]
   );
-  const sorted = useMemo(() => sortRows(filtered, sortKey, baselineByResultId), [filtered, sortKey, baselineByResultId]);
+  const sorted = useMemo(
+    () => sortRows(filtered, sortKey, baselineByResultId),
+    [filtered, sortKey, baselineByResultId]
+  );
   const { pageCount, safePageIndex, visibleRows, firstVisible, lastVisible } = useMemo(
     () => paginateRows(sorted, pageIndex, pageSize),
     [sorted, pageIndex]
@@ -152,14 +156,19 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
 
   const raceCompare = () => {
     if (compareIds.length !== 2) return;
-    const url = new URL(buildRaceShareUrl({ leftId: compareIds[0], rightId: compareIds[1], scenarioId: DEFAULT_SCENARIO_ID, speed: 1 }));
+    const url = new URL(
+      buildRaceShareUrl({ leftId: compareIds[0], rightId: compareIds[1], scenarioId: DEFAULT_SCENARIO_ID, speed: 1 })
+    );
     window.location.hash = url.hash;
   };
 
   const compareLabel = (id: string) => compareRowLabel(rows, id);
 
   const rangeLabel = buildRangeLabel(sorted.length, firstVisible, lastVisible);
-  const frontierRows = useMemo(() => computeFrontierRows(filtered, baselineByResultId, 8), [filtered, baselineByResultId]);
+  const frontierRows = useMemo(
+    () => computeFrontierRows(filtered, baselineByResultId, 8),
+    [filtered, baselineByResultId]
+  );
   const { rows: coverageRows, maxTotal: maxCoverageTotal } = useMemo(() => topCoverageEntries(coverage, 8), [coverage]);
   const configCount = countDistinctHardware(sorted);
 
@@ -171,10 +180,14 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
             <div className="title-row">
               <h1>Configs & results</h1>
               <span>
-                {formatNumber(sorted.length)} {plural(sorted.length, "result")} · {formatNumber(configCount)} {plural(configCount, "config")}
+                {formatNumber(sorted.length)} {plural(sorted.length, "result")} · {formatNumber(configCount)}{" "}
+                {plural(configCount, "config")}
               </span>
             </div>
-            <p>Search by hardware, model, backend, runtime or quant. Results are paged for the full catalog; pick any two rows to race them head to head.</p>
+            <p>
+              Search by hardware, model, backend, runtime or quant. Results are paged for the full catalog; pick any two
+              rows to race them head to head.
+            </p>
           </div>
           <div className="filters">
             <label className="search-box">
@@ -195,7 +208,13 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
               compact
               disabled={!selection.hardwareId}
               label="Model"
-              value={!selection.hardwareId ? "Model" : selection.modelId ? labelFor(modelOptions, selection.modelId) : "All models"}
+              value={
+                !selection.hardwareId
+                  ? "Model"
+                  : selection.modelId
+                    ? labelFor(modelOptions, selection.modelId)
+                    : "All models"
+              }
               selectedValue={selection.modelId ?? ""}
               options={withAllOption(selection.hardwareId ? "All models" : "Model", modelOptions)}
               onChange={(next) => setSelection((current) => updateConfigFilterSelection(current, "modelId", next))}
@@ -206,7 +225,9 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
               compact
               disabled={!selection.modelId}
               label="Quant"
-              value={!selection.modelId ? "Quant" : selection.quant ? labelFor(quantOptions, selection.quant) : "All quants"}
+              value={
+                !selection.modelId ? "Quant" : selection.quant ? labelFor(quantOptions, selection.quant) : "All quants"
+              }
               selectedValue={selection.quant ?? ""}
               options={withAllOption(selection.modelId ? "All quants" : "Quant", quantOptions)}
               onChange={(next) => setSelection((current) => updateConfigFilterSelection(current, "quant", next))}
@@ -216,7 +237,13 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
               compact
               disabled={!selection.quant}
               label="Runtime"
-              value={!selection.quant ? "Runtime" : selection.runtimeKey ? labelFor(runtimeOptions, selection.runtimeKey) : "All runtimes"}
+              value={
+                !selection.quant
+                  ? "Runtime"
+                  : selection.runtimeKey
+                    ? labelFor(runtimeOptions, selection.runtimeKey)
+                    : "All runtimes"
+              }
               selectedValue={selection.runtimeKey ?? ""}
               options={withAllOption(selection.quant ? "All runtimes" : "Runtime", runtimeOptions)}
               onChange={(next) => setSelection((current) => updateConfigFilterSelection(current, "runtimeKey", next))}
@@ -271,7 +298,9 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
                 </div>
                 <h2>{hardware?.shortName ?? result.hardware}</h2>
                 <strong>{formatSeconds(seconds)}</strong>
-                <p>{result.runtime.backend} · {formatRate(baselineMetric(baselineByResultId, result.id, "tg"))}</p>
+                <p>
+                  {result.runtime.backend} · {formatRate(baselineMetric(baselineByResultId, result.id, "tg"))}
+                </p>
               </article>
             ))}
           </section>
@@ -285,71 +314,87 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
             </div>
             <p className="frontier-note">shorter agent loop is better · decode shown for throughput context</p>
             <div className="chart-legend" aria-label="Frontier chart legend">
-              <span><i className="loop" /> agent loop</span>
-              <span><i className="decode" /> decode t/s</span>
+              <span>
+                <i className="loop" /> agent loop
+              </span>
+              <span>
+                <i className="decode" /> decode t/s
+              </span>
             </div>
             <div className="frontier-bars">
               {frontierRows.length === 0 ? (
                 <p className="empty-panel">No frontier rows match the current filters.</p>
-              ) : frontierRows.map(({ result, seconds, hardware, model, tgRate, loopPct, decodePct }) => {
-                return (
-                  <article
-                    key={result.id}
-                    className="frontier-bar-row"
-                    title={`${hardware?.shortName ?? result.hardware}: ${formatSeconds(seconds)} · ${formatRate(tgRate)}`}
-                  >
-                    <span>
-                      <strong>{hardware?.shortName ?? result.hardware}</strong>
-                      <small>{model?.name ?? result.model} · {result.quant.toUpperCase()}</small>
-                    </span>
-                    <div className="frontier-bar-metrics">
-                      <div className="frontier-bar loop">
-                        <i style={{ width: `${loopPct}%` }} />
+              ) : (
+                frontierRows.map(({ result, seconds, hardware, model, tgRate, loopPct, decodePct }) => {
+                  return (
+                    <article
+                      key={result.id}
+                      className="frontier-bar-row"
+                      title={`${hardware?.shortName ?? result.hardware}: ${formatSeconds(seconds)} · ${formatRate(tgRate)}`}
+                    >
+                      <span>
+                        <strong>{hardware?.shortName ?? result.hardware}</strong>
+                        <small>
+                          {model?.name ?? result.model} · {result.quant.toUpperCase()}
+                        </small>
+                      </span>
+                      <div className="frontier-bar-metrics">
+                        <div className="frontier-bar loop">
+                          <i style={{ width: `${loopPct}%` }} />
+                        </div>
+                        <div className="frontier-bar decode">
+                          <i style={{ width: `${decodePct}%` }} />
+                        </div>
                       </div>
-                      <div className="frontier-bar decode">
-                        <i style={{ width: `${decodePct}%` }} />
-                      </div>
-                    </div>
-                    <span className="frontier-values">
-                      <strong>{formatSeconds(seconds)}</strong>
-                      <small>{formatRate(tgRate)}</small>
-                    </span>
-                  </article>
-                );
-              })}
+                      <span className="frontier-values">
+                        <strong>{formatSeconds(seconds)}</strong>
+                        <small>{formatRate(tgRate)}</small>
+                      </span>
+                    </article>
+                  );
+                })
+              )}
             </div>
           </div>
           <div className="coverage-panel">
             <div>
               <span>COVERAGE</span>
-              <strong>{coverage.size} {plural(coverage.size, "hardware group")}</strong>
+              <strong>
+                {coverage.size} {plural(coverage.size, "hardware group")}
+              </strong>
             </div>
             <p className="coverage-note">results per hardware · evidence counts listed</p>
             <div className="chart-legend" aria-label="Coverage chart legend">
-              <span><i className="results" /> results</span>
+              <span>
+                <i className="results" /> results
+              </span>
             </div>
             <div className="coverage-list">
               {coverageRows.length === 0 ? (
                 <p className="empty-panel">No hardware coverage matches the current filters.</p>
-              ) : coverageRows.map((item) => {
-                const hardware = lookups.hardwareById(item.hardware);
-                const totalPct = Math.max(4, (item.total / maxCoverageTotal) * 100);
-                return (
-                  <article key={item.hardware} className="coverage-row">
-                    <span>
-                      <strong>{hardware?.shortName ?? item.hardware}</strong>
-                      <small>{item.total} results</small>
-                    </span>
-                    <div className="coverage-stack" aria-label={`${hardware?.shortName ?? item.hardware} coverage`}>
-                      <i className="results" style={{ width: `${totalPct}%` }} />
-                    </div>
-                    <span className="coverage-values">
-                      <strong>{item.total} results</strong>
-                      <small>{item.raw} raw · {item.verified} verified</small>
-                    </span>
-                  </article>
-                );
-              })}
+              ) : (
+                coverageRows.map((item) => {
+                  const hardware = lookups.hardwareById(item.hardware);
+                  const totalPct = Math.max(4, (item.total / maxCoverageTotal) * 100);
+                  return (
+                    <article key={item.hardware} className="coverage-row">
+                      <span>
+                        <strong>{hardware?.shortName ?? item.hardware}</strong>
+                        <small>{item.total} results</small>
+                      </span>
+                      <div className="coverage-stack" aria-label={`${hardware?.shortName ?? item.hardware} coverage`}>
+                        <i className="results" style={{ width: `${totalPct}%` }} />
+                      </div>
+                      <span className="coverage-values">
+                        <strong>{item.total} results</strong>
+                        <small>
+                          {item.raw} raw · {item.verified} verified
+                        </small>
+                      </span>
+                    </article>
+                  );
+                })
+              )}
             </div>
           </div>
         </section>
@@ -358,7 +403,11 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
           <div className="table-status">
             <span>{rangeLabel}</span>
             <div className="pager">
-              <button type="button" onClick={() => setPageIndex((value) => Math.max(0, value - 1))} disabled={safePageIndex === 0}>
+              <button
+                type="button"
+                onClick={() => setPageIndex((value) => Math.max(0, value - 1))}
+                disabled={safePageIndex === 0}
+              >
                 Previous
               </button>
               <strong>
@@ -379,13 +428,20 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
                 <span>COMPARE</span>
                 <strong>{compareLabel(compareIds[0])}</strong>
                 <em>vs</em>
-                <strong className={compareIds[1] ? "" : "empty"}>{compareIds[1] ? compareLabel(compareIds[1]) : "pick a second"}</strong>
+                <strong className={compareIds[1] ? "" : "empty"}>
+                  {compareIds[1] ? compareLabel(compareIds[1]) : "pick a second"}
+                </strong>
               </div>
               <div className="compare-actions">
                 <button type="button" className="secondary-button small" onClick={() => setCompareIds([])}>
                   Clear
                 </button>
-                <button type="button" className="primary-button small" onClick={raceCompare} disabled={compareIds.length !== 2}>
+                <button
+                  type="button"
+                  className="primary-button small"
+                  onClick={raceCompare}
+                  disabled={compareIds.length !== 2}
+                >
                   Race these <ArrowRight size={15} />
                 </button>
               </div>
@@ -409,77 +465,92 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
                 <strong>No configs match these filters.</strong>
                 <span>Clear a filter or search for hardware, model, runtime, backend, or quant.</span>
               </div>
-            ) : visibleRows.map(({ result, seconds, hardware, model, summary }) => (
-              <div className={`table-entry ${compareIds.includes(result.id) ? "compared" : ""}`} key={result.id}>
-                <div className="table-row">
-                  <span className="compare-cell">
-                    <input
-                      type="checkbox"
-                      checked={compareIds.includes(result.id)}
-                      onChange={() => toggleCompare(result.id)}
-                      aria-label={`Add ${hardware?.shortName ?? result.hardware} to compare`}
-                    />
-                  </span>
-                  <span>
-                    <strong>{hardware?.shortName ?? result.hardware}</strong>
-                    <small>{hardware?.memory}</small>
-                  </span>
-                  <span>{model?.name ?? result.model}</span>
-                  <span>{result.quant.toUpperCase()}</span>
-                  <span>
-                    <strong>{result.runtime.name}</strong>
-                    <small>{result.runtime.backend}</small>
-                  </span>
-                  <span>{formatNumber(baselineMetric(baselineByResultId, result.id, "pp"))}</span>
-                  <span>{baselineMetric(baselineByResultId, result.id, "tg").toFixed(1)}</span>
-                  <span className="accent-strong">{formatSeconds(seconds)}</span>
-                  <span><StatusBadge status={result.status} /></span>
-                  <span className="table-actions">
-                    <button
-                      type="button"
-                      onClick={() => setExpandedId((current) => (current === result.id ? null : result.id))}
-                      aria-expanded={expandedId === result.id}
-                    >
-                      {expandedId === result.id ? "less" : "more"}
-                    </button>
-                    <a href={result.source.url} target="_blank" rel="noreferrer" aria-label={`Open source for ${result.id}`}>
-                      {result.status === "flagged" ? <Flag size={15} /> : <ExternalLink size={15} />}
-                    </a>
-                  </span>
-                </div>
-                {expandedId === result.id && (
-                  <div className="result-detail-row">
-                    <EvidencePanel result={detailsById[result.id] ?? result} />
-                    <DepthRateCurve result={detailsById[result.id] ?? result} />
-                    <div className="result-quality-panel">
-                      <QualityFlags result={detailsById[result.id] ?? result} extrapolatedEvents={summary.extrapolatedEvents} />
-                      <dl>
-                        <div>
-                          <dt>scenario time</dt>
-                          <dd>{formatSeconds(seconds)}</dd>
-                        </div>
-                        <div>
-                          <dt>prefill/decode/tool</dt>
-                          <dd>{formatSeconds(summary.prefillMs / 1000)} / {formatSeconds(summary.decodeMs / 1000)} / {formatSeconds(summary.toolLatencyMs / 1000)}</dd>
-                        </div>
-                        <div>
-                          <dt>cache saved</dt>
-                          <dd>{formatNumber(summary.prefilledWithoutCache - summary.prefilledWithCache)} tokens</dd>
-                        </div>
-                      </dl>
+            ) : (
+              visibleRows.map(({ result, seconds, hardware, model, summary }) => (
+                <div className={`table-entry ${compareIds.includes(result.id) ? "compared" : ""}`} key={result.id}>
+                  <div className="table-row">
+                    <span className="compare-cell">
+                      <input
+                        type="checkbox"
+                        checked={compareIds.includes(result.id)}
+                        onChange={() => toggleCompare(result.id)}
+                        aria-label={`Add ${hardware?.shortName ?? result.hardware} to compare`}
+                      />
+                    </span>
+                    <span>
+                      <strong>{hardware?.shortName ?? result.hardware}</strong>
+                      <small>{hardware?.memory}</small>
+                    </span>
+                    <span>{model?.name ?? result.model}</span>
+                    <span>{result.quant.toUpperCase()}</span>
+                    <span>
+                      <strong>{result.runtime.name}</strong>
+                      <small>{result.runtime.backend}</small>
+                    </span>
+                    <span>{formatNumber(baselineMetric(baselineByResultId, result.id, "pp"))}</span>
+                    <span>{baselineMetric(baselineByResultId, result.id, "tg").toFixed(1)}</span>
+                    <span className="accent-strong">{formatSeconds(seconds)}</span>
+                    <span>
+                      <StatusBadge status={result.status} />
+                    </span>
+                    <span className="table-actions">
+                      <button
+                        type="button"
+                        onClick={() => setExpandedId((current) => (current === result.id ? null : result.id))}
+                        aria-expanded={expandedId === result.id}
+                      >
+                        {expandedId === result.id ? "less" : "more"}
+                      </button>
                       <a
-                        className="report-result-link"
-                        href={`${FLAG_RESULT_ISSUE_URL}&title=${encodeURIComponent(`Flag result: ${result.id}`)}`}
+                        href={result.source.url}
                         target="_blank"
                         rel="noreferrer"
+                        aria-label={`Open source for ${result.id}`}
                       >
-                        Report this result
+                        {result.status === "flagged" ? <Flag size={15} /> : <ExternalLink size={15} />}
                       </a>
-                    </div>
+                    </span>
                   </div>
-                )}
-              </div>
-            ))}
+                  {expandedId === result.id && (
+                    <div className="result-detail-row">
+                      <EvidencePanel result={detailsById[result.id] ?? result} />
+                      <DepthRateCurve result={detailsById[result.id] ?? result} />
+                      <div className="result-quality-panel">
+                        <QualityFlags
+                          result={detailsById[result.id] ?? result}
+                          extrapolatedEvents={summary.extrapolatedEvents}
+                        />
+                        <dl>
+                          <div>
+                            <dt>scenario time</dt>
+                            <dd>{formatSeconds(seconds)}</dd>
+                          </div>
+                          <div>
+                            <dt>prefill/decode/tool</dt>
+                            <dd>
+                              {formatSeconds(summary.prefillMs / 1000)} / {formatSeconds(summary.decodeMs / 1000)} /{" "}
+                              {formatSeconds(summary.toolLatencyMs / 1000)}
+                            </dd>
+                          </div>
+                          <div>
+                            <dt>cache saved</dt>
+                            <dd>{formatNumber(summary.prefilledWithoutCache - summary.prefilledWithCache)} tokens</dd>
+                          </div>
+                        </dl>
+                        <a
+                          className="report-result-link"
+                          href={`${FLAG_RESULT_ISSUE_URL}&title=${encodeURIComponent(`Flag result: ${result.id}`)}`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Report this result
+                        </a>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </section>
       </section>

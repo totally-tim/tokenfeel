@@ -53,7 +53,7 @@ function parseStaticCatalog(raw: unknown): StaticCatalog {
   if (!parsed.success) {
     throw new Error(`Static catalog failed validation (catalog/index.json): ${formatZodIssues(parsed.error)}`);
   }
-  return parsed.data as StaticCatalog;
+  return parsed.data;
 }
 
 // Detail chunks carry the full BenchmarkResult shape (including source.raw),
@@ -77,7 +77,7 @@ function parseDetailChunk(raw: unknown, chunkName: string): BenchmarkResult[] {
       console.error(`Catalog detail chunk ${chunkName}[${index}] failed validation: ${formatZodIssues(parsed.error)}`);
       continue;
     }
-    results.push(parsed.data as BenchmarkResult);
+    results.push(parsed.data);
   }
   return results;
 }

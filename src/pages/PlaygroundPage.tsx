@@ -1,7 +1,27 @@
 import { useMemo, useState } from "react";
-import { CacheModeSelector, Disclosure, PhaseState, PlayButton, ScenarioCard, SearchSelect, SessionHeader, SourceNote, SpeedSelector, StatFoot, Transcript, ContextMeter } from "../components/SimulatorPieces";
+import {
+  CacheModeSelector,
+  Disclosure,
+  PhaseState,
+  PlayButton,
+  ScenarioCard,
+  SearchSelect,
+  SessionHeader,
+  SourceNote,
+  SpeedSelector,
+  StatFoot,
+  Transcript,
+  ContextMeter
+} from "../components/SimulatorPieces";
 import { CacheLedger, DepthRateCurve, QualityFlags, TimelineStrip } from "../components/Visualizations";
-import { createCatalogLookups, scenarioOptions, getResult, getScenario, DEFAULT_LEFT_CONFIG, DEFAULT_SCENARIO_ID } from "../lib/catalog";
+import {
+  createCatalogLookups,
+  scenarioOptions,
+  getResult,
+  getScenario,
+  DEFAULT_LEFT_CONFIG,
+  DEFAULT_SCENARIO_ID
+} from "../lib/catalog";
 import { baselineMeasurement, maxMeasuredDepth } from "../lib/catalogQuality";
 import {
   getHardwareOptions,
@@ -43,9 +63,18 @@ export function PlaygroundPage({ catalog }: { catalog: Catalog }) {
   const model = lookups.modelById(result.model);
 
   const hardwareOptions = useMemo(() => getHardwareOptions(catalog.results, lookups), [catalog.results, lookups]);
-  const modelOptions = useMemo(() => getModelOptions(catalog.results, selection, lookups), [catalog.results, lookups, selection.hardwareId]);
-  const quantOptions = useMemo(() => getQuantOptions(catalog.results, selection), [catalog.results, selection.hardwareId, selection.modelId]);
-  const runtimeOptions = useMemo(() => getRuntimeOptions(catalog.results, selection), [catalog.results, selection.hardwareId, selection.modelId, selection.quant]);
+  const modelOptions = useMemo(
+    () => getModelOptions(catalog.results, selection, lookups),
+    [catalog.results, lookups, selection.hardwareId]
+  );
+  const quantOptions = useMemo(
+    () => getQuantOptions(catalog.results, selection),
+    [catalog.results, selection.hardwareId, selection.modelId]
+  );
+  const runtimeOptions = useMemo(
+    () => getRuntimeOptions(catalog.results, selection),
+    [catalog.results, selection.hardwareId, selection.modelId, selection.quant]
+  );
   const scenarios = useMemo(() => scenarioOptions(catalog), [catalog]);
   const selectedRuntime = runtimeOptions.find((option) => option.value === selection.runtimeKey);
 
@@ -63,7 +92,9 @@ export function PlaygroundPage({ catalog }: { catalog: Catalog }) {
           selectedValue={selection.hardwareId}
           options={hardwareOptions}
           onChange={(hardwareId) =>
-            setSelection((current) => updateConfigSelection(catalog.results, current, "hardwareId", hardwareId, lookups))
+            setSelection((current) =>
+              updateConfigSelection(catalog.results, current, "hardwareId", hardwareId, lookups)
+            )
           }
           placeholder="Search hardware"
         />
@@ -96,7 +127,9 @@ export function PlaygroundPage({ catalog }: { catalog: Catalog }) {
           selectedValue={selection.runtimeKey}
           options={runtimeOptions}
           onChange={(selectedRuntimeKey) =>
-            setSelection((current) => updateConfigSelection(catalog.results, current, "runtimeKey", selectedRuntimeKey, lookups))
+            setSelection((current) =>
+              updateConfigSelection(catalog.results, current, "runtimeKey", selectedRuntimeKey, lookups)
+            )
           }
           placeholder="Search runtime"
         />
@@ -151,7 +184,6 @@ export function PlaygroundPage({ catalog }: { catalog: Catalog }) {
           title={scenario.title}
           result={result}
           activeEvent={playback.activeEvent}
-          summary={playback.summary}
           hasStarted={playback.hasStarted}
           isComplete={playback.isComplete}
         />
@@ -191,9 +223,17 @@ export function PlaygroundPage({ catalog }: { catalog: Catalog }) {
               <div className="detail-extra">
                 <TimelineStrip timeline={playback.timeline} activeIndex={activeIndex} />
                 <div className="legend-row">
-                  <span><i className="legend cached" /> cached prefix · {formatNumber(Math.round(playback.activeEvent.cachedPrefixTokens))} tok</span>
-                  <span><i className="legend reprefill" /> re-prefilled this turn · {formatNumber(Math.round(playback.activeEvent.prefillTokens))} tok</span>
-                  <span><i className="legend headroom" /> headroom</span>
+                  <span>
+                    <i className="legend cached" /> cached prefix ·{" "}
+                    {formatNumber(Math.round(playback.activeEvent.cachedPrefixTokens))} tok
+                  </span>
+                  <span>
+                    <i className="legend reprefill" /> re-prefilled this turn ·{" "}
+                    {formatNumber(Math.round(playback.activeEvent.prefillTokens))} tok
+                  </span>
+                  <span>
+                    <i className="legend headroom" /> headroom
+                  </span>
                 </div>
                 <QualityFlags result={result} extrapolatedEvents={playback.summary.extrapolatedEvents} />
                 <SourceNote catalog={catalog} result={result} />

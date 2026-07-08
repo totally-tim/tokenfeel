@@ -172,6 +172,7 @@ function sha256File(filePath: string): string {
 function slugify(value: string, maxLength = 72): string {
   const ascii = value
     .normalize("NFKD")
+    // eslint-disable-next-line no-control-regex -- \x00-\x7F is the intended full ASCII range, not a stray control char
     .replace(/[^\x00-\x7F]/g, "")
     .toLowerCase()
     .replace(/_+/g, "-")
@@ -182,10 +183,6 @@ function slugify(value: string, maxLength = 72): string {
   const slug = ascii.length >= 2 ? ascii : `item-${sha256(value).slice(0, 8)}`;
   if (slug.length <= maxLength) return slug;
   return `${slug.slice(0, maxLength - 9).replace(/[-._]+$/g, "")}-${sha256(value).slice(0, 8)}`;
-}
-
-function formatNumber(value: number): string {
-  return Number.isInteger(value) ? String(value) : String(value);
 }
 
 function hardwareKey(row: OmlxRow): string {
@@ -340,7 +337,8 @@ async function fetchApiPage(page: number): Promise<ApiPage> {
     if (response.status === 429 || response.status >= 500) {
       const retryAfterSeconds = Number.parseInt(response.headers.get("retry-after") ?? "", 10);
       const retryAfterMs = Number.isFinite(retryAfterSeconds) ? retryAfterSeconds * 1000 : 0;
-      const backoffMs = Math.max(retryAfterMs, Math.min(60_000, 750 * 2 ** (attempt - 1))) + Math.floor(Math.random() * 250);
+      const backoffMs =
+        Math.max(retryAfterMs, Math.min(60_000, 750 * 2 ** (attempt - 1))) + Math.floor(Math.random() * 250);
       console.warn(`page ${page} returned HTTP ${response.status}; retrying in ${backoffMs}ms`);
       await sleep(backoffMs);
       continue;
@@ -638,9 +636,21 @@ function generateCatalog(scrapeSummary?: Awaited<ReturnType<typeof scrapeRawRows
   const modelDir = path.join(root, "data", "models");
   const resultDir = path.join(root, "data", "results");
 
-  removeGeneratedJsonFiles(hardwareDir, new Set(hardwareItems.keys()), (value) => value.notes?.startsWith(generatedNotePrefix) ?? false);
-  removeGeneratedJsonFiles(modelDir, new Set(modelItems.keys()), (value) => value.notes?.startsWith(generatedNotePrefix) ?? false);
-  removeGeneratedJsonFiles(resultDir, new Set(results.map((result) => result.id)), (value) => value.evidence?.parserVersion === parserVersion);
+  removeGeneratedJsonFiles(
+    hardwareDir,
+    new Set(hardwareItems.keys()),
+    (value) => value.notes?.startsWith(generatedNotePrefix) ?? false
+  );
+  removeGeneratedJsonFiles(
+    modelDir,
+    new Set(modelItems.keys()),
+    (value) => value.notes?.startsWith(generatedNotePrefix) ?? false
+  );
+  removeGeneratedJsonFiles(
+    resultDir,
+    new Set(results.map((result) => result.id)),
+    (value) => value.evidence?.parserVersion === parserVersion
+  );
 
   writeMetadataFiles(hardwareDir, hardwareItems, readJsonFiles(hardwareDir));
   writeMetadataFiles(modelDir, modelItems, readJsonFiles(modelDir));

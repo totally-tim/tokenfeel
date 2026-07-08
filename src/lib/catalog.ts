@@ -10,8 +10,16 @@ export const DEFAULT_SCENARIO_ID = "repo-wide-refactor";
 // stale silently. `resolveConfigSelection` picks the best current row for
 // the tuple using the same preference order (verified > community, raw
 // evidence, depth, recency) as every other config picker in the app.
-export const DEFAULT_LEFT_CONFIG: ConfigSelection = { hardwareId: "m4-max-40c-48gb", modelId: "qwen3.5-9b", quant: "4bit" };
-export const DEFAULT_RIGHT_CONFIG: ConfigSelection = { hardwareId: "m5-max-40c-128gb", modelId: "qwen3.5-9b", quant: "4bit" };
+export const DEFAULT_LEFT_CONFIG: ConfigSelection = {
+  hardwareId: "m4-max-40c-48gb",
+  modelId: "qwen3.5-9b",
+  quant: "4bit"
+};
+export const DEFAULT_RIGHT_CONFIG: ConfigSelection = {
+  hardwareId: "m5-max-40c-128gb",
+  modelId: "qwen3.5-9b",
+  quant: "4bit"
+};
 
 // `resolveConfigSelection` degrades a hardware/model/quant tuple that no
 // longer exists in the catalog to whatever the "first available" fallback
@@ -21,7 +29,11 @@ export const DEFAULT_RIGHT_CONFIG: ConfigSelection = { hardwareId: "m5-max-40c-1
 // to still match the pin exactly so a stale default fails loudly instead.
 function resolvePinnedConfig(catalog: Catalog, pinned: ConfigSelection): ResolvedConfigSelection {
   const resolved = resolveConfigSelection(catalog.results, pinned, createCatalogLookups(catalog));
-  if (resolved.hardwareId !== pinned.hardwareId || resolved.modelId !== pinned.modelId || resolved.quant !== pinned.quant) {
+  if (
+    resolved.hardwareId !== pinned.hardwareId ||
+    resolved.modelId !== pinned.modelId ||
+    resolved.quant !== pinned.quant
+  ) {
     throw new Error(
       `Pinned default config (hardware=${pinned.hardwareId}, model=${pinned.modelId}, quant=${pinned.quant}) no longer matches any catalog result -- update DEFAULT_LEFT_CONFIG/DEFAULT_RIGHT_CONFIG in catalog.ts.`
     );

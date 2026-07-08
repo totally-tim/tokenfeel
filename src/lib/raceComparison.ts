@@ -1,4 +1,11 @@
-import { filterResultsBySelection, runtimeKey, type ConfigSelection, type ConfigSelectionField, type ConfigMatrixRefs, type MatrixOption } from "./configMatrix";
+import {
+  filterResultsBySelection,
+  runtimeKey,
+  type ConfigSelection,
+  type ConfigSelectionField,
+  type ConfigMatrixRefs,
+  type MatrixOption
+} from "./configMatrix";
 import { maxMeasuredDepth } from "./catalogQuality";
 import type { BenchmarkResult, Catalog, TimelineSummary } from "../types";
 
@@ -35,11 +42,7 @@ function uniqueOptions(options: MatrixOption[]): MatrixOption[] {
   });
 }
 
-function optionForResult(
-  result: BenchmarkResult,
-  field: RaceSetupField,
-  refs: ConfigMatrixRefs
-): MatrixOption {
+function optionForResult(result: BenchmarkResult, field: RaceSetupField, refs: ConfigMatrixRefs): MatrixOption {
   if (field === "hardwareId") {
     const hardware = refs.hardwareById(result.hardware);
     return {
@@ -78,7 +81,9 @@ export function raceFieldOptions(
   refs: ConfigMatrixRefs,
   constraints: ConfigSelection = {}
 ): MatrixOption[] {
-  return uniqueOptions(filterResultsBySelection(results, constraints).map((result) => optionForResult(result, field, refs)));
+  return uniqueOptions(
+    filterResultsBySelection(results, constraints).map((result) => optionForResult(result, field, refs))
+  );
 }
 
 function candidatePreservationScore(candidate: BenchmarkResult, current: ConfigSelection): number {
@@ -174,7 +179,10 @@ export function suggestComparableResults(catalog: Catalog, anchor: BenchmarkResu
   const anchorFamily = modelFamily(catalog, anchor);
   return catalog.results
     .filter((candidate) => candidate.id !== anchor.id)
-    .filter((candidate) => candidate.model === anchor.model || (!!anchorFamily && modelFamily(catalog, candidate) === anchorFamily))
+    .filter(
+      (candidate) =>
+        candidate.model === anchor.model || (!!anchorFamily && modelFamily(catalog, candidate) === anchorFamily)
+    )
     .map((candidate) => ({
       result: candidate,
       score: suggestionScore(catalog, anchor, candidate),
@@ -231,7 +239,11 @@ export function raceVerdict(leftSummary: TimelineSummary, rightSummary: Timeline
   return { winner: leftSummary.wallTimeMs <= rightSummary.wallTimeMs ? "left" : "right", deltaMs };
 }
 
-export function comparisonSummary(catalog: Catalog, left: BenchmarkResult, right: BenchmarkResult): { label: string; detail: string; level: "strong" | "related" | "loose" } {
+export function comparisonSummary(
+  catalog: Catalog,
+  left: BenchmarkResult,
+  right: BenchmarkResult
+): { label: string; detail: string; level: "strong" | "related" | "loose" } {
   const sameModel = left.model === right.model;
   const sameQuant = left.quant === right.quant;
   const sameRuntime = runtimeKey(left) === runtimeKey(right);

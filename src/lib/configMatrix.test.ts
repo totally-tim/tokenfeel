@@ -53,7 +53,11 @@ describe("configuration matrix", () => {
         "glm-4.7-flash"
       ])
     );
-    expect(options.every((option) => results.some((result) => result.hardware === "dgx-spark" && result.model === option.value))).toBe(true);
+    expect(
+      options.every((option) =>
+        results.some((result) => result.hardware === "dgx-spark" && result.model === option.value)
+      )
+    ).toBe(true);
   });
 
   test("cascades quant and runtime options from the selected upper dimensions", () => {
@@ -68,17 +72,19 @@ describe("configuration matrix", () => {
     });
 
     expect(quantOptions).toEqual(expect.arrayContaining([{ value: "4bit", label: "4BIT" }]));
-    expect(runtimeOptions.map((option) => option.label)).toEqual(
-      expect.arrayContaining(["oMLX · MLX"])
-    );
+    expect(runtimeOptions.map((option) => option.label)).toEqual(expect.arrayContaining(["oMLX · MLX"]));
   });
 
   test("resolves conflicting carried-over selections to a valid top-down result", () => {
-    const resolved = resolveConfigSelection(results, {
-      hardwareId: "m2-max-32gb",
-      modelId: "qwen3-coder-next",
-      quant: "int4"
-    }, refs);
+    const resolved = resolveConfigSelection(
+      results,
+      {
+        hardwareId: "m2-max-32gb",
+        modelId: "qwen3-coder-next",
+        quant: "int4"
+      },
+      refs
+    );
 
     expect(resolved).toMatchObject({
       hardwareId: "m2-max-32gb",
@@ -89,11 +95,15 @@ describe("configuration matrix", () => {
   });
 
   test("filters rows by the selected dimensions", () => {
-    const resolved = resolveConfigSelection(results, {
-      hardwareId: "framework-strix-halo-128gb",
-      modelId: "qwen3-30b-a3b",
-      quant: "q4_k_xl"
-    }, refs);
+    const resolved = resolveConfigSelection(
+      results,
+      {
+        hardwareId: "framework-strix-halo-128gb",
+        modelId: "qwen3-30b-a3b",
+        quant: "q4_k_xl"
+      },
+      refs
+    );
     const filtered = filterResultsBySelection(results, {
       hardwareId: resolved.hardwareId,
       modelId: resolved.modelId,
@@ -106,11 +116,15 @@ describe("configuration matrix", () => {
   });
 
   test("updates one dimension and clears conflicting lower dimensions", () => {
-    const dgx = resolveConfigSelection(results, {
-      hardwareId: "dgx-spark",
-      modelId: "qwen3-coder-next",
-      quant: "int4"
-    }, refs);
+    const dgx = resolveConfigSelection(
+      results,
+      {
+        hardwareId: "dgx-spark",
+        modelId: "qwen3-coder-next",
+        quant: "int4"
+      },
+      refs
+    );
 
     const next = updateConfigSelection(results, dgx, "hardwareId", "m2-max-32gb", refs);
 
@@ -128,11 +142,15 @@ describe("configuration matrix", () => {
     // resolveConfigSelection wrap. updateConfigSelection already resolves
     // internally for non-clearing changes; wrapping it again only matters
     // (and only breaks things) on the clearing path.
-    const current = resolveConfigSelection(results, {
-      hardwareId: "m4-max-40c-64gb",
-      modelId: "qwen3.5-9b",
-      quant: "4bit"
-    }, refs);
+    const current = resolveConfigSelection(
+      results,
+      {
+        hardwareId: "m4-max-40c-64gb",
+        modelId: "qwen3.5-9b",
+        quant: "4bit"
+      },
+      refs
+    );
 
     const cleared = updateConfigSelection(results, current, "modelId", "", refs);
 
@@ -151,11 +169,15 @@ describe("configuration matrix", () => {
   });
 
   test("wrapping updateConfigSelection's clear result in a second resolveConfigSelection call defeats clearing (the bug this guards against)", () => {
-    const current = resolveConfigSelection(results, {
-      hardwareId: "m4-max-40c-64gb",
-      modelId: "qwen3.5-9b",
-      quant: "4bit"
-    }, refs);
+    const current = resolveConfigSelection(
+      results,
+      {
+        hardwareId: "m4-max-40c-64gb",
+        modelId: "qwen3.5-9b",
+        quant: "4bit"
+      },
+      refs
+    );
 
     const cleared = updateConfigSelection(results, current, "modelId", "", refs);
     // The buggy pattern PlaygroundPage used to have: re-resolve the clear
@@ -179,7 +201,9 @@ describe("configuration matrix", () => {
     );
 
     expect(selection).toEqual({ hardwareId: "framework-strix-halo-128gb" });
-    expect(filterResultsBySelection(results, selection).every((result) => result.hardware === "framework-strix-halo-128gb")).toBe(true);
+    expect(
+      filterResultsBySelection(results, selection).every((result) => result.hardware === "framework-strix-halo-128gb")
+    ).toBe(true);
   });
 
   test("keeps configs filters broad when choosing a parent dimension", () => {
@@ -212,7 +236,10 @@ describe("compareResultPreference", () => {
   });
 
   test("source.raw also counts as raw evidence", () => {
-    const withSourceRaw = makeResult({ id: "a", source: { kind: "raw-json", title: "x", url: "https://example.com", raw: "data/upstream/x.jsonl" } });
+    const withSourceRaw = makeResult({
+      id: "a",
+      source: { kind: "raw-json", title: "x", url: "https://example.com", raw: "data/upstream/x.jsonl" }
+    });
     const withoutEvidence = makeResult({ id: "b" });
 
     expect(compareResultPreference(withSourceRaw, withoutEvidence)).toBeLessThan(0);

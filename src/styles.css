@@ -103,8 +103,7 @@
   min-height: 100vh;
   background:
     linear-gradient(90deg, rgba(215, 215, 221, 0.54) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(215, 215, 221, 0.4) 1px, transparent 1px),
-    var(--surface-wash);
+    linear-gradient(0deg, rgba(215, 215, 221, 0.4) 1px, transparent 1px), var(--surface-wash);
   background-size: 64px 64px;
 }
 
@@ -116,8 +115,7 @@
   padding: 80px max(24px, 12vw);
   background:
     linear-gradient(90deg, transparent 0 63px, var(--border-subtle) 63px 64px),
-    linear-gradient(0deg, transparent 0 63px, var(--border-subtle) 63px 64px),
-    var(--surface-wash);
+    linear-gradient(0deg, transparent 0 63px, var(--border-subtle) 63px 64px), var(--surface-wash);
   background-size: 64px 64px;
 }
 
@@ -241,7 +239,9 @@
   background: rgba(255, 255, 255, 0.92);
   color: var(--fg-primary);
   font-weight: 600;
-  box-shadow: 0 1px 0 rgba(29, 29, 31, 0.08), 0 4px 14px rgba(29, 29, 31, 0.08);
+  box-shadow:
+    0 1px 0 rgba(29, 29, 31, 0.08),
+    0 4px 14px rgba(29, 29, 31, 0.08);
 }
 
 .nav-actions {
@@ -1489,11 +1489,7 @@ mark {
    data at all, not even a trend. */
 .timeline-strip i.confidence-fitted {
   opacity: 0.68;
-  background-image: repeating-linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0) 0 3px,
-    rgba(255, 255, 255, 0.4) 3px 4px
-  );
+  background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0) 0 3px, rgba(255, 255, 255, 0.4) 3px 4px);
 }
 
 .timeline-strip i.confidence-unsupported {
@@ -2274,7 +2270,9 @@ mark {
   padding: 13px 14px;
   border-left: 3px solid var(--phase-queued);
   background: var(--surface-panel);
-  transition: border-color var(--motion-med) var(--ease-standard), background var(--motion-med) var(--ease-standard);
+  transition:
+    border-color var(--motion-med) var(--ease-standard),
+    background var(--motion-med) var(--ease-standard);
 }
 
 .phase-state-prefill {
@@ -2380,8 +2378,7 @@ mark {
 
 .phase-state-decode .phase-fill {
   background:
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.18) 0 2px, transparent 2px 8px),
-    var(--phase-decode);
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.18) 0 2px, transparent 2px 8px), var(--phase-decode);
   animation: phase-decode-cadence var(--cadence-duration) linear infinite;
 }
 

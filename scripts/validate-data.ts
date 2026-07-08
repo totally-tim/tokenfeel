@@ -3,7 +3,12 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { catalogSchema, researchItemsSchema } from "../src/data/schemas";
 import type { ParsedCatalog } from "../src/data/schemas";
-import { DEFAULT_LEFT_CONFIG, DEFAULT_RIGHT_CONFIG, defaultLeftResultId, defaultRightResultId } from "../src/lib/catalog";
+import {
+  DEFAULT_LEFT_CONFIG,
+  DEFAULT_RIGHT_CONFIG,
+  defaultLeftResultId,
+  defaultRightResultId
+} from "../src/lib/catalog";
 import { pruneCatalogForSimulation } from "../src/lib/catalogQuality";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -55,7 +60,10 @@ function readResearchItems() {
 // (hardware, model, quant, runtimeKey) duplicate collisions (D3), and
 // verified-without-evidence rows (D5) are hard schema validation issues
 // raised during catalogSchema.parse, before this function ever runs.
-export function analyzeCatalogQuality(catalog: ParsedCatalog, allowlist: QualityAllowlistEntry[] = []): CatalogQualityReport {
+export function analyzeCatalogQuality(
+  catalog: ParsedCatalog,
+  allowlist: QualityAllowlistEntry[] = []
+): CatalogQualityReport {
   const warnings: string[] = [];
   const issues: string[] = [];
   const allowlistReasonById = new Map(allowlist.map((entry) => [entry.id, entry.reason]));

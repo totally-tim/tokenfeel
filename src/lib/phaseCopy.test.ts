@@ -74,15 +74,21 @@ describe("phase copy", () => {
   });
 
   test("does not label non-generating prefill turns as TTFT", () => {
-    expect(turnMetricForEvent({ ...baseEvent, role: "user", prefillMs: 1200, decodeMs: 0, ttftMs: 1200 })).toBe("prompt ingest 1.2s");
-    expect(turnMetricForEvent({ ...baseEvent, role: "tool_result", prefillMs: 5200, decodeMs: 0, ttftMs: 5200 })).toBe("tool-result ingest 5.2s");
-    expect(turnMetricForEvent({
-      ...baseEvent,
-      role: "tool_result",
-      toolLatencyMs: 800,
-      prefillMs: 5200,
-      decodeMs: 0,
-      ttftMs: 6000
-    })).toBe("tool-result ingest 5.2s");
+    expect(turnMetricForEvent({ ...baseEvent, role: "user", prefillMs: 1200, decodeMs: 0, ttftMs: 1200 })).toBe(
+      "prompt ingest 1.2s"
+    );
+    expect(turnMetricForEvent({ ...baseEvent, role: "tool_result", prefillMs: 5200, decodeMs: 0, ttftMs: 5200 })).toBe(
+      "tool-result ingest 5.2s"
+    );
+    expect(
+      turnMetricForEvent({
+        ...baseEvent,
+        role: "tool_result",
+        toolLatencyMs: 800,
+        prefillMs: 5200,
+        decodeMs: 0,
+        ttftMs: 6000
+      })
+    ).toBe("tool-result ingest 5.2s");
   });
 });

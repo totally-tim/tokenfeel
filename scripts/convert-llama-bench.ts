@@ -109,7 +109,13 @@ function parseJsonMetrics(input: unknown): RawMetric[] {
     if (!value || typeof value !== "object") return;
 
     const record = value as Record<string, unknown>;
-    const label = String(record.test ?? record.name ?? record.label ?? record.benchmark ?? "");
+    // Only accept string values for the label candidates -- a non-string
+    // field (e.g. a nested object in a malformed export) must not silently
+    // stringify to "[object Object]" and pass as a label.
+    const label =
+      [record.test, record.name, record.label, record.benchmark].find(
+        (candidate): candidate is string => typeof candidate === "string"
+      ) ?? "";
     const metricValue =
       asNumber(record.tps) ??
       asNumber(record["t/s"]) ??
@@ -171,9 +177,7 @@ function parseTextMetrics(text: string): RawMetric[] {
       const stddevCells = valueCells.filter((entry) => entry.withStddev);
       const selectedCell = stddevCells.length > 0 ? stddevCells.at(-1) : valueCells.at(-1);
 
-      const value = selectedCell
-        ? asNumber(selectedCell.withStddev?.[1] ?? selectedCell.plain?.[1])
-        : undefined;
+      const value = selectedCell ? asNumber(selectedCell.withStddev?.[1] ?? selectedCell.plain?.[1]) : undefined;
       const stddev = selectedCell?.withStddev ? asNumber(selectedCell.withStddev[2]) : undefined;
 
       const metric = value !== undefined ? metricFromLabel(label, value, line, stddev) : undefined;
@@ -182,7 +186,7 @@ function parseTextMetrics(text: string): RawMetric[] {
 }
 
 export function parseLlamaBenchMeasurements(text: string): { measurements: BenchmarkMeasurement[]; rawRows: string[] } {
-  let metrics: RawMetric[] = [];
+  let metrics: RawMetric[];
   try {
     metrics = parseJsonMetrics(JSON.parse(text));
   } catch {
@@ -193,16 +197,18 @@ export function parseLlamaBenchMeasurements(text: string): { measurements: Bench
   for (const metric of metrics) {
     const item = byDepth.get(metric.depth) ?? { depth: metric.depth, rawRows: [] };
     item[metric.kind] = metric.value;
-    item[`${metric.kind}Label` as "ppLabel" | "tgLabel"] = metric.tokens
+    item[`${metric.kind}Label`] = metric.tokens
       ? `${metric.kind}${metric.tokens}${metric.depth ? ` @ d${metric.depth}` : ""}`
       : metric.label;
-    item[`${metric.kind}Stddev` as "ppStddev" | "tgStddev"] = metric.stddev;
+    item[`${metric.kind}Stddev`] = metric.stddev;
     item.rawRows.push(metric.raw);
     byDepth.set(metric.depth, item);
   }
 
   const measurements = [...byDepth.values()]
-    .filter((item): item is BenchmarkMeasurement & { rawRows: string[] } => item.pp !== undefined && item.tg !== undefined)
+    .filter(
+      (item): item is BenchmarkMeasurement & { rawRows: string[] } => item.pp !== undefined && item.tg !== undefined
+    )
     .sort((left, right) => left.depth - right.depth)
     .map(({ rawRows: _rawRows, ...measurement }) => measurement);
 
@@ -213,7 +219,10 @@ export function parseLlamaBenchMeasurements(text: string): { measurements: Bench
 }
 
 function runtimeSlug(value: string): string {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 function buildResult(args: ParsedArgs, parsed: ReturnType<typeof parseLlamaBenchMeasurements>): BenchmarkResult {

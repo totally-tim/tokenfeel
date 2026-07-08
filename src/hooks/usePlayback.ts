@@ -11,10 +11,7 @@ interface UsePlaybackInput {
 }
 
 export function usePlayback({ result, scenario, cacheMode, speed, autoStart = false }: UsePlaybackInput) {
-  const timeline = useMemo(
-    () => buildTimeline({ result, scenario, cacheMode }),
-    [result, scenario, cacheMode]
-  );
+  const timeline = useMemo(() => buildTimeline({ result, scenario, cacheMode }), [result, scenario, cacheMode]);
   const summary = useMemo(() => summarizeTimeline(timeline), [timeline]);
   const [isPlaying, setIsPlaying] = useState(autoStart);
   const [hasStarted, setHasStarted] = useState(autoStart);
@@ -70,16 +67,19 @@ export function usePlayback({ result, scenario, cacheMode, speed, autoStart = fa
     hasStarted,
     isComplete,
     setIsPlaying,
-    restart() {
+    // Arrow functions (not method shorthand) so these can be handed around
+    // and called standalone -- e.g. `onPlay={playback.restart}` -- without
+    // any implicit `this` binding concerns.
+    restart: () => {
       setPlaybackElapsed(0);
       startedAtRef.current = performance.now();
       setHasStarted(true);
       setIsPlaying(true);
     },
-    pause() {
+    pause: () => {
       setIsPlaying(false);
     },
-    reset() {
+    reset: () => {
       setPlaybackElapsed(0);
       startedAtRef.current = performance.now();
       setHasStarted(false);

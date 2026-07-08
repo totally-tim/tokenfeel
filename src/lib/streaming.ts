@@ -145,10 +145,7 @@ export function streamTextChunks(text: string): string[] {
 
     if (isWordChar(text[index])) {
       index += 1;
-      while (
-        index < text.length &&
-        (isWordChar(text[index]) || isInternalWordPunctuation(text, index))
-      ) {
+      while (index < text.length && (isWordChar(text[index]) || isInternalWordPunctuation(text, index))) {
         index += 1;
       }
       chunks.push(text.slice(start, index));

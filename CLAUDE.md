@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Project Is
 
-Tokenfeel is a static React/Vite webapp that simulates how local LLM inference *feels* across hardware/model/quant/runtime/scenario combinations. It does not run inference. It replays deterministic scenario scripts at the prefill/decode speed implied by repo-checked-in benchmark data. **The repository is the database** — `data/` holds the catalog, and the build generates a static JSON catalog from it.
+Tokenfeel is a static React/Vite webapp that simulates how local LLM inference _feels_ across hardware/model/quant/runtime/scenario combinations. It does not run inference. It replays deterministic scenario scripts at the prefill/decode speed implied by repo-checked-in benchmark data. **The repository is the database** — `data/` holds the catalog, and the build generates a static JSON catalog from it.
 
 The central rule (from AGENTS.md): protect the credibility of the data and the fidelity of the simulation. A prettier UI is not an improvement if benchmark provenance, timing math, or comparison semantics become less honest.
 
@@ -45,6 +45,7 @@ Run `validate:data` whenever catalog data, scenarios, schemas, or import scripts
 **Routing:** No router library. `src/lib/routing.ts` maps `window.location.hash` to a `PageId`; `App.tsx` switches between page components on hash change and drives navigation by setting `window.location.hash`.
 
 **Pages** (`src/pages/`) — one file per route, each takes the loaded `catalog` as a prop:
+
 - `LandingPage` — entry point, config summary
 - `PlaygroundPage` — inspect one configuration's simulated timeline in detail
 - `RacePage` — the flagship surface: two lanes race the same deterministic scenario script side by side
@@ -52,6 +53,7 @@ Run `validate:data` whenever catalog data, scenarios, schemas, or import scripts
 - `MethodPage`, `ContributePage` — static/informational
 
 **Simulation core:**
+
 - `src/sim/timing.ts` — the authoritative timing model (prefill rate `pp`, decode rate `tg`, TTFT handling, cache semantics). Treat this as product logic, not incidental code.
 - `src/hooks/usePlayback.ts` — wall-clock/`requestAnimationFrame`-driven playback state (not naive token-by-token intervals, which drift under tab throttling).
 

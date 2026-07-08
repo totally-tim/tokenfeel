@@ -242,26 +242,38 @@ export function updateConfigSelection(
   }
 
   if (field === "modelId") {
-    return resolveConfigSelection(results, {
-      hardwareId: current.hardwareId,
-      modelId: value
-    }, refs);
+    return resolveConfigSelection(
+      results,
+      {
+        hardwareId: current.hardwareId,
+        modelId: value
+      },
+      refs
+    );
   }
 
   if (field === "quant") {
-    return resolveConfigSelection(results, {
-      hardwareId: current.hardwareId,
-      modelId: current.modelId,
-      quant: value
-    }, refs);
+    return resolveConfigSelection(
+      results,
+      {
+        hardwareId: current.hardwareId,
+        modelId: current.modelId,
+        quant: value
+      },
+      refs
+    );
   }
 
-  return resolveConfigSelection(results, {
-    hardwareId: current.hardwareId,
-    modelId: current.modelId,
-    quant: current.quant,
-    runtimeKey: value
-  }, refs);
+  return resolveConfigSelection(
+    results,
+    {
+      hardwareId: current.hardwareId,
+      modelId: current.modelId,
+      quant: current.quant,
+      runtimeKey: value
+    },
+    refs
+  );
 }
 
 export function updateConfigFilterSelection(
@@ -274,9 +286,7 @@ export function updateConfigFilterSelection(
   }
 
   if (field === "modelId") {
-    return value
-      ? { hardwareId: current.hardwareId, modelId: value }
-      : { hardwareId: current.hardwareId };
+    return value ? { hardwareId: current.hardwareId, modelId: value } : { hardwareId: current.hardwareId };
   }
 
   if (field === "quant") {

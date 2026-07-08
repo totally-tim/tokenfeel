@@ -50,9 +50,32 @@ function makeResult(overrides: Partial<BenchmarkResult> & { id: string }): Bench
   };
 }
 
-const hardwareA: HardwareConfig = { id: "hw-a", name: "Hardware A", shortName: "HW A", vendor: "V", memory: "64GB", accelerator: "GPU", notes: "n" };
-const hardwareB: HardwareConfig = { id: "hw-b", name: "Hardware B", shortName: "HW B", vendor: "V", memory: "16GB", accelerator: "GPU", notes: "n" };
-const modelA: ModelMetadata = { id: "model-a", name: "Model A", family: "F", params: "7B", license: "test", notes: "n" };
+const hardwareA: HardwareConfig = {
+  id: "hw-a",
+  name: "Hardware A",
+  shortName: "HW A",
+  vendor: "V",
+  memory: "64GB",
+  accelerator: "GPU",
+  notes: "n"
+};
+const hardwareB: HardwareConfig = {
+  id: "hw-b",
+  name: "Hardware B",
+  shortName: "HW B",
+  vendor: "V",
+  memory: "16GB",
+  accelerator: "GPU",
+  notes: "n"
+};
+const modelA: ModelMetadata = {
+  id: "model-a",
+  name: "Model A",
+  family: "F",
+  params: "7B",
+  license: "test",
+  notes: "n"
+};
 
 function row(overrides: Partial<RankedResultRow> & { result: BenchmarkResult }): RankedResultRow {
   return { seconds: 10, hardware: hardwareA, model: modelA, summary: emptySummary, ...overrides };
@@ -77,7 +100,10 @@ describe("withAllOption", () => {
   test("prepends a synthetic blank-value 'all' option", () => {
     const options = withAllOption("All hardware", [{ value: "hw-a", label: "Hardware A" }]);
 
-    expect(options).toEqual([{ value: "", label: "All hardware" }, { value: "hw-a", label: "Hardware A" }]);
+    expect(options).toEqual([
+      { value: "", label: "All hardware" },
+      { value: "hw-a", label: "Hardware A" }
+    ]);
   });
 });
 
@@ -257,7 +283,9 @@ describe("computeFrontierRows", () => {
   });
 
   test("respects the limit", () => {
-    const manyRows = Array.from({ length: 10 }, (_, index) => row({ result: makeResult({ id: `r${index}` }), seconds: index }));
+    const manyRows = Array.from({ length: 10 }, (_, index) =>
+      row({ result: makeResult({ id: `r${index}` }), seconds: index })
+    );
     expect(computeFrontierRows(manyRows, baselineByResultId, 3)).toHaveLength(3);
   });
 });
@@ -266,7 +294,14 @@ describe("computeCoverage / topCoverageEntries", () => {
   const rows: RankedResultRow[] = [
     row({ result: makeResult({ id: "r1", hardware: "hw-a", status: "verified" }) }),
     row({ result: makeResult({ id: "r2", hardware: "hw-a", status: "community" }) }),
-    row({ result: makeResult({ id: "r3", hardware: "hw-b", status: "community", evidence: { rawUrl: "https://example.com/raw" } }) })
+    row({
+      result: makeResult({
+        id: "r3",
+        hardware: "hw-b",
+        status: "community",
+        evidence: { rawUrl: "https://example.com/raw" }
+      })
+    })
   ];
 
   test("groups totals/verified/raw counts per hardware id", () => {

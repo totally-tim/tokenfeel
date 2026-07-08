@@ -1,9 +1,16 @@
 import { useId, useMemo } from "react";
 import { AlertTriangle, Database, FileText, Link as LinkIcon, Sigma } from "lucide-react";
-import { formatClock, formatNumber, formatRate, formatTokens, percent } from "../lib/format";
+import { formatClock, formatRate, formatTokens, percent } from "../lib/format";
 import type { RaceWinner } from "../lib/raceComparison";
 import { fitTimePerTokenLinear, msPerTokenRangeAt, rateToMsPerToken } from "../sim/timing";
-import type { BenchmarkMeasurement, BenchmarkResult, RateConfidence, Timeline, TimelineEvent, TimelineSummary } from "../types";
+import type {
+  BenchmarkMeasurement,
+  BenchmarkResult,
+  RateConfidence,
+  Timeline,
+  TimelineEvent,
+  TimelineSummary
+} from "../types";
 
 function pct(value: number, total: number): number {
   if (total <= 0) return 0;
@@ -102,13 +109,7 @@ export function TimelineStrip({ timeline, activeIndex }: { timeline: Timeline; a
   );
 }
 
-export function CacheLedger({
-  summary,
-  activeEvent
-}: {
-  summary: TimelineSummary;
-  activeEvent: TimelineEvent;
-}) {
+export function CacheLedger({ summary, activeEvent }: { summary: TimelineSummary; activeEvent: TimelineEvent }) {
   const savedTokens = Math.max(0, summary.prefilledWithoutCache - summary.prefilledWithCache);
   return (
     <div className="cache-ledger">
@@ -129,7 +130,10 @@ export function CacheLedger({
         <strong>{formatTokens(activeEvent.prefillTokens)}</strong>
       </div>
       <p>
-        {percent(summary.cacheSavedRatio)} less prompt processing. {activeEvent.cacheBust ? "Cache bust: " + (activeEvent.cacheBust.reason ?? "partial prefix retained") : "Append-only prefix reuse."}
+        {percent(summary.cacheSavedRatio)} less prompt processing.{" "}
+        {activeEvent.cacheBust
+          ? "Cache bust: " + (activeEvent.cacheBust.reason ?? "partial prefix retained")
+          : "Append-only prefix reuse."}
       </p>
     </div>
   );
@@ -228,7 +232,10 @@ function RateCurvePanel({
   const yScale = (rate: number) => CURVE_PADDING.top + innerHeight - (rate / maxRate) * innerHeight;
   const toPath = (curvePoints: CurvePoint[]) =>
     curvePoints
-      .map((point, index) => `${index === 0 ? "M" : "L"} ${xScale(point.depth).toFixed(2)} ${yScale(point.rate).toFixed(2)}`)
+      .map(
+        (point, index) =>
+          `${index === 0 ? "M" : "L"} ${xScale(point.depth).toFixed(2)} ${yScale(point.rate).toFixed(2)}`
+      )
       .join(" ");
 
   const lastMeasured = geometry.measuredPoints[geometry.measuredPoints.length - 1];
@@ -309,7 +316,9 @@ function RateCurvePanel({
       </svg>
       <div className="rate-curve-foot">
         <span>{formatTokens(firstMeasured.depth)} ctx</span>
-        <span>{geometry.singlePoint ? "no data beyond here" : `fitted beyond ${formatTokens(lastMeasured.depth)}`}</span>
+        <span>
+          {geometry.singlePoint ? "no data beyond here" : `fitted beyond ${formatTokens(lastMeasured.depth)}`}
+        </span>
         <span>{formatTokens(geometry.horizonDepth)} ctx</span>
       </div>
     </div>
@@ -366,9 +375,7 @@ export function EvidencePanel({ result }: { result: BenchmarkResult }) {
         <LinkIcon size={13} />
         {result.evidence?.rawUrl ? "Open raw evidence" : "Open source"}
       </a>
-      {result.benchmark?.command && (
-        <code>{result.benchmark.command}</code>
-      )}
+      {result.benchmark?.command && <code>{result.benchmark.command}</code>}
     </div>
   );
 }
@@ -407,7 +414,10 @@ export function RaceGapBreakdown({
           <div>
             <i className={row.className} style={{ width: `${Math.max(2, pct(Math.abs(row.delta), max))}%` }} />
           </div>
-          <strong>{row.delta >= 0 ? "+" : "-"}{formatClock(Math.abs(row.delta))}</strong>
+          <strong>
+            {row.delta >= 0 ? "+" : "-"}
+            {formatClock(Math.abs(row.delta))}
+          </strong>
         </div>
       ))}
       <div className="non-measured-chips">
@@ -418,7 +428,13 @@ export function RaceGapBreakdown({
   );
 }
 
-export function QualityFlags({ result, extrapolatedEvents = 0 }: { result: BenchmarkResult; extrapolatedEvents?: number }) {
+export function QualityFlags({
+  result,
+  extrapolatedEvents = 0
+}: {
+  result: BenchmarkResult;
+  extrapolatedEvents?: number;
+}) {
   const flags = [
     result.measurements.length < 2 ? "single point" : `${result.measurements.length} depths`,
     result.evidence?.rawUrl || result.source.raw ? "raw linked" : "source only",

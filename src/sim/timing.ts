@@ -57,11 +57,7 @@ function stddevMsAtPoint(point: BenchmarkMeasurement, field: "pp" | "tg"): numbe
  * points within it — same interpolation shape as the rate itself, so the
  * uncertainty band tracks the curve it's widening.
  */
-function msStddevClampedAt(
-  measurements: BenchmarkMeasurement[],
-  field: "pp" | "tg",
-  depth: number
-): number {
+function msStddevClampedAt(measurements: BenchmarkMeasurement[], field: "pp" | "tg", depth: number): number {
   const points = sortMeasurementsByDepth(measurements);
   const first = points[0];
   if (depth <= first.depth) {
@@ -98,11 +94,7 @@ function msStddevClampedAt(
  * the *optimistic* bound beyond the measured range — `msPerTokenRangeAt`
  * pairs it with a fitted-trend canonical estimate for that region.
  */
-function msPerTokenClampedAt(
-  measurements: BenchmarkMeasurement[],
-  field: "pp" | "tg",
-  depth: number
-): number {
+function msPerTokenClampedAt(measurements: BenchmarkMeasurement[], field: "pp" | "tg", depth: number): number {
   if (measurements.length === 0) {
     throw new Error("Cannot interpolate an empty measurement set");
   }
@@ -144,10 +136,7 @@ function msPerTokenClampedAt(
  * `integrateTimeRangeMs`), so it is always "extrapolated-unsupported"
  * regardless of how many measurements exist elsewhere in the set.
  */
-export function rateConfidenceAt(
-  measurements: BenchmarkMeasurement[],
-  depth: number
-): RateConfidence {
+export function rateConfidenceAt(measurements: BenchmarkMeasurement[], depth: number): RateConfidence {
   if (measurements.length === 0) {
     throw new Error("Cannot assess confidence for an empty measurement set");
   }
@@ -310,10 +299,7 @@ function integrateTimeRangeMsPrepared(
     // Closed-form integral of (lastMs + slope * (x - last.depth)) over
     // [from, to] — anchored at the last measured point so the fitted line
     // is continuous with it rather than the unconstrained global intercept.
-    return (
-      lastMs * (to - from) +
-      (fit.slope * ((to - last.depth) ** 2 - (from - last.depth) ** 2)) / 2
-    );
+    return lastMs * (to - from) + (fit.slope * ((to - last.depth) ** 2 - (from - last.depth) ** 2)) / 2;
   }
 
   let canonicalTotal = 0;
@@ -457,7 +443,10 @@ function interpolateTtftMs(
 ): number | undefined {
   const points = measurements
     .filter((measurement) => typeof measurement.source?.ttftMs === "number")
-    .map((measurement) => ({ effectiveDepth: measurement.depth + ttftDepthOffset, ttftMs: measurement.source!.ttftMs! }))
+    .map((measurement) => ({
+      effectiveDepth: measurement.depth + ttftDepthOffset,
+      ttftMs: measurement.source!.ttftMs!
+    }))
     .sort((a, b) => a.effectiveDepth - b.effectiveDepth);
 
   if (points.length === 0) return undefined;
@@ -481,8 +470,7 @@ function interpolateTtftMs(
 
 export function buildTimeline(input: TimelineInput): Timeline {
   const { result, scenario } = input;
-  const cacheEnabled =
-    input.cacheMode === "on" || (input.cacheMode === "runtime" && result.runtime.cache === "prefix");
+  const cacheEnabled = input.cacheMode === "on" || (input.cacheMode === "runtime" && result.runtime.cache === "prefix");
   const overheadMs = result.overheadMs ?? DEFAULT_OVERHEAD_MS;
   // Depth-axis normalization for TTFT lookups (T3): oMLX imports set
   // `measurement.depth` to the full prompt length the TTFT reading was taken
@@ -500,10 +488,8 @@ export function buildTimeline(input: TimelineInput): Timeline {
 
   const events: TimelineEvent[] = scenario.events.map((event, index) => {
     const contextBefore = contextDepth;
-    const shouldPrefill =
-      event.role === "user" || event.role === "tool_result";
-    const shouldDecode =
-      event.role === "assistant" || event.role === "thinking" || event.role === "tool_call";
+    const shouldPrefill = event.role === "user" || event.role === "tool_result";
+    const shouldDecode = event.role === "assistant" || event.role === "thinking" || event.role === "tool_call";
     // "cache_bust" is a zero-content, zero-duration marker role (see
     // ScenarioRole in types.ts): a standalone event using it must never
     // advance context depth or add wall-clock time. The schema rejects
@@ -515,13 +501,8 @@ export function buildTimeline(input: TimelineInput): Timeline {
     const contextTokens = isCacheBustMarker ? 0 : event.tokens;
     const withoutCachePrefillTokens = shouldPrefill ? contextBefore + event.tokens : 0;
     const cacheBustPrefix = isCacheBustMarker ? undefined : event.cacheBust?.retainedPrefixTokens;
-    const effectiveCachedPrefix = cacheEnabled
-      ? Math.min(cacheBustPrefix ?? cachedPrefixTokens, contextBefore)
-      : 0;
-    const prefillTokens =
-      !shouldPrefill
-        ? 0
-        : Math.max(0, withoutCachePrefillTokens - effectiveCachedPrefix);
+    const effectiveCachedPrefix = cacheEnabled ? Math.min(cacheBustPrefix ?? cachedPrefixTokens, contextBefore) : 0;
+    const prefillTokens = !shouldPrefill ? 0 : Math.max(0, withoutCachePrefillTokens - effectiveCachedPrefix);
     const ppDepth = shouldPrefill ? withoutCachePrefillTokens : contextBefore;
 
     let prefillMs = 0;
@@ -542,12 +523,7 @@ export function buildTimeline(input: TimelineInput): Timeline {
 
       const measuredTtftMs = interpolateTtftMs(result.measurements, withoutCachePrefillTokens, ttftDepthOffset);
       if (measuredTtftMs !== undefined) {
-        const fullPrefillRange = integrateTimeRangeMs(
-          result.measurements,
-          "pp",
-          0,
-          withoutCachePrefillTokens
-        );
+        const fullPrefillRange = integrateTimeRangeMs(result.measurements, "pp", 0, withoutCachePrefillTokens);
         // impliedOverheadMs is the fixed launch cost the model's integral doesn't
         // capture; adding it back to the (possibly cache-shortened) integral
         // reproduces measuredTtftMs exactly for a fully cold prefill, since
@@ -555,9 +531,7 @@ export function buildTimeline(input: TimelineInput): Timeline {
         const impliedOverheadMs = measuredTtftMs - fullPrefillRange.canonicalMs;
         const rawPrefillMs = impliedOverheadMs + prefillRange.canonicalMs;
         const rawOptimisticMs = impliedOverheadMs + prefillRange.optimisticMs;
-        prefillMs = Number.isFinite(rawPrefillMs)
-          ? Math.max(0, rawPrefillMs)
-          : prefillRange.canonicalMs + overheadMs;
+        prefillMs = Number.isFinite(rawPrefillMs) ? Math.max(0, rawPrefillMs) : prefillRange.canonicalMs + overheadMs;
         prefillOptimisticMs = Number.isFinite(rawOptimisticMs)
           ? Math.max(0, rawOptimisticMs)
           : prefillRange.optimisticMs + overheadMs;
@@ -573,12 +547,7 @@ export function buildTimeline(input: TimelineInput): Timeline {
     let tgConfidence: RateConfidence = "measured";
     const decodeIsActive = shouldDecode && event.tokens > 0;
     if (decodeIsActive) {
-      const decodeRange = integrateTimeRangeMs(
-        result.measurements,
-        "tg",
-        contextBefore,
-        contextBefore + event.tokens
-      );
+      const decodeRange = integrateTimeRangeMs(result.measurements, "tg", contextBefore, contextBefore + event.tokens);
       decodeMs = decodeRange.canonicalMs;
       decodeOptimisticMs = decodeRange.optimisticMs;
       decodeStddevMs = decodeRange.stddevMs;
@@ -627,7 +596,7 @@ export function buildTimeline(input: TimelineInput): Timeline {
       max: Math.max(decodeOptimisticMs, decodeMs) + decodeStddevMs
     };
 
-    const toolLatencyMs = isCacheBustMarker ? 0 : event.toolLatencyMs ?? 0;
+    const toolLatencyMs = isCacheBustMarker ? 0 : (event.toolLatencyMs ?? 0);
     const startMs = cursorMs;
     const toolDoneMs = startMs + toolLatencyMs;
     const prefillDoneMs = toolDoneMs + prefillMs;
@@ -642,14 +611,7 @@ export function buildTimeline(input: TimelineInput): Timeline {
     return {
       ...event,
       index,
-      phase:
-        toolLatencyMs > 0
-          ? "tool_latency"
-          : prefillMs > 0
-            ? "prefill"
-            : decodeMs > 0
-              ? "decode"
-              : "instant",
+      phase: toolLatencyMs > 0 ? "tool_latency" : prefillMs > 0 ? "prefill" : decodeMs > 0 ? "decode" : "instant",
       startMs,
       toolDoneMs,
       prefillMs,
@@ -695,14 +657,8 @@ export function summarizeTimeline(timeline: Timeline): TimelineSummary {
     .reduce((sum, event) => sum + event.tokens, 0);
   const totalDecodeMs = timeline.events.reduce((sum, event) => sum + event.decodeMs, 0);
   const prefilledWithCache = timeline.events.reduce((sum, event) => sum + event.prefillTokens, 0);
-  const prefilledWithoutCache = timeline.events.reduce(
-    (sum, event) => sum + event.withoutCachePrefillTokens,
-    0
-  );
-  const cacheSavedRatio =
-    prefilledWithoutCache === 0
-      ? 0
-      : Math.max(0, 1 - prefilledWithCache / prefilledWithoutCache);
+  const prefilledWithoutCache = timeline.events.reduce((sum, event) => sum + event.withoutCachePrefillTokens, 0);
+  const cacheSavedRatio = prefilledWithoutCache === 0 ? 0 : Math.max(0, 1 - prefilledWithCache / prefilledWithoutCache);
 
   const wallTimeRangeMs = timeline.events.reduce(
     (range, event) => ({

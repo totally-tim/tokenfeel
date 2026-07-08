@@ -11,7 +11,7 @@ independent Fable-model second opinion):
 
 1. **Math correctness bugs**, not just missing features:
    - `ppRate`/`tgRate` are point-sampled once per scenario event (prefill at
-     the event's *end* depth, decode at the event's *start* depth) instead of
+     the event's _end_ depth, decode at the event's _start_ depth) instead of
      integrated across the depth span the event actually traverses. Prefill
      is priced pessimistically, decode optimistically.
    - Depths beyond the last submitted measurement are flat-clamped to the
@@ -40,7 +40,7 @@ modeling — no contributor-submitted data supports any of these.
 ### Phase 1 — Integrate instead of point-sample (behavior-preserving beyond last measured depth)
 
 Replace point-sampled `ppRate`/`tgRate` with a trapezoidal integral of
-per-token time (`1/rate`, interpolated linearly in *time* between measured
+per-token time (`1/rate`, interpolated linearly in _time_ between measured
 depths — the physically appropriate quantity) across the actual depth span:
 
 - Decode integrates across `[contextBefore, contextAfter]`.
@@ -53,7 +53,7 @@ depths — the physically appropriate quantity) across the actual depth span:
   apply that same overhead once to the actual partial-prefill integral. This
   is self-consistent for a cold prefill and fixes the double-counting /
   inconsistent-overhead bug between the measured and computed code paths.
-- `ppRate`/`tgRate` on `TimelineEvent` become the *effective average rate*
+- `ppRate`/`tgRate` on `TimelineEvent` become the _effective average rate_
   implied by the integral (`tokens / (ms/1000)`), keeping existing UI
   read-sites (`SessionHeader`, `RaceLane`, `PhaseState`) valid without
   changes.
@@ -78,7 +78,7 @@ measured/extrapolated:
    there's no real basis at all, vs. a real (if speculative) trend.
 
 For tier 3, canonical playback follows the fitted line (realistic, slower);
-the old flat-clamp value becomes the *optimistic* bound of a range rather
+the old flat-clamp value becomes the _optimistic_ bound of a range rather
 than the only answer. Adds an optional `ppStddev`/`tgStddev` per-measurement
 field (schema + type + converter passthrough where llama-bench emits it) —
 purely additive, used in Phase 3 to widen ranges when contributors supply

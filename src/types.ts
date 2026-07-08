@@ -14,21 +14,12 @@ export type CacheMode = "runtime" | "on" | "off";
  *   across an unmeasured gap, regardless of how many measurements exist
  *   elsewhere) — only a flat guess either way.
  */
-export type RateConfidence =
-  | "measured"
-  | "interpolated"
-  | "extrapolated-fitted"
-  | "extrapolated-unsupported";
+export type RateConfidence = "measured" | "interpolated" | "extrapolated-fitted" | "extrapolated-unsupported";
 
 export type ResultStatus = "community" | "verified" | "flagged" | "illustrative";
 
 export type SourceKind =
-  | "llama-bench"
-  | "llama-benchy"
-  | "writeup"
-  | "leaderboard"
-  | "raw-json"
-  | "community-benchmark";
+  "llama-bench" | "llama-benchy" | "writeup" | "leaderboard" | "raw-json" | "community-benchmark";
 
 export interface HardwareConfig {
   id: string;
@@ -156,13 +147,7 @@ export type ScenarioType = "chatbot" | "agent" | "reasoning" | "rag";
  * partial cache invalidation with real content, set the `cacheBust` property
  * on a normal "user"/"tool_result" event instead.
  */
-export type ScenarioRole =
-  | "user"
-  | "assistant"
-  | "tool_call"
-  | "tool_result"
-  | "thinking"
-  | "cache_bust";
+export type ScenarioRole = "user" | "assistant" | "tool_call" | "tool_result" | "thinking" | "cache_bust";
 
 export interface CacheBust {
   retainedPrefixTokens: number;

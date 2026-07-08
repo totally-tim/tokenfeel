@@ -19,14 +19,30 @@ const baseResult = {
 } satisfies BenchmarkResult;
 
 function result(overrides: Partial<BenchmarkResult>): BenchmarkResult {
-  return { ...baseResult, ...overrides } as BenchmarkResult;
+  return { ...baseResult, ...overrides };
 }
 
 function catalog(results: BenchmarkResult[]): Catalog {
   return {
     hardware: [
-      { id: "m4", name: "M4", shortName: "M4", vendor: "Apple", memory: "64GB", accelerator: "GPU", notes: "Synthetic hardware" },
-      { id: "orphan-hardware", name: "Orphan", shortName: "Orphan", vendor: "Apple", memory: "8GB", accelerator: "GPU", notes: "Unreferenced" }
+      {
+        id: "m4",
+        name: "M4",
+        shortName: "M4",
+        vendor: "Apple",
+        memory: "64GB",
+        accelerator: "GPU",
+        notes: "Synthetic hardware"
+      },
+      {
+        id: "orphan-hardware",
+        name: "Orphan",
+        shortName: "Orphan",
+        vendor: "Apple",
+        memory: "8GB",
+        accelerator: "GPU",
+        notes: "Unreferenced"
+      }
     ],
     models: [
       { id: "qwen3.5-9b", name: "Qwen3.5 9B", family: "Qwen", params: "9B", license: "test", notes: "Synthetic model" },
@@ -42,7 +58,13 @@ function catalog(results: BenchmarkResult[]): Catalog {
     ],
     results,
     scenarios: [
-      { id: "s1", title: "Scenario", type: "chatbot", systemPromptTokens: 100, events: [{ id: "u1", role: "user", text: "Hello", tokens: 10 }] }
+      {
+        id: "s1",
+        title: "Scenario",
+        type: "chatbot",
+        systemPromptTokens: 100,
+        events: [{ id: "u1", role: "user", text: "Hello", tokens: 10 }]
+      }
     ]
   };
 }
@@ -50,12 +72,23 @@ function catalog(results: BenchmarkResult[]): Catalog {
 describe("catalog quality", () => {
   test("flags result rows that are not useful for the public simulation catalog", () => {
     expect(catalogQualityIssues(result({ quant: "unknown" }))).toContain("unknown-quant");
-    expect(catalogQualityIssues(result({ model: "0123456789abcdef0123456789abcdef01234567" }))).toContain("hash-model-id");
-    expect(catalogQualityIssues(result({ measurements: [{ depth: 4096, pp: 1000, tg: 50 }] }))).toContain("low-context-under-8k");
+    expect(catalogQualityIssues(result({ model: "0123456789abcdef0123456789abcdef01234567" }))).toContain(
+      "hash-model-id"
+    );
+    expect(catalogQualityIssues(result({ measurements: [{ depth: 4096, pp: 1000, tg: 50 }] }))).toContain(
+      "low-context-under-8k"
+    );
     expect(
       catalogQualityIssues(
         result({
-          measurements: [{ depth: 4096, pp: 1000, tg: 50, source: { url: "https://example.com/bad", upstreamId: "bad", ttftMs: 100_000 } }]
+          measurements: [
+            {
+              depth: 4096,
+              pp: 1000,
+              tg: 50,
+              source: { url: "https://example.com/bad", upstreamId: "bad", ttftMs: 100_000 }
+            }
+          ]
         })
       )
     ).toContain("ttft-pp-mismatch");

@@ -24,7 +24,12 @@ export function phaseProgress(elapsedMs: number, startMs: number, endMs: number)
   return clamp01((elapsedMs - startMs) / Math.max(1, endMs - startMs));
 }
 
-export function activePhaseForEvent(event: TimelineEvent, elapsedMs: number, hasStarted: boolean, complete: boolean): ActivePhase {
+export function activePhaseForEvent(
+  event: TimelineEvent,
+  elapsedMs: number,
+  hasStarted: boolean,
+  complete: boolean
+): ActivePhase {
   if (!hasStarted) {
     return {
       kind: "idle",

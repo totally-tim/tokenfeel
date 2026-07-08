@@ -26,10 +26,7 @@ function makeRow(overrides: Partial<OmlxRow> = {}): OmlxRow {
 
 describe("buildGroups", () => {
   test("keeps rows from the same hardware/model/quant/toolchain/OS in one group", () => {
-    const rows = [
-      makeRow({ id: "a", context_length: 1024 }),
-      makeRow({ id: "b", context_length: 4096 })
-    ];
+    const rows = [makeRow({ id: "a", context_length: 1024 }), makeRow({ id: "b", context_length: 4096 })];
 
     const { groups } = buildGroups(rows);
 

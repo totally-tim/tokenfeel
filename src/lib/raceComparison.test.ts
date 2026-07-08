@@ -46,7 +46,7 @@ function result(overrides: Partial<BenchmarkResult>): BenchmarkResult {
     model: "missing-model",
     quant: "4bit",
     ...overrides
-  } as BenchmarkResult;
+  };
 }
 
 const catalog: Catalog = {
@@ -62,8 +62,20 @@ const catalog: Catalog = {
   ],
   results: [
     result({ id: "m4-qwen", hardware: "m4", model: "qwen", quant: "4bit" }),
-    result({ id: "m5-qwen", hardware: "m5", model: "qwen", quant: "4bit", measurements: [{ depth: 32768, pp: 80, tg: 40 }] }),
-    result({ id: "dgx-qwen", hardware: "dgx", model: "qwen", quant: "4bit", runtime: { name: "vLLM", version: "1", backend: "CUDA", flags: "", cache: "prefix" } }),
+    result({
+      id: "m5-qwen",
+      hardware: "m5",
+      model: "qwen",
+      quant: "4bit",
+      measurements: [{ depth: 32768, pp: 80, tg: 40 }]
+    }),
+    result({
+      id: "dgx-qwen",
+      hardware: "dgx",
+      model: "qwen",
+      quant: "4bit",
+      runtime: { name: "vLLM", version: "1", backend: "CUDA", flags: "", cache: "prefix" }
+    }),
     result({ id: "m5-gemma", hardware: "m5", model: "gemma", quant: "4bit" })
   ],
   scenarios: []
@@ -76,7 +88,7 @@ const refs = {
 
 describe("race comparison helpers", () => {
   test("resolves a model-first field change even when current hardware would otherwise conflict", () => {
-    const current = selectionFromResult(catalog.results[3]!);
+    const current = selectionFromResult(catalog.results[3]);
     const constraints = constraintsForFieldChange(current, raceSetupOrders.model, "modelId", "qwen");
     const resolved = resolveRaceSelection(catalog.results, current, constraints);
 
@@ -91,7 +103,7 @@ describe("race comparison helpers", () => {
   });
 
   test("suggests same-model hardware comparisons before exploratory comparisons", () => {
-    const suggestions = suggestComparableResults(catalog, catalog.results[0]!, 3);
+    const suggestions = suggestComparableResults(catalog, catalog.results[0], 3);
 
     expect(suggestions[0]?.result.id).toBe("m5-qwen");
     expect(suggestions[0]?.reason).toBe("same model, quant and runtime");
@@ -99,7 +111,7 @@ describe("race comparison helpers", () => {
   });
 
   test("labels exact same-model runtime races as hardware comparisons", () => {
-    expect(comparisonSummary(catalog, catalog.results[0]!, catalog.results[1]!)).toMatchObject({
+    expect(comparisonSummary(catalog, catalog.results[0], catalog.results[1])).toMatchObject({
       label: "Hardware comparison",
       level: "strong"
     });

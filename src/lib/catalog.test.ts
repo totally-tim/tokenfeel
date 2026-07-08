@@ -3,7 +3,6 @@ import type { BenchmarkResult, Catalog, ScenarioScript } from "../types";
 import { readPrunedCatalogFromDisk } from "../../scripts/validate-data";
 import {
   DEFAULT_LEFT_CONFIG,
-  DEFAULT_RIGHT_CONFIG,
   compactResultLabel,
   computeScenarioSeconds,
   createCatalogLookups,
@@ -82,8 +81,24 @@ const reasoningScenario: ScenarioScript = {
 function testCatalog(results: BenchmarkResult[] = [fastResult, slowResult]): Catalog {
   return {
     hardware: [
-      { id: "hw-fast", name: "Fast Hardware", shortName: "Fast HW", vendor: "Vendor", memory: "64GB", accelerator: "GPU", notes: "n" },
-      { id: "hw-slow", name: "Slow Hardware", shortName: "Slow HW", vendor: "Vendor", memory: "16GB", accelerator: "GPU", notes: "n" }
+      {
+        id: "hw-fast",
+        name: "Fast Hardware",
+        shortName: "Fast HW",
+        vendor: "Vendor",
+        memory: "64GB",
+        accelerator: "GPU",
+        notes: "n"
+      },
+      {
+        id: "hw-slow",
+        name: "Slow Hardware",
+        shortName: "Slow HW",
+        vendor: "Vendor",
+        memory: "16GB",
+        accelerator: "GPU",
+        notes: "n"
+      }
     ],
     models: [
       { id: "model-a", name: "Model A", family: "Family", params: "7B", license: "test", notes: "n" },
@@ -241,7 +256,9 @@ describe("pinned default configs (against the real repo catalog)", () => {
     // result actually matching DEFAULT_LEFT_CONFIG's hardware/model/quant --
     // resolveConfigSelection would otherwise silently degrade to whatever
     // "first available" result exists instead of failing loudly.
-    const staleCatalog = testCatalog([{ ...fastResult, hardware: "unrelated-hw", model: "unrelated-model", quant: "unrelated" }]);
+    const staleCatalog = testCatalog([
+      { ...fastResult, hardware: "unrelated-hw", model: "unrelated-model", quant: "unrelated" }
+    ]);
     staleCatalog.hardware.push({
       id: "unrelated-hw",
       name: "Unrelated",
@@ -251,7 +268,14 @@ describe("pinned default configs (against the real repo catalog)", () => {
       accelerator: "GPU",
       notes: "n"
     });
-    staleCatalog.models.push({ id: "unrelated-model", name: "Unrelated", family: "F", params: "1B", license: "test", notes: "n" });
+    staleCatalog.models.push({
+      id: "unrelated-model",
+      name: "Unrelated",
+      family: "F",
+      params: "1B",
+      license: "test",
+      notes: "n"
+    });
 
     expect(DEFAULT_LEFT_CONFIG.hardwareId).not.toBe("unrelated-hw");
     expect(() => defaultLeftResultId(staleCatalog)).toThrow(/no longer matches any catalog result/);

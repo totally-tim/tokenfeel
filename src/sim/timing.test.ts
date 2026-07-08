@@ -8,7 +8,7 @@ import {
   rateConfidenceAt,
   summarizeTimeline
 } from "./timing";
-import type { BenchmarkMeasurement, BenchmarkResult, ScenarioEvent, ScenarioScript } from "../types";
+import type { BenchmarkMeasurement, BenchmarkResult, ScenarioScript } from "../types";
 
 /**
  * Pre-Phase-1 baseline: point-samples the rate at a single depth instead of
@@ -16,11 +16,7 @@ import type { BenchmarkMeasurement, BenchmarkResult, ScenarioEvent, ScenarioScri
  * fixture in these tests to demonstrate the new integral-based behavior
  * differs from (and improves on) it — not used anywhere in production code.
  */
-function interpolateRate(
-  measurements: BenchmarkMeasurement[],
-  field: "pp" | "tg",
-  depth: number
-): number {
+function interpolateRate(measurements: BenchmarkMeasurement[], field: "pp" | "tg", depth: number): number {
   const points = [...measurements].sort((a, b) => a.depth - b.depth);
   if (depth <= points[0].depth) {
     return points[0][field];
@@ -311,7 +307,12 @@ describe("buildTimeline", () => {
       ...result,
       measurements: [
         { depth: 0, pp: 1000, tg: 20, source: { url: "https://example.com/depth-0", upstreamId: "0", ttftMs: 0 } },
-        { depth: 1000, pp: 1000, tg: 20, source: { url: "https://example.com/depth-1000", upstreamId: "1000", ttftMs: 5000 } }
+        {
+          depth: 1000,
+          pp: 1000,
+          tg: 20,
+          source: { url: "https://example.com/depth-1000", upstreamId: "1000", ttftMs: 5000 }
+        }
       ],
       overheadMs: 100
     };
@@ -474,7 +475,6 @@ describe("buildTimeline", () => {
 
     expect(activeEventAt(timeline, timeline.events[0].endMs).id).toBe(timeline.events[1].id);
   });
-
 });
 
 describe("buildTimeline rate integration (Phase 1)", () => {
@@ -551,7 +551,12 @@ describe("buildTimeline rate integration (Phase 1)", () => {
       ...result,
       measurements: [
         { depth: 0, pp: 1000, tg: 20, source: { url: "https://example.com/d0", upstreamId: "0", ttftMs: 0 } },
-        { depth: 1000, pp: 1000, tg: 20, source: { url: "https://example.com/d1000", upstreamId: "1000", ttftMs: 4000 } }
+        {
+          depth: 1000,
+          pp: 1000,
+          tg: 20,
+          source: { url: "https://example.com/d1000", upstreamId: "1000", ttftMs: 4000 }
+        }
       ],
       overheadMs: 100
     };
@@ -966,7 +971,7 @@ describe("buildTimeline cache_bust marker events (T1)", () => {
           text: "should be a no-op",
           tokens: 0,
           cacheBust: { retainedPrefixTokens: 999999 }
-        } as ScenarioEvent,
+        },
         { id: "a1", role: "assistant", text: "Reply.", tokens: 60 }
       ]
     };
@@ -998,7 +1003,12 @@ describe("TTFT depth-convention normalization (T3)", () => {
       ...result,
       measurements: [
         { depth: 0, pp: 1000, tg: 20, source: { url: "https://example.com/d0", upstreamId: "0", ttftMs: 0 } },
-        { depth: 2000, pp: 1000, tg: 20, source: { url: "https://example.com/d2000", upstreamId: "2000", ttftMs: 6000 } }
+        {
+          depth: 2000,
+          pp: 1000,
+          tg: 20,
+          source: { url: "https://example.com/d2000", upstreamId: "2000", ttftMs: 6000 }
+        }
       ]
     };
     const scenarioAt800: ScenarioScript = {
@@ -1028,7 +1038,12 @@ describe("TTFT depth-convention normalization (T3)", () => {
       benchmark: { ppTokens: 1000 },
       measurements: [
         { depth: 0, pp: 1000, tg: 20, source: { url: "https://example.com/d0", upstreamId: "0", ttftMs: 500 } },
-        { depth: 1000, pp: 1000, tg: 20, source: { url: "https://example.com/d1000", upstreamId: "1000", ttftMs: 1500 } }
+        {
+          depth: 1000,
+          pp: 1000,
+          tg: 20,
+          source: { url: "https://example.com/d1000", upstreamId: "1000", ttftMs: 1500 }
+        }
       ]
     };
     // Total prompt tokens actually processed: 1500, which sits at effective
@@ -1086,7 +1101,12 @@ describe("buildTimeline additional coverage (audit item 4)", () => {
       ...result,
       measurements: [
         { depth: 0, pp: 1000, tg: 20, source: { url: "https://example.com/d0", upstreamId: "0", ttftMs: 0 } },
-        { depth: 2000, pp: 1000, tg: 20, source: { url: "https://example.com/d2000", upstreamId: "2000", ttftMs: 6000 } }
+        {
+          depth: 2000,
+          pp: 1000,
+          tg: 20,
+          source: { url: "https://example.com/d2000", upstreamId: "2000", ttftMs: 6000 }
+        }
       ]
     };
     const scenarioAt800: ScenarioScript = {

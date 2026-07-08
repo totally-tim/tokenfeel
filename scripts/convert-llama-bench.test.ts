@@ -134,8 +134,6 @@ describe("parseLlamaBenchMeasurements", () => {
       ])
     );
 
-    expect(parsed.measurements).toEqual([
-      { depth: 0, pp: 0, tg: 80, ppLabel: "pp512", tgLabel: "tg128" }
-    ]);
+    expect(parsed.measurements).toEqual([{ depth: 0, pp: 0, tg: 80, ppLabel: "pp512", tgLabel: "tg128" }]);
   });
 });

@@ -47,8 +47,8 @@ export function ContributePage() {
         <p className="eyebrow">CONTRIBUTE</p>
         <h1>Make benchmark submissions boring, reviewable and linkable.</h1>
         <p>
-          The public version should be a GitHub Pages repo where every new hardware result is a pull
-          request, not a form submission into a private database.
+          The public version should be a GitHub Pages repo where every new hardware result is a pull request, not a form
+          submission into a private database.
         </p>
       </section>
       <section className="contribute-steps">
@@ -67,11 +67,16 @@ export function ContributePage() {
             <p className="eyebrow">AGENT HANDOFF</p>
             <h2 id="agent-prompt-title">Copy the benchmark agent prompt, or let an agent read it here.</h2>
             <p>
-              The prompt turns a local inference run into one reviewable result file with raw evidence,
-              schema checks, tests and build output.
+              The prompt turns a local inference run into one reviewable result file with raw evidence, schema checks,
+              tests and build output.
             </p>
           </div>
-          <button type="button" className="secondary-button small" onClick={copyAgentPrompt} aria-live="polite">
+          <button
+            type="button"
+            className="secondary-button small"
+            onClick={() => void copyAgentPrompt()}
+            aria-live="polite"
+          >
             <Clipboard size={15} /> {copyLabel}
           </button>
         </div>
