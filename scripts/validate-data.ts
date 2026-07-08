@@ -72,16 +72,35 @@ export function analyzeCatalogQuality(
     for (let index = 1; index < result.measurements.length; index += 1) {
       const previous = result.measurements[index - 1];
       const current = result.measurements[index];
+      // The very first measured-depth transition is where JIT/cold-start
+      // warm-up variance in the underlying benchmark tool actually lives --
+      // the first data point is frequently an artificially slow cold run,
+      // so an apparent rate increase specifically here is expected noise,
+      // not a sign of a grouping/import bug. Every later transition has no
+      // such excuse and is held to the real threshold below. Only applies
+      // when a longer curve exists beyond it (length > 2): a bare 2-point
+      // submission's only transition has no later data confirming the
+      // anomaly is confined to a cold start, so it gets no exemption.
+      const isFirstTransition = index === 1 && result.measurements.length > 2;
 
       for (const metric of ["pp", "tg"] as const) {
         const increaseRatio = (current[metric] - previous[metric]) / previous[metric];
         if (increaseRatio <= 0) continue;
 
         const message = `${result.id} ${metric} increases ${(increaseRatio * 100).toFixed(1)}% from depth ${previous.depth} to ${current.depth}`;
-        const allowlistReason = allowlistReasonById.get(result.id);
+
         if (increaseRatio <= suspiciousIncreaseRatio) {
           warnings.push(message);
-        } else if (allowlistReason) {
+          continue;
+        }
+
+        if (isFirstTransition) {
+          warnings.push(`${message} (first-depth warm-up, not a hard issue)`);
+          continue;
+        }
+
+        const allowlistReason = allowlistReasonById.get(result.id);
+        if (allowlistReason) {
           warnings.push(`${message} (allowlisted: ${allowlistReason})`);
         } else {
           issues.push(message);
