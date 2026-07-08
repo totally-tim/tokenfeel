@@ -796,9 +796,16 @@ mark {
   padding: 0 10px;
   border: 1px solid var(--border-hair);
   border-radius: var(--radius-sm);
-  outline: 0;
   color: var(--fg-primary);
   background: var(--surface-secondary);
+}
+
+/* Unlayered rules always beat the @layer base focus-visible ring under CSS
+   Cascade Layers precedence -- scope the outline removal to non-keyboard
+   focus only, matching the .search-box input pattern, so Tab navigation
+   still shows a visible ring here. */
+.search-select-panel input:focus:not(:focus-visible) {
+  outline: 0;
 }
 
 .search-select-panel input:focus {
