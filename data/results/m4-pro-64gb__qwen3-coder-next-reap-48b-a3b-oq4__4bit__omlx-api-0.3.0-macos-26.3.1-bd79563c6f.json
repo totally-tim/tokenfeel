@@ -1,0 +1,90 @@
+{
+  "id": "m4-pro-64gb__qwen3-coder-next-reap-48b-a3b-oq4__4bit__omlx-api-0.3.0-macos-26.3.1-bd79563c6f",
+  "hardware": "m4-pro-64gb",
+  "model": "qwen3-coder-next-reap-48b-a3b-oq4",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.3.0",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 623.5,
+      "tg": 59.6,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/60o2a9lg",
+        "upstreamId": "60o2a9lg",
+        "createdAt": "2026-03-31T06:28:28Z",
+        "ttftMs": 1642.5,
+        "peakMemoryGb": 27.49
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 675,
+      "tg": 55.2,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/aayrc8ac",
+        "upstreamId": "aayrc8ac",
+        "createdAt": "2026-03-31T06:28:29Z",
+        "ttftMs": 6067.7,
+        "peakMemoryGb": 28.54
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "aayrc8ac",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "60o2a9lg 2026-03-31T06:28:28Z ctx=1024 pp=623.5 tg=59.6 omlx=0.3.0 os=macOS 26.3.1 https://omlx.ai/benchmarks/60o2a9lg",
+      "aayrc8ac 2026-03-31T06:28:29Z ctx=4096 pp=675 tg=55.2 omlx=0.3.0 os=macOS 26.3.1 https://omlx.ai/benchmarks/aayrc8ac"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/60o2a9lg",
+      "https://omlx.ai/benchmarks/aayrc8ac"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "aayrc8ac",
+      "latest_created_at": "2026-03-31T06:28:29Z",
+      "selected_omlx_versions": "0.3.0",
+      "selected_os_versions": "macOS 26.3.1"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.3.1",
+    "runtimeVersions": {
+      "omlx": "0.3.0"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Qwen3-Coder-Next-REAP-48B-A3B-oQ4 on M4 Pro (20c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/aayrc8ac",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-31",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.3.0 / macOS 26.3.1 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

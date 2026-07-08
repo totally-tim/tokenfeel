@@ -1,0 +1,122 @@
+{
+  "id": "m5-max-40c-48gb__qwopus3.5-9b-v3-oq3.5__3bit__omlx-api-0.3.2-macos-26.4-47915d2cde",
+  "hardware": "m5-max-40c-48gb",
+  "model": "qwopus3.5-9b-v3-oq3.5",
+  "quant": "3bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.3.2",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 1702.9,
+      "tg": 103.8,
+      "ppLabel": "3bit PP",
+      "tgLabel": "3bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/fuf9q88w",
+        "upstreamId": "fuf9q88w",
+        "createdAt": "2026-04-04T06:27:48Z",
+        "ttftMs": 601.3,
+        "peakMemoryGb": 5.56
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 2391.3,
+      "tg": 95.7,
+      "ppLabel": "3bit PP",
+      "tgLabel": "3bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/8teti396",
+        "upstreamId": "8teti396",
+        "createdAt": "2026-04-04T06:27:49Z",
+        "ttftMs": 1712.9,
+        "peakMemoryGb": 6.58
+      }
+    },
+    {
+      "depth": 8192,
+      "pp": 2359,
+      "tg": 87.1,
+      "ppLabel": "3bit PP",
+      "tgLabel": "3bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/195dbcj3",
+        "upstreamId": "195dbcj3",
+        "createdAt": "2026-04-04T06:27:49Z",
+        "ttftMs": 3472.6,
+        "peakMemoryGb": 6.89
+      }
+    },
+    {
+      "depth": 16384,
+      "pp": 2224.7,
+      "tg": 71.9,
+      "ppLabel": "3bit PP",
+      "tgLabel": "3bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/o9uwq99b",
+        "upstreamId": "o9uwq99b",
+        "createdAt": "2026-04-04T06:27:50Z",
+        "ttftMs": 7364.7,
+        "peakMemoryGb": 7.54
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "o9uwq99b",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "fuf9q88w 2026-04-04T06:27:48Z ctx=1024 pp=1702.9 tg=103.8 omlx=0.3.2 os=macOS 26.4 https://omlx.ai/benchmarks/fuf9q88w",
+      "8teti396 2026-04-04T06:27:49Z ctx=4096 pp=2391.3 tg=95.7 omlx=0.3.2 os=macOS 26.4 https://omlx.ai/benchmarks/8teti396",
+      "195dbcj3 2026-04-04T06:27:49Z ctx=8192 pp=2359 tg=87.1 omlx=0.3.2 os=macOS 26.4 https://omlx.ai/benchmarks/195dbcj3",
+      "o9uwq99b 2026-04-04T06:27:50Z ctx=16384 pp=2224.7 tg=71.9 omlx=0.3.2 os=macOS 26.4 https://omlx.ai/benchmarks/o9uwq99b"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/fuf9q88w",
+      "https://omlx.ai/benchmarks/8teti396",
+      "https://omlx.ai/benchmarks/195dbcj3",
+      "https://omlx.ai/benchmarks/o9uwq99b"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 4,
+      "selected_depths": 4,
+      "latest_upstream_id": "o9uwq99b",
+      "latest_created_at": "2026-04-04T06:27:50Z",
+      "selected_omlx_versions": "0.3.2",
+      "selected_os_versions": "macOS 26.4"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.4",
+    "runtimeVersions": {
+      "omlx": "0.3.2"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Qwopus3.5-9B-v3-oQ3.5 on M5 Max (40c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/o9uwq99b",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-04-04",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 4 upstream row(s) on oMLX 0.3.2 / macOS 26.4 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

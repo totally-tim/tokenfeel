@@ -1,0 +1,90 @@
+{
+  "id": "m3-ultra-80c-256gb__glm-4.7-flash-7e-qx54g-hi__5bit__omlx-api-0.3.5.dev1-macos-26.4.1-65b78e688e",
+  "hardware": "m3-ultra-80c-256gb",
+  "model": "glm-4.7-flash-7e-qx54g-hi",
+  "quant": "5bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.3.5.dev1",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 1318.8,
+      "tg": 62.9,
+      "ppLabel": "5bit PP",
+      "tgLabel": "5bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/3i4dsvs4",
+        "upstreamId": "3i4dsvs4",
+        "createdAt": "2026-04-11T13:18:55Z",
+        "ttftMs": 776.4,
+        "peakMemoryGb": 21.62
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 1348.4,
+      "tg": 58.9,
+      "ppLabel": "5bit PP",
+      "tgLabel": "5bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/jbvmkbeq",
+        "upstreamId": "jbvmkbeq",
+        "createdAt": "2026-04-11T13:18:59Z",
+        "ttftMs": 3037.7,
+        "peakMemoryGb": 22.27
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "jbvmkbeq",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "3i4dsvs4 2026-04-11T13:18:55Z ctx=1024 pp=1318.8 tg=62.9 omlx=0.3.5.dev1 os=macOS 26.4.1 https://omlx.ai/benchmarks/3i4dsvs4",
+      "jbvmkbeq 2026-04-11T13:18:59Z ctx=4096 pp=1348.4 tg=58.9 omlx=0.3.5.dev1 os=macOS 26.4.1 https://omlx.ai/benchmarks/jbvmkbeq"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/3i4dsvs4",
+      "https://omlx.ai/benchmarks/jbvmkbeq"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 4,
+      "selected_depths": 2,
+      "latest_upstream_id": "jbvmkbeq",
+      "latest_created_at": "2026-04-11T13:18:59Z",
+      "selected_omlx_versions": "0.3.5.dev1",
+      "selected_os_versions": "macOS 26.4.1"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.4.1",
+    "runtimeVersions": {
+      "omlx": "0.3.5.dev1"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX GLM-4.7-Flash-7e-qx54g-hi on M3 Ultra (80c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/jbvmkbeq",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-04-11",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 4 upstream row(s) on oMLX 0.3.5.dev1 / macOS 26.4.1 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

@@ -1,0 +1,8 @@
+{
+  "id": "granite-4.0-h-tiny-4bit-dwq",
+  "name": "Granite-4.0-H-Tiny-4bit-DWQ",
+  "family": "Granite",
+  "params": "4B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

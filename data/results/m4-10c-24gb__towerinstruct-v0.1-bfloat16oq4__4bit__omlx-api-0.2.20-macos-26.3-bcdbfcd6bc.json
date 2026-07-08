@@ -1,0 +1,90 @@
+{
+  "id": "m4-10c-24gb__towerinstruct-v0.1-bfloat16oq4__4bit__omlx-api-0.2.20-macos-26.3-bcdbfcd6bc",
+  "hardware": "m4-10c-24gb",
+  "model": "towerinstruct-v0.1-bfloat16oq4",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.20",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 209,
+      "tg": 21.7,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/27q0x883",
+        "upstreamId": "27q0x883",
+        "createdAt": "2026-03-24T12:17:12Z",
+        "ttftMs": 4903.7,
+        "peakMemoryGb": 4.58
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 194.5,
+      "tg": 14.4,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/d52w2gbj",
+        "upstreamId": "d52w2gbj",
+        "createdAt": "2026-03-24T12:17:13Z",
+        "ttftMs": 21059.1,
+        "peakMemoryGb": 8.21
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "d52w2gbj",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "27q0x883 2026-03-24T12:17:12Z ctx=1024 pp=209 tg=21.7 omlx=0.2.20 os=macOS 26.3 https://omlx.ai/benchmarks/27q0x883",
+      "d52w2gbj 2026-03-24T12:17:13Z ctx=4096 pp=194.5 tg=14.4 omlx=0.2.20 os=macOS 26.3 https://omlx.ai/benchmarks/d52w2gbj"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/27q0x883",
+      "https://omlx.ai/benchmarks/d52w2gbj"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "d52w2gbj",
+      "latest_created_at": "2026-03-24T12:17:13Z",
+      "selected_omlx_versions": "0.2.20",
+      "selected_os_versions": "macOS 26.3"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.3",
+    "runtimeVersions": {
+      "omlx": "0.2.20"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX TowerInstruct-v0.1-bfloat16oQ4 on M4 (10c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/d52w2gbj",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-24",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.2.20 / macOS 26.3 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

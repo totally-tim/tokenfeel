@@ -1,0 +1,8 @@
+{
+  "id": "gpt-oss-120bmixed-precision",
+  "name": "gpt-oss-120bmixed-precision",
+  "family": "gpt-oss",
+  "params": "120B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

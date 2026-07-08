@@ -1,0 +1,8 @@
+{
+  "id": "qwen-122b-mixed",
+  "name": "Qwen-122B-Mixed",
+  "family": "Qwen",
+  "params": "122B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

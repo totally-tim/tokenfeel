@@ -1,0 +1,90 @@
+{
+  "id": "m1-max-64gb__glm-ocr__bf16__omlx-api-0.2.10-macos-26.3.1-6d37745f7a",
+  "hardware": "m1-max-64gb",
+  "model": "glm-ocr",
+  "quant": "bf16",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.10",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 4373.6,
+      "tg": 180.6,
+      "ppLabel": "bf16 PP",
+      "tgLabel": "bf16 TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/dmmqn3b8",
+        "upstreamId": "dmmqn3b8",
+        "createdAt": "2026-03-18T02:58:33Z",
+        "ttftMs": 234.1,
+        "peakMemoryGb": 2.92
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 4101.2,
+      "tg": 147.4,
+      "ppLabel": "bf16 PP",
+      "tgLabel": "bf16 TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/wzt34lt9",
+        "upstreamId": "wzt34lt9",
+        "createdAt": "2026-03-18T02:58:34Z",
+        "ttftMs": 998.7,
+        "peakMemoryGb": 3.04
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "wzt34lt9",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "dmmqn3b8 2026-03-18T02:58:33Z ctx=1024 pp=4373.6 tg=180.6 omlx=0.2.10 os=macOS 26.3.1 https://omlx.ai/benchmarks/dmmqn3b8",
+      "wzt34lt9 2026-03-18T02:58:34Z ctx=4096 pp=4101.2 tg=147.4 omlx=0.2.10 os=macOS 26.3.1 https://omlx.ai/benchmarks/wzt34lt9"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/dmmqn3b8",
+      "https://omlx.ai/benchmarks/wzt34lt9"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "wzt34lt9",
+      "latest_created_at": "2026-03-18T02:58:34Z",
+      "selected_omlx_versions": "0.2.10",
+      "selected_os_versions": "macOS 26.3.1"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.3.1",
+    "runtimeVersions": {
+      "omlx": "0.2.10"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX GLM-OCR on M1 Max (32c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/wzt34lt9",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-18",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.2.10 / macOS 26.3.1 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

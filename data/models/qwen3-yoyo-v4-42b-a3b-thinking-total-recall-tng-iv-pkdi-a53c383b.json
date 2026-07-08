@@ -1,0 +1,9 @@
+{
+  "id": "qwen3-yoyo-v4-42b-a3b-thinking-total-recall-tng-iv-pkdi-a53c383b",
+  "name": "Qwen3-Yoyo-V4-42B-A3B-Thinking-TOTAL-RECALL-TNG-IV-PKDick-V-qx65x",
+  "family": "Qwen",
+  "params": "42B",
+  "activeParams": "3B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

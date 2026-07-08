@@ -1,0 +1,90 @@
+{
+  "id": "m2-max-38c-96gb__huihui-glm-4.5-air-abliterated__4bit__omlx-api-0.2.14-macos-26.2-7a3c5b2b3f",
+  "hardware": "m2-max-38c-96gb",
+  "model": "huihui-glm-4.5-air-abliterated",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.14",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 162.9,
+      "tg": 28.3,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/ogbqa1db",
+        "upstreamId": "ogbqa1db",
+        "createdAt": "2026-03-17T01:59:38Z",
+        "ttftMs": 6284.4,
+        "peakMemoryGb": 53.91
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 160.6,
+      "tg": 24.3,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/q8lm8bdz",
+        "upstreamId": "q8lm8bdz",
+        "createdAt": "2026-03-17T01:59:38Z",
+        "ttftMs": 25503.4,
+        "peakMemoryGb": 54.66
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "ogbqa1db",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "ogbqa1db 2026-03-17T01:59:38Z ctx=1024 pp=162.9 tg=28.3 omlx=0.2.14 os=macOS 26.2 https://omlx.ai/benchmarks/ogbqa1db",
+      "q8lm8bdz 2026-03-17T01:59:38Z ctx=4096 pp=160.6 tg=24.3 omlx=0.2.14 os=macOS 26.2 https://omlx.ai/benchmarks/q8lm8bdz"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/ogbqa1db",
+      "https://omlx.ai/benchmarks/q8lm8bdz"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "ogbqa1db",
+      "latest_created_at": "2026-03-17T01:59:38Z",
+      "selected_omlx_versions": "0.2.14",
+      "selected_os_versions": "macOS 26.2"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.2",
+    "runtimeVersions": {
+      "omlx": "0.2.14"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Huihui-GLM-4.5-Air-abliterated on M2 Max (38c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/ogbqa1db",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-17",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.2.14 / macOS 26.2 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

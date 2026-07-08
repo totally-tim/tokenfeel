@@ -1,0 +1,154 @@
+{
+  "id": "m1-max-64gb__nvidia-nemotron-3-nano-30b-a3b5bit__5bit__omlx-api-0.2.19-macos-26.3.1-2e459f16d6",
+  "hardware": "m1-max-64gb",
+  "model": "nvidia-nemotron-3-nano-30b-a3b5bit",
+  "quant": "5bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.19",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 441.4,
+      "tg": 55.4,
+      "ppLabel": "5bit PP",
+      "tgLabel": "5bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/bpg9bvbm",
+        "upstreamId": "bpg9bvbm",
+        "createdAt": "2026-03-25T10:27:40Z",
+        "ttftMs": 2320,
+        "peakMemoryGb": 22.46
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 482.6,
+      "tg": 52.6,
+      "ppLabel": "5bit PP",
+      "tgLabel": "5bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/vnq3b240",
+        "upstreamId": "vnq3b240",
+        "createdAt": "2026-03-25T10:27:41Z",
+        "ttftMs": 8487.1,
+        "peakMemoryGb": 23.54
+      }
+    },
+    {
+      "depth": 8192,
+      "pp": 488.1,
+      "tg": 50.6,
+      "ppLabel": "5bit PP",
+      "tgLabel": "5bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/rgr1l2og",
+        "upstreamId": "rgr1l2og",
+        "createdAt": "2026-03-25T10:27:42Z",
+        "ttftMs": 16782.9,
+        "peakMemoryGb": 23.56
+      }
+    },
+    {
+      "depth": 16384,
+      "pp": 439.5,
+      "tg": 46.8,
+      "ppLabel": "5bit PP",
+      "tgLabel": "5bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/b9mtpwj8",
+        "upstreamId": "b9mtpwj8",
+        "createdAt": "2026-03-25T10:27:43Z",
+        "ttftMs": 37280,
+        "peakMemoryGb": 23.61
+      }
+    },
+    {
+      "depth": 32768,
+      "pp": 360,
+      "tg": 35.2,
+      "ppLabel": "5bit PP",
+      "tgLabel": "5bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/ghxlnbfe",
+        "upstreamId": "ghxlnbfe",
+        "createdAt": "2026-03-25T10:27:44Z",
+        "ttftMs": 91020.8,
+        "peakMemoryGb": 23.71
+      }
+    },
+    {
+      "depth": 65536,
+      "pp": 285.8,
+      "tg": 28.1,
+      "ppLabel": "5bit PP",
+      "tgLabel": "5bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/s30vj6s0",
+        "upstreamId": "s30vj6s0",
+        "createdAt": "2026-03-25T10:27:45Z",
+        "ttftMs": 229334.1,
+        "peakMemoryGb": 23.89
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "s30vj6s0",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "bpg9bvbm 2026-03-25T10:27:40Z ctx=1024 pp=441.4 tg=55.4 omlx=0.2.19 os=macOS 26.3.1 https://omlx.ai/benchmarks/bpg9bvbm",
+      "vnq3b240 2026-03-25T10:27:41Z ctx=4096 pp=482.6 tg=52.6 omlx=0.2.19 os=macOS 26.3.1 https://omlx.ai/benchmarks/vnq3b240",
+      "rgr1l2og 2026-03-25T10:27:42Z ctx=8192 pp=488.1 tg=50.6 omlx=0.2.19 os=macOS 26.3.1 https://omlx.ai/benchmarks/rgr1l2og",
+      "b9mtpwj8 2026-03-25T10:27:43Z ctx=16384 pp=439.5 tg=46.8 omlx=0.2.19 os=macOS 26.3.1 https://omlx.ai/benchmarks/b9mtpwj8",
+      "ghxlnbfe 2026-03-25T10:27:44Z ctx=32768 pp=360 tg=35.2 omlx=0.2.19 os=macOS 26.3.1 https://omlx.ai/benchmarks/ghxlnbfe",
+      "s30vj6s0 2026-03-25T10:27:45Z ctx=65536 pp=285.8 tg=28.1 omlx=0.2.19 os=macOS 26.3.1 https://omlx.ai/benchmarks/s30vj6s0"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/bpg9bvbm",
+      "https://omlx.ai/benchmarks/vnq3b240",
+      "https://omlx.ai/benchmarks/rgr1l2og",
+      "https://omlx.ai/benchmarks/b9mtpwj8",
+      "https://omlx.ai/benchmarks/ghxlnbfe",
+      "https://omlx.ai/benchmarks/s30vj6s0"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 6,
+      "selected_depths": 6,
+      "latest_upstream_id": "s30vj6s0",
+      "latest_created_at": "2026-03-25T10:27:45Z",
+      "selected_omlx_versions": "0.2.19",
+      "selected_os_versions": "macOS 26.3.1"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.3.1",
+    "runtimeVersions": {
+      "omlx": "0.2.19"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX NVIDIA-Nemotron-3-Nano-30B-A3B5Bit on M1 Max (32c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/s30vj6s0",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-25",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 6 upstream row(s) on oMLX 0.2.19 / macOS 26.3.1 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

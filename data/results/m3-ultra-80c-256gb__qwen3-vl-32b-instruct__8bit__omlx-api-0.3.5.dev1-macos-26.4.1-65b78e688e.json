@@ -1,0 +1,90 @@
+{
+  "id": "m3-ultra-80c-256gb__qwen3-vl-32b-instruct__8bit__omlx-api-0.3.5.dev1-macos-26.4.1-65b78e688e",
+  "hardware": "m3-ultra-80c-256gb",
+  "model": "qwen3-vl-32b-instruct",
+  "quant": "8bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.3.5.dev1",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 326.7,
+      "tg": 19.5,
+      "ppLabel": "8bit PP",
+      "tgLabel": "8bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/d440dzq0",
+        "upstreamId": "d440dzq0",
+        "createdAt": "2026-04-11T16:20:21Z",
+        "ttftMs": 3134.4,
+        "peakMemoryGb": 33.29
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 333,
+      "tg": 17.7,
+      "ppLabel": "8bit PP",
+      "tgLabel": "8bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/s351dh1z",
+        "upstreamId": "s351dh1z",
+        "createdAt": "2026-04-11T16:20:22Z",
+        "ttftMs": 12300.7,
+        "peakMemoryGb": 34.18
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "s351dh1z",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "d440dzq0 2026-04-11T16:20:21Z ctx=1024 pp=326.7 tg=19.5 omlx=0.3.5.dev1 os=macOS 26.4.1 https://omlx.ai/benchmarks/d440dzq0",
+      "s351dh1z 2026-04-11T16:20:22Z ctx=4096 pp=333 tg=17.7 omlx=0.3.5.dev1 os=macOS 26.4.1 https://omlx.ai/benchmarks/s351dh1z"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/d440dzq0",
+      "https://omlx.ai/benchmarks/s351dh1z"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "s351dh1z",
+      "latest_created_at": "2026-04-11T16:20:22Z",
+      "selected_omlx_versions": "0.3.5.dev1",
+      "selected_os_versions": "macOS 26.4.1"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.4.1",
+    "runtimeVersions": {
+      "omlx": "0.3.5.dev1"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Qwen3-VL-32B-Instruct on M3 Ultra (80c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/s351dh1z",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-04-11",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.3.5.dev1 / macOS 26.4.1 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

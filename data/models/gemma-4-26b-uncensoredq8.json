@@ -1,0 +1,8 @@
+{
+  "id": "gemma-4-26b-uncensoredq8",
+  "name": "gemma-4-26B-uncensoredq8",
+  "family": "Gemma",
+  "params": "26B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

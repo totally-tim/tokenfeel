@@ -1,0 +1,8 @@
+{
+  "id": "gpt-oss-safeguard-120bmxfp4-symlink",
+  "name": "gpt-oss-safeguard-120bMXFP4 symlink",
+  "family": "gpt-oss",
+  "params": "120B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

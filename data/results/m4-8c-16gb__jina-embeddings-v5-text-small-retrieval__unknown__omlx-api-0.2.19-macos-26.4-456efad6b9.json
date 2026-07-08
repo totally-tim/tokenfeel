@@ -1,0 +1,90 @@
+{
+  "id": "m4-8c-16gb__jina-embeddings-v5-text-small-retrieval__unknown__omlx-api-0.2.19-macos-26.4-456efad6b9",
+  "hardware": "m4-8c-16gb",
+  "model": "jina-embeddings-v5-text-small-retrieval",
+  "quant": "unknown",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.19",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 1729,
+      "tg": 66.5,
+      "ppLabel": "unknown PP",
+      "tgLabel": "unknown TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/28ysawmc",
+        "upstreamId": "28ysawmc",
+        "createdAt": "2026-04-02T07:11:56Z",
+        "ttftMs": 592.2,
+        "peakMemoryGb": 1.63
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 1407.6,
+      "tg": 47.6,
+      "ppLabel": "unknown PP",
+      "tgLabel": "unknown TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/zftyupwh",
+        "upstreamId": "zftyupwh",
+        "createdAt": "2026-04-02T07:11:57Z",
+        "ttftMs": 2909.9,
+        "peakMemoryGb": 2.06
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "zftyupwh",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "28ysawmc 2026-04-02T07:11:56Z ctx=1024 pp=1729 tg=66.5 omlx=0.2.19 os=macOS 26.4 https://omlx.ai/benchmarks/28ysawmc",
+      "zftyupwh 2026-04-02T07:11:57Z ctx=4096 pp=1407.6 tg=47.6 omlx=0.2.19 os=macOS 26.4 https://omlx.ai/benchmarks/zftyupwh"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/28ysawmc",
+      "https://omlx.ai/benchmarks/zftyupwh"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "zftyupwh",
+      "latest_created_at": "2026-04-02T07:11:57Z",
+      "selected_omlx_versions": "0.2.19",
+      "selected_os_versions": "macOS 26.4"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.4",
+    "runtimeVersions": {
+      "omlx": "0.2.19"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX jina-embeddings-v5-text-small-retrieval on M4 (8c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/zftyupwh",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-04-02",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.2.19 / macOS 26.4 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

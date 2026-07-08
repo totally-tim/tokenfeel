@@ -1,0 +1,90 @@
+{
+  "id": "m1-max-64gb__qwen3-coder-30b-a3b-instruct__4bit__omlx-api-0.2.13-macos-26.3.1-b8dc9bfd4d",
+  "hardware": "m1-max-64gb",
+  "model": "qwen3-coder-30b-a3b-instruct",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.13",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 468.2,
+      "tg": 57.7,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/mqqfwysq",
+        "upstreamId": "mqqfwysq",
+        "createdAt": "2026-03-18T02:06:05Z",
+        "ttftMs": 2187.1,
+        "peakMemoryGb": 16.59
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 461.2,
+      "tg": 45.6,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/wsdudb3d",
+        "upstreamId": "wsdudb3d",
+        "createdAt": "2026-03-18T02:06:06Z",
+        "ttftMs": 8880.9,
+        "peakMemoryGb": 17.06
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "wsdudb3d",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "mqqfwysq 2026-03-18T02:06:05Z ctx=1024 pp=468.2 tg=57.7 omlx=0.2.13 os=macOS 26.3.1 https://omlx.ai/benchmarks/mqqfwysq",
+      "wsdudb3d 2026-03-18T02:06:06Z ctx=4096 pp=461.2 tg=45.6 omlx=0.2.13 os=macOS 26.3.1 https://omlx.ai/benchmarks/wsdudb3d"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/mqqfwysq",
+      "https://omlx.ai/benchmarks/wsdudb3d"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "wsdudb3d",
+      "latest_created_at": "2026-03-18T02:06:06Z",
+      "selected_omlx_versions": "0.2.13",
+      "selected_os_versions": "macOS 26.3.1"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.3.1",
+    "runtimeVersions": {
+      "omlx": "0.2.13"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Qwen3-Coder-30B-A3B-Instruct on M1 Max (32c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/wsdudb3d",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-18",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.2.13 / macOS 26.3.1 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

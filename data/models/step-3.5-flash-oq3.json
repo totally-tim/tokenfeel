@@ -1,0 +1,8 @@
+{
+  "id": "step-3.5-flash-oq3",
+  "name": "Step-3.5-Flash-oQ3",
+  "family": "Step",
+  "params": "unknown",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "qwen3.5-122b-a10b-oq8",
+  "name": "Qwen3.5-122B-A10B-oQ8",
+  "family": "Qwen",
+  "params": "122B",
+  "activeParams": "10B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

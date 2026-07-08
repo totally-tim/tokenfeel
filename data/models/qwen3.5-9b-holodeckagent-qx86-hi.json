@@ -1,0 +1,8 @@
+{
+  "id": "qwen3.5-9b-holodeckagent-qx86-hi",
+  "name": "Qwen3.5-9B-HolodeckAgent-qx86-hi",
+  "family": "Qwen",
+  "params": "9B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

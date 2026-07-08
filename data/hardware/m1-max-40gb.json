@@ -1,0 +1,9 @@
+{
+  "id": "m1-max-40gb",
+  "name": "Apple M1 Max 40GB",
+  "shortName": "M1 Max",
+  "vendor": "Apple",
+  "memory": "40GB unified",
+  "accelerator": "M1 Max GPU",
+  "notes": "Generated from the oMLX community benchmark API import. Source hardware fields: chip=M1, variant=Max, gpu_cores=unknown."
+}

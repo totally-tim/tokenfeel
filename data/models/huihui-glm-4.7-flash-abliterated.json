@@ -1,0 +1,8 @@
+{
+  "id": "huihui-glm-4.7-flash-abliterated",
+  "name": "Huihui-GLM-4.7-Flash-abliterated",
+  "family": "Huihui",
+  "params": "unknown",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

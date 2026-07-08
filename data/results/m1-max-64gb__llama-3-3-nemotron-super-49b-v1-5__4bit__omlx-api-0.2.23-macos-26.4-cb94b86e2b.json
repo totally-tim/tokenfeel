@@ -1,0 +1,90 @@
+{
+  "id": "m1-max-64gb__llama-3-3-nemotron-super-49b-v1-5__4bit__omlx-api-0.2.23-macos-26.4-cb94b86e2b",
+  "hardware": "m1-max-64gb",
+  "model": "llama-3-3-nemotron-super-49b-v1-5",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.23",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 38.3,
+      "tg": 6.1,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/irv8deok",
+        "upstreamId": "irv8deok",
+        "createdAt": "2026-04-02T08:30:36Z",
+        "ttftMs": 26776.6,
+        "peakMemoryGb": 26.88
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 33.9,
+      "tg": 5.8,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/yqcqas50",
+        "upstreamId": "yqcqas50",
+        "createdAt": "2026-04-02T08:30:36Z",
+        "ttftMs": 120721.5,
+        "peakMemoryGb": 27.64
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "irv8deok",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "irv8deok 2026-04-02T08:30:36Z ctx=1024 pp=38.3 tg=6.1 omlx=0.2.23 os=macOS 26.4 https://omlx.ai/benchmarks/irv8deok",
+      "yqcqas50 2026-04-02T08:30:36Z ctx=4096 pp=33.9 tg=5.8 omlx=0.2.23 os=macOS 26.4 https://omlx.ai/benchmarks/yqcqas50"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/irv8deok",
+      "https://omlx.ai/benchmarks/yqcqas50"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "irv8deok",
+      "latest_created_at": "2026-04-02T08:30:36Z",
+      "selected_omlx_versions": "0.2.23",
+      "selected_os_versions": "macOS 26.4"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.4",
+    "runtimeVersions": {
+      "omlx": "0.2.23"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Llama-3_3-Nemotron-Super-49B-v1_5 on M1 Max (32c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/irv8deok",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-04-02",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.2.23 / macOS 26.4 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

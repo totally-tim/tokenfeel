@@ -1,0 +1,106 @@
+{
+  "id": "m4-10c-24gb__breeze-7b-32k-base-v1-0__8bit__omlx-api-0.2.23-macos-26.4-cb94b86e2b",
+  "hardware": "m4-10c-24gb",
+  "model": "breeze-7b-32k-base-v1-0",
+  "quant": "8bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.23",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 228.2,
+      "tg": 13.1,
+      "ppLabel": "8bit PP",
+      "tgLabel": "8bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/tj9k4ke0",
+        "upstreamId": "tj9k4ke0",
+        "createdAt": "2026-03-27T19:34:26Z",
+        "ttftMs": 4496.2,
+        "peakMemoryGb": 7.98
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 225.6,
+      "tg": 12.2,
+      "ppLabel": "8bit PP",
+      "tgLabel": "8bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/if6x5p7x",
+        "upstreamId": "if6x5p7x",
+        "createdAt": "2026-03-27T19:34:27Z",
+        "ttftMs": 18165.9,
+        "peakMemoryGb": 8.48
+      }
+    },
+    {
+      "depth": 8192,
+      "pp": 211.6,
+      "tg": 11.2,
+      "ppLabel": "8bit PP",
+      "tgLabel": "8bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/9vxmrvf5",
+        "upstreamId": "9vxmrvf5",
+        "createdAt": "2026-03-27T19:34:27Z",
+        "ttftMs": 38725.4,
+        "peakMemoryGb": 8.93
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "if6x5p7x",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "tj9k4ke0 2026-03-27T19:34:26Z ctx=1024 pp=228.2 tg=13.1 omlx=0.2.23 os=macOS 26.4 https://omlx.ai/benchmarks/tj9k4ke0",
+      "if6x5p7x 2026-03-27T19:34:27Z ctx=4096 pp=225.6 tg=12.2 omlx=0.2.23 os=macOS 26.4 https://omlx.ai/benchmarks/if6x5p7x",
+      "9vxmrvf5 2026-03-27T19:34:27Z ctx=8192 pp=211.6 tg=11.2 omlx=0.2.23 os=macOS 26.4 https://omlx.ai/benchmarks/9vxmrvf5"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/tj9k4ke0",
+      "https://omlx.ai/benchmarks/if6x5p7x",
+      "https://omlx.ai/benchmarks/9vxmrvf5"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 3,
+      "selected_depths": 3,
+      "latest_upstream_id": "if6x5p7x",
+      "latest_created_at": "2026-03-27T19:34:27Z",
+      "selected_omlx_versions": "0.2.23",
+      "selected_os_versions": "macOS 26.4"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.4",
+    "runtimeVersions": {
+      "omlx": "0.2.23"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Breeze-7B-32k-Base-v1_0 on M4 (10c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/if6x5p7x",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-27",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 3 upstream row(s) on oMLX 0.2.23 / macOS 26.4 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

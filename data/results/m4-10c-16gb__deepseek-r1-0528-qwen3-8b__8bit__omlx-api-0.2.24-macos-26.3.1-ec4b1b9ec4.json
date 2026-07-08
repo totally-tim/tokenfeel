@@ -1,0 +1,90 @@
+{
+  "id": "m4-10c-16gb__deepseek-r1-0528-qwen3-8b__8bit__omlx-api-0.2.24-macos-26.3.1-ec4b1b9ec4",
+  "hardware": "m4-10c-16gb",
+  "model": "deepseek-r1-0528-qwen3-8b",
+  "quant": "8bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.24",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 216.7,
+      "tg": 12.2,
+      "ppLabel": "8bit PP",
+      "tgLabel": "8bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/tpuijbi6",
+        "upstreamId": "tpuijbi6",
+        "createdAt": "2026-03-29T07:47:15Z",
+        "ttftMs": 4724.4,
+        "peakMemoryGb": 8.68
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 208.2,
+      "tg": 11.3,
+      "ppLabel": "8bit PP",
+      "tgLabel": "8bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/vuigfgpc",
+        "upstreamId": "vuigfgpc",
+        "createdAt": "2026-03-29T07:47:16Z",
+        "ttftMs": 19668.7,
+        "peakMemoryGb": 9.19
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "vuigfgpc",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "tpuijbi6 2026-03-29T07:47:15Z ctx=1024 pp=216.7 tg=12.2 omlx=0.2.24 os=macOS 26.3.1 https://omlx.ai/benchmarks/tpuijbi6",
+      "vuigfgpc 2026-03-29T07:47:16Z ctx=4096 pp=208.2 tg=11.3 omlx=0.2.24 os=macOS 26.3.1 https://omlx.ai/benchmarks/vuigfgpc"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/tpuijbi6",
+      "https://omlx.ai/benchmarks/vuigfgpc"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "vuigfgpc",
+      "latest_created_at": "2026-03-29T07:47:16Z",
+      "selected_omlx_versions": "0.2.24",
+      "selected_os_versions": "macOS 26.3.1"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.3.1",
+    "runtimeVersions": {
+      "omlx": "0.2.24"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX DeepSeek-R1-0528-Qwen3-8B on M4 (10c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/vuigfgpc",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-29",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.2.24 / macOS 26.3.1 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

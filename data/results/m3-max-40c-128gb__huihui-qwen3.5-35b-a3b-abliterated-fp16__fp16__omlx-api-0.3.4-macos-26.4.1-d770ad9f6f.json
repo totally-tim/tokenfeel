@@ -1,0 +1,90 @@
+{
+  "id": "m3-max-40c-128gb__huihui-qwen3.5-35b-a3b-abliterated-fp16__fp16__omlx-api-0.3.4-macos-26.4.1-d770ad9f6f",
+  "hardware": "m3-max-40c-128gb",
+  "model": "huihui-qwen3.5-35b-a3b-abliterated-fp16",
+  "quant": "fp16",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.3.4",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 1020.3,
+      "tg": 49.6,
+      "ppLabel": "fp16 PP",
+      "tgLabel": "fp16 TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/x8kjc3wt",
+        "upstreamId": "x8kjc3wt",
+        "createdAt": "2026-04-12T16:50:05Z",
+        "ttftMs": 1003.6,
+        "peakMemoryGb": 65.62
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 1504.6,
+      "tg": 48.4,
+      "ppLabel": "fp16 PP",
+      "tgLabel": "fp16 TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/75wfgrjd",
+        "upstreamId": "75wfgrjd",
+        "createdAt": "2026-04-12T16:50:06Z",
+        "ttftMs": 2722.4,
+        "peakMemoryGb": 66.4
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "75wfgrjd",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "x8kjc3wt 2026-04-12T16:50:05Z ctx=1024 pp=1020.3 tg=49.6 omlx=0.3.4 os=macOS 26.4.1 https://omlx.ai/benchmarks/x8kjc3wt",
+      "75wfgrjd 2026-04-12T16:50:06Z ctx=4096 pp=1504.6 tg=48.4 omlx=0.3.4 os=macOS 26.4.1 https://omlx.ai/benchmarks/75wfgrjd"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/x8kjc3wt",
+      "https://omlx.ai/benchmarks/75wfgrjd"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "75wfgrjd",
+      "latest_created_at": "2026-04-12T16:50:06Z",
+      "selected_omlx_versions": "0.3.4",
+      "selected_os_versions": "macOS 26.4.1"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.4.1",
+    "runtimeVersions": {
+      "omlx": "0.3.4"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Huihui-Qwen3.5-35B-A3B-abliterated-fp16 on M3 Max (40c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/75wfgrjd",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-04-12",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.3.4 / macOS 26.4.1 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

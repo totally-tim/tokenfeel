@@ -1,0 +1,90 @@
+{
+  "id": "m3-ultra-80c-512gb__nanonets-ocr-s__unknown__omlx-api-0.2.23-macos-26.4-cb94b86e2b",
+  "hardware": "m3-ultra-80c-512gb",
+  "model": "nanonets-ocr-s",
+  "quant": "unknown",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.23",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 2522,
+      "tg": 84.2,
+      "ppLabel": "unknown PP",
+      "tgLabel": "unknown TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/4ynb068p",
+        "upstreamId": "4ynb068p",
+        "createdAt": "2026-03-27T19:00:45Z",
+        "ttftMs": 406,
+        "peakMemoryGb": 6.21
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 3234.5,
+      "tg": 77.5,
+      "ppLabel": "unknown PP",
+      "tgLabel": "unknown TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/kkpxqbo3",
+        "upstreamId": "kkpxqbo3",
+        "createdAt": "2026-03-27T19:00:46Z",
+        "ttftMs": 1266.3,
+        "peakMemoryGb": 6.45
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "kkpxqbo3",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "4ynb068p 2026-03-27T19:00:45Z ctx=1024 pp=2522 tg=84.2 omlx=0.2.23 os=macOS 26.4 https://omlx.ai/benchmarks/4ynb068p",
+      "kkpxqbo3 2026-03-27T19:00:46Z ctx=4096 pp=3234.5 tg=77.5 omlx=0.2.23 os=macOS 26.4 https://omlx.ai/benchmarks/kkpxqbo3"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/4ynb068p",
+      "https://omlx.ai/benchmarks/kkpxqbo3"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "kkpxqbo3",
+      "latest_created_at": "2026-03-27T19:00:46Z",
+      "selected_omlx_versions": "0.2.23",
+      "selected_os_versions": "macOS 26.4"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.4",
+    "runtimeVersions": {
+      "omlx": "0.2.23"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Nanonets-OCR-s on M3 Ultra (80c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/kkpxqbo3",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-27",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.2.23 / macOS 26.4 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

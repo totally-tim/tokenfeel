@@ -1,0 +1,8 @@
+{
+  "id": "glm-5",
+  "name": "GLM-5",
+  "family": "GLM",
+  "params": "unknown",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

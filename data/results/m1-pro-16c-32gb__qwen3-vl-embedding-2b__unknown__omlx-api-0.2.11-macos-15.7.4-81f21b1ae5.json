@@ -1,0 +1,90 @@
+{
+  "id": "m1-pro-16c-32gb__qwen3-vl-embedding-2b__unknown__omlx-api-0.2.11-macos-15.7.4-81f21b1ae5",
+  "hardware": "m1-pro-16c-32gb",
+  "model": "qwen3-vl-embedding-2b",
+  "quant": "unknown",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.11",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 1035.5,
+      "tg": 39.2,
+      "ppLabel": "unknown PP",
+      "tgLabel": "unknown TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/ezezushm",
+        "upstreamId": "ezezushm",
+        "createdAt": "2026-03-24T03:19:33Z",
+        "ttftMs": 989.8,
+        "peakMemoryGb": 4.52
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 1076.5,
+      "tg": 35.7,
+      "ppLabel": "unknown PP",
+      "tgLabel": "unknown TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/ep5w0732",
+        "upstreamId": "ep5w0732",
+        "createdAt": "2026-03-24T03:19:34Z",
+        "ttftMs": 3805.7,
+        "peakMemoryGb": 5
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "ep5w0732",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "ezezushm 2026-03-24T03:19:33Z ctx=1024 pp=1035.5 tg=39.2 omlx=0.2.11 os=macOS 15.7.4 https://omlx.ai/benchmarks/ezezushm",
+      "ep5w0732 2026-03-24T03:19:34Z ctx=4096 pp=1076.5 tg=35.7 omlx=0.2.11 os=macOS 15.7.4 https://omlx.ai/benchmarks/ep5w0732"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/ezezushm",
+      "https://omlx.ai/benchmarks/ep5w0732"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "ep5w0732",
+      "latest_created_at": "2026-03-24T03:19:34Z",
+      "selected_omlx_versions": "0.2.11",
+      "selected_os_versions": "macOS 15.7.4"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 15.7.4",
+    "runtimeVersions": {
+      "omlx": "0.2.11"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Qwen3-VL-Embedding-2B on M1 Pro (16c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/ep5w0732",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-24",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.2.11 / macOS 15.7.4 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

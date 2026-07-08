@@ -1,0 +1,8 @@
+{
+  "id": "dolphin3.0-r1-mistral-24b",
+  "name": "Dolphin3.0-R1-Mistral-24B",
+  "family": "Dolphin3.0",
+  "params": "24B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

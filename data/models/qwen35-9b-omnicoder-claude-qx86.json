@@ -1,0 +1,8 @@
+{
+  "id": "qwen35-9b-omnicoder-claude-qx86",
+  "name": "Qwen35-9B-OmniCoder-Claude-qx86",
+  "family": "Qwen",
+  "params": "9B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

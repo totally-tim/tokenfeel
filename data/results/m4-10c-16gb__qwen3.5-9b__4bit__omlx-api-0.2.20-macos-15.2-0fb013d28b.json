@@ -1,0 +1,74 @@
+{
+  "id": "m4-10c-16gb__qwen3.5-9b__4bit__omlx-api-0.2.20-macos-15.2-0fb013d28b",
+  "hardware": "m4-10c-16gb",
+  "model": "qwen3.5-9b",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.20",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 4096,
+      "pp": 222.9,
+      "tg": 19.6,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/g7zbm40e",
+        "upstreamId": "g7zbm40e",
+        "createdAt": "2026-03-24T07:40:55Z",
+        "ttftMs": 18372.2,
+        "peakMemoryGb": 7.29
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "g7zbm40e",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "g7zbm40e 2026-03-24T07:40:55Z ctx=4096 pp=222.9 tg=19.6 omlx=0.2.20 os=macOS 15.2 https://omlx.ai/benchmarks/g7zbm40e"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/g7zbm40e"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 1,
+      "selected_depths": 1,
+      "latest_upstream_id": "g7zbm40e",
+      "latest_created_at": "2026-03-24T07:40:55Z",
+      "selected_omlx_versions": "0.2.20",
+      "selected_os_versions": "macOS 15.2"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 15.2",
+    "runtimeVersions": {
+      "omlx": "0.2.20"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Qwen3.5-9B on M4 (10c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/g7zbm40e",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-24",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 1 upstream row(s) on oMLX 0.2.20 / macOS 15.2 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

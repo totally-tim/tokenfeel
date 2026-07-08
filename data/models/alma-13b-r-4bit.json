@@ -1,0 +1,8 @@
+{
+  "id": "alma-13b-r-4bit",
+  "name": "ALMA-13B-R-4bit",
+  "family": "ALMA",
+  "params": "13B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

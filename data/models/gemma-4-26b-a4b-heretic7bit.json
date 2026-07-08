@@ -1,0 +1,9 @@
+{
+  "id": "gemma-4-26b-a4b-heretic7bit",
+  "name": "Gemma-4-26B-A4B-Heretic7bit",
+  "family": "Gemma",
+  "params": "26B",
+  "activeParams": "4B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

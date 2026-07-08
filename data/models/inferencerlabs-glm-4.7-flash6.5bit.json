@@ -1,0 +1,8 @@
+{
+  "id": "inferencerlabs-glm-4.7-flash6.5bit",
+  "name": "inferencerlabs--GLM-4.7-Flash6.5bit",
+  "family": "inferencerlabs",
+  "params": "6.5B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

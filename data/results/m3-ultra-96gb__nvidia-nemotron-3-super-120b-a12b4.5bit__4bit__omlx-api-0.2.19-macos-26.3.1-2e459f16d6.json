@@ -1,0 +1,90 @@
+{
+  "id": "m3-ultra-96gb__nvidia-nemotron-3-super-120b-a12b4.5bit__4bit__omlx-api-0.2.19-macos-26.3.1-2e459f16d6",
+  "hardware": "m3-ultra-96gb",
+  "model": "nvidia-nemotron-3-super-120b-a12b4.5bit",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.19",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 430.7,
+      "tg": 55.3,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/guzjx1jo",
+        "upstreamId": "guzjx1jo",
+        "createdAt": "2026-03-24T23:40:04Z",
+        "ttftMs": 2377.5,
+        "peakMemoryGb": 68.52
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 524.5,
+      "tg": 51.5,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/8qartlqe",
+        "upstreamId": "8qartlqe",
+        "createdAt": "2026-03-24T23:40:05Z",
+        "ttftMs": 7808.6,
+        "peakMemoryGb": 71.65
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "8qartlqe",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "guzjx1jo 2026-03-24T23:40:04Z ctx=1024 pp=430.7 tg=55.3 omlx=0.2.19 os=macOS 26.3.1 https://omlx.ai/benchmarks/guzjx1jo",
+      "8qartlqe 2026-03-24T23:40:05Z ctx=4096 pp=524.5 tg=51.5 omlx=0.2.19 os=macOS 26.3.1 https://omlx.ai/benchmarks/8qartlqe"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/guzjx1jo",
+      "https://omlx.ai/benchmarks/8qartlqe"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "8qartlqe",
+      "latest_created_at": "2026-03-24T23:40:05Z",
+      "selected_omlx_versions": "0.2.19",
+      "selected_os_versions": "macOS 26.3.1"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.3.1",
+    "runtimeVersions": {
+      "omlx": "0.2.19"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX NVIDIA-Nemotron-3-Super-120B-A12B4.5bit on M3 Ultra (60c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/8qartlqe",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-24",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.2.19 / macOS 26.3.1 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

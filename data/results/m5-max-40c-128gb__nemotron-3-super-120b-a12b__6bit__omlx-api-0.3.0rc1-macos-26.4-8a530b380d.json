@@ -1,0 +1,90 @@
+{
+  "id": "m5-max-40c-128gb__nemotron-3-super-120b-a12b__6bit__omlx-api-0.3.0rc1-macos-26.4-8a530b380d",
+  "hardware": "m5-max-40c-128gb",
+  "model": "nemotron-3-super-120b-a12b",
+  "quant": "6bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.3.0rc1",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 754.1,
+      "tg": 43.1,
+      "ppLabel": "6bit PP",
+      "tgLabel": "6bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/bckfs559",
+        "upstreamId": "bckfs559",
+        "createdAt": "2026-03-30T18:20:11Z",
+        "ttftMs": 1357.9,
+        "peakMemoryGb": 96.56
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 991.1,
+      "tg": 42.1,
+      "ppLabel": "6bit PP",
+      "tgLabel": "6bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/hje6ock9",
+        "upstreamId": "hje6ock9",
+        "createdAt": "2026-03-30T18:20:12Z",
+        "ttftMs": 4132.8,
+        "peakMemoryGb": 99.72
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "hje6ock9",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "bckfs559 2026-03-30T18:20:11Z ctx=1024 pp=754.1 tg=43.1 omlx=0.3.0rc1 os=macOS 26.4 https://omlx.ai/benchmarks/bckfs559",
+      "hje6ock9 2026-03-30T18:20:12Z ctx=4096 pp=991.1 tg=42.1 omlx=0.3.0rc1 os=macOS 26.4 https://omlx.ai/benchmarks/hje6ock9"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/bckfs559",
+      "https://omlx.ai/benchmarks/hje6ock9"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "hje6ock9",
+      "latest_created_at": "2026-03-30T18:20:12Z",
+      "selected_omlx_versions": "0.3.0rc1",
+      "selected_os_versions": "macOS 26.4"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.4",
+    "runtimeVersions": {
+      "omlx": "0.3.0rc1"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Nemotron-3-Super-120B-A12B on M5 Max (40c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/hje6ock9",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-30",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.3.0rc1 / macOS 26.4 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

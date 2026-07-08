@@ -1,0 +1,90 @@
+{
+  "id": "m4-10c-16gb__qwen3.5-9b-claude-4.6-highiq-instruct-heretic-uncensoredmxfp8__8bit__omlx-api-0.3.0-macos-15.6.1-ecd213322d",
+  "hardware": "m4-10c-16gb",
+  "model": "qwen3.5-9b-claude-4.6-highiq-instruct-heretic-uncensoredmxfp8",
+  "quant": "8bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.3.0",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 200,
+      "tg": 12,
+      "ppLabel": "8bit PP",
+      "tgLabel": "8bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/jh0ydn42",
+        "upstreamId": "jh0ydn42",
+        "createdAt": "2026-03-31T07:34:10Z",
+        "ttftMs": 5120.3,
+        "peakMemoryGb": 9.5
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 210.4,
+      "tg": 11.9,
+      "ppLabel": "8bit PP",
+      "tgLabel": "8bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/zm1hamgc",
+        "upstreamId": "zm1hamgc",
+        "createdAt": "2026-03-31T07:34:10Z",
+        "ttftMs": 19469.2,
+        "peakMemoryGb": 10.25
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "jh0ydn42",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "jh0ydn42 2026-03-31T07:34:10Z ctx=1024 pp=200 tg=12 omlx=0.3.0 os=macOS 15.6.1 https://omlx.ai/benchmarks/jh0ydn42",
+      "zm1hamgc 2026-03-31T07:34:10Z ctx=4096 pp=210.4 tg=11.9 omlx=0.3.0 os=macOS 15.6.1 https://omlx.ai/benchmarks/zm1hamgc"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/jh0ydn42",
+      "https://omlx.ai/benchmarks/zm1hamgc"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "jh0ydn42",
+      "latest_created_at": "2026-03-31T07:34:10Z",
+      "selected_omlx_versions": "0.3.0",
+      "selected_os_versions": "macOS 15.6.1"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 15.6.1",
+    "runtimeVersions": {
+      "omlx": "0.3.0"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Qwen3.5-9B-Claude-4.6-HighIQ-INSTRUCT-HERETIC-UNCENSOREDmxfp8 on M4 (10c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/jh0ydn42",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-31",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.3.0 / macOS 15.6.1 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

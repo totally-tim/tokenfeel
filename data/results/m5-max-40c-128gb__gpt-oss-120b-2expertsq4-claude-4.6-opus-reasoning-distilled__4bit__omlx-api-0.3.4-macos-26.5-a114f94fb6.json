@@ -1,0 +1,106 @@
+{
+  "id": "m5-max-40c-128gb__gpt-oss-120b-2expertsq4-claude-4.6-opus-reasoning-distilled__4bit__omlx-api-0.3.4-macos-26.5-a114f94fb6",
+  "hardware": "m5-max-40c-128gb",
+  "model": "gpt-oss-120b-2expertsq4-claude-4.6-opus-reasoning-distilled",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.3.4",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 1439.6,
+      "tg": 99.3,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/p1t8mqmx",
+        "upstreamId": "p1t8mqmx",
+        "createdAt": "2026-04-05T17:59:34Z",
+        "ttftMs": 711.3,
+        "peakMemoryGb": 59.39
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 1994.1,
+      "tg": 91.7,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/e99esp5s",
+        "upstreamId": "e99esp5s",
+        "createdAt": "2026-04-05T17:59:34Z",
+        "ttftMs": 2054,
+        "peakMemoryGb": 59.51
+      }
+    },
+    {
+      "depth": 8192,
+      "pp": 1980.4,
+      "tg": 82.1,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/b1la7mzp",
+        "upstreamId": "b1la7mzp",
+        "createdAt": "2026-04-05T17:59:35Z",
+        "ttftMs": 4136.5,
+        "peakMemoryGb": 59.63
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "b1la7mzp",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "p1t8mqmx 2026-04-05T17:59:34Z ctx=1024 pp=1439.6 tg=99.3 omlx=0.3.4 os=macOS 26.5 https://omlx.ai/benchmarks/p1t8mqmx",
+      "e99esp5s 2026-04-05T17:59:34Z ctx=4096 pp=1994.1 tg=91.7 omlx=0.3.4 os=macOS 26.5 https://omlx.ai/benchmarks/e99esp5s",
+      "b1la7mzp 2026-04-05T17:59:35Z ctx=8192 pp=1980.4 tg=82.1 omlx=0.3.4 os=macOS 26.5 https://omlx.ai/benchmarks/b1la7mzp"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/p1t8mqmx",
+      "https://omlx.ai/benchmarks/e99esp5s",
+      "https://omlx.ai/benchmarks/b1la7mzp"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 9,
+      "selected_depths": 3,
+      "latest_upstream_id": "b1la7mzp",
+      "latest_created_at": "2026-04-05T17:59:35Z",
+      "selected_omlx_versions": "0.3.4",
+      "selected_os_versions": "macOS 26.5"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.5",
+    "runtimeVersions": {
+      "omlx": "0.3.4"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX GPT-OSS-120B-2expertsq4-Claude-4.6-Opus-Reasoning-Distilled on M5 Max (40c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/b1la7mzp",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-04-05",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 9 upstream row(s) on oMLX 0.3.4 / macOS 26.5 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

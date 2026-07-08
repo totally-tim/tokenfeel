@@ -1,0 +1,90 @@
+{
+  "id": "m3-max-40c-64gb__qwen3-53b-a3b-2507-thinking-total-recall-v2-master-coder-1m-dwq4__4bit__omlx-api-0.2.20-macos-26.4-c694380889",
+  "hardware": "m3-max-40c-64gb",
+  "model": "qwen3-53b-a3b-2507-thinking-total-recall-v2-master-coder-1m-dwq4",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.20",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 684.2,
+      "tg": 50,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/0tgxpwlu",
+        "upstreamId": "0tgxpwlu",
+        "createdAt": "2026-03-25T22:22:08Z",
+        "ttftMs": 1496.6,
+        "peakMemoryGb": 31.49
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 694.2,
+      "tg": 41.4,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/keap6uzo",
+        "upstreamId": "keap6uzo",
+        "createdAt": "2026-03-25T22:22:09Z",
+        "ttftMs": 5900.5,
+        "peakMemoryGb": 32.18
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "keap6uzo",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "0tgxpwlu 2026-03-25T22:22:08Z ctx=1024 pp=684.2 tg=50 omlx=0.2.20 os=macOS 26.4 https://omlx.ai/benchmarks/0tgxpwlu",
+      "keap6uzo 2026-03-25T22:22:09Z ctx=4096 pp=694.2 tg=41.4 omlx=0.2.20 os=macOS 26.4 https://omlx.ai/benchmarks/keap6uzo"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/0tgxpwlu",
+      "https://omlx.ai/benchmarks/keap6uzo"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "keap6uzo",
+      "latest_created_at": "2026-03-25T22:22:09Z",
+      "selected_omlx_versions": "0.2.20",
+      "selected_os_versions": "macOS 26.4"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.4",
+    "runtimeVersions": {
+      "omlx": "0.2.20"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Qwen3-53B-A3B-2507-THINKING-TOTAL-RECALL-v2-MASTER-CODER-1m-dwq4 on M3 Max (40c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/keap6uzo",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-25",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.2.20 / macOS 26.4 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

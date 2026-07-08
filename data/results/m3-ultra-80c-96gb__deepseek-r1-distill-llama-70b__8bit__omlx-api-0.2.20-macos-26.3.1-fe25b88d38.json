@@ -1,0 +1,90 @@
+{
+  "id": "m3-ultra-80c-96gb__deepseek-r1-distill-llama-70b__8bit__omlx-api-0.2.20-macos-26.3.1-fe25b88d38",
+  "hardware": "m3-ultra-80c-96gb",
+  "model": "deepseek-r1-distill-llama-70b",
+  "quant": "8bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.20",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 163.3,
+      "tg": 9.6,
+      "ppLabel": "8bit PP",
+      "tgLabel": "8bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/lppcgje3",
+        "upstreamId": "lppcgje3",
+        "createdAt": "2026-03-25T14:00:04Z",
+        "ttftMs": 6295.4,
+        "peakMemoryGb": 70.72
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 166,
+      "tg": 9.2,
+      "ppLabel": "8bit PP",
+      "tgLabel": "8bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/muyuon2l",
+        "upstreamId": "muyuon2l",
+        "createdAt": "2026-03-25T14:00:05Z",
+        "ttftMs": 24701.3,
+        "peakMemoryGb": 71.87
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "muyuon2l",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "lppcgje3 2026-03-25T14:00:04Z ctx=1024 pp=163.3 tg=9.6 omlx=0.2.20 os=macOS 26.3.1 https://omlx.ai/benchmarks/lppcgje3",
+      "muyuon2l 2026-03-25T14:00:05Z ctx=4096 pp=166 tg=9.2 omlx=0.2.20 os=macOS 26.3.1 https://omlx.ai/benchmarks/muyuon2l"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/lppcgje3",
+      "https://omlx.ai/benchmarks/muyuon2l"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "muyuon2l",
+      "latest_created_at": "2026-03-25T14:00:05Z",
+      "selected_omlx_versions": "0.2.20",
+      "selected_os_versions": "macOS 26.3.1"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.3.1",
+    "runtimeVersions": {
+      "omlx": "0.2.20"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX DeepSeek-R1-Distill-Llama-70B on M3 Ultra (80c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/muyuon2l",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-25",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.2.20 / macOS 26.3.1 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

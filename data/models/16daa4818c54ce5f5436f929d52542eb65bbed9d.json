@@ -1,0 +1,8 @@
+{
+  "id": "16daa4818c54ce5f5436f929d52542eb65bbed9d",
+  "name": "16daa4818c54ce5f5436f929d52542eb65bbed9d",
+  "family": "16daa4818c54ce5f5436f929d52542eb65bbed9d",
+  "params": "65B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

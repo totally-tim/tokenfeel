@@ -1,0 +1,90 @@
+{
+  "id": "m4-10c-32gb__mirothinker-1.7-mini__4bit__omlx-api-0.2.10-macos-26.4-09e6337936",
+  "hardware": "m4-10c-32gb",
+  "model": "mirothinker-1.7-mini",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.10",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 259.6,
+      "tg": 30.9,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/ytyqpjd8",
+        "upstreamId": "ytyqpjd8",
+        "createdAt": "2026-03-16T16:08:26Z",
+        "ttftMs": 3945.2,
+        "peakMemoryGb": 16.59
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 232.5,
+      "tg": 25.2,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/0kmpcpvm",
+        "upstreamId": "0kmpcpvm",
+        "createdAt": "2026-03-16T16:08:27Z",
+        "ttftMs": 17615.4,
+        "peakMemoryGb": 17
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "0kmpcpvm",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "ytyqpjd8 2026-03-16T16:08:26Z ctx=1024 pp=259.6 tg=30.9 omlx=0.2.10 os=macOS 26.4 https://omlx.ai/benchmarks/ytyqpjd8",
+      "0kmpcpvm 2026-03-16T16:08:27Z ctx=4096 pp=232.5 tg=25.2 omlx=0.2.10 os=macOS 26.4 https://omlx.ai/benchmarks/0kmpcpvm"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/ytyqpjd8",
+      "https://omlx.ai/benchmarks/0kmpcpvm"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "0kmpcpvm",
+      "latest_created_at": "2026-03-16T16:08:27Z",
+      "selected_omlx_versions": "0.2.10",
+      "selected_os_versions": "macOS 26.4"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.4",
+    "runtimeVersions": {
+      "omlx": "0.2.10"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX MiroThinker-1.7-mini on M4 (10c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/0kmpcpvm",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-16",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.2.10 / macOS 26.4 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

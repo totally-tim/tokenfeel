@@ -1,0 +1,90 @@
+{
+  "id": "m3-ultra-80c-256gb__qwen2.5-72b-instruct__bf16__omlx-api-0.2.19-macos-26.3.1-2e459f16d6",
+  "hardware": "m3-ultra-80c-256gb",
+  "model": "qwen2.5-72b-instruct",
+  "quant": "bf16",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.19",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 153.3,
+      "tg": 5.1,
+      "ppLabel": "bf16 PP",
+      "tgLabel": "bf16 TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/9lw9dnqr",
+        "upstreamId": "9lw9dnqr",
+        "createdAt": "2026-03-22T07:03:44Z",
+        "ttftMs": 6678.3,
+        "peakMemoryGb": 136.26
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 159.2,
+      "tg": 5,
+      "ppLabel": "bf16 PP",
+      "tgLabel": "bf16 TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/t0qyrie6",
+        "upstreamId": "t0qyrie6",
+        "createdAt": "2026-03-22T07:03:45Z",
+        "ttftMs": 25720.9,
+        "peakMemoryGb": 137.5
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "t0qyrie6",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "9lw9dnqr 2026-03-22T07:03:44Z ctx=1024 pp=153.3 tg=5.1 omlx=0.2.19 os=macOS 26.3.1 https://omlx.ai/benchmarks/9lw9dnqr",
+      "t0qyrie6 2026-03-22T07:03:45Z ctx=4096 pp=159.2 tg=5 omlx=0.2.19 os=macOS 26.3.1 https://omlx.ai/benchmarks/t0qyrie6"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/9lw9dnqr",
+      "https://omlx.ai/benchmarks/t0qyrie6"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "t0qyrie6",
+      "latest_created_at": "2026-03-22T07:03:45Z",
+      "selected_omlx_versions": "0.2.19",
+      "selected_os_versions": "macOS 26.3.1"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.3.1",
+    "runtimeVersions": {
+      "omlx": "0.2.19"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Qwen2.5-72B-Instruct on M3 Ultra (80c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/t0qyrie6",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-22",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.2.19 / macOS 26.3.1 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

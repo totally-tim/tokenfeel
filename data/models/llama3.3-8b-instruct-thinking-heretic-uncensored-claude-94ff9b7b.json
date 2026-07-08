@@ -1,0 +1,8 @@
+{
+  "id": "llama3.3-8b-instruct-thinking-heretic-uncensored-claude-94ff9b7b",
+  "name": "Llama3.3-8B-Instruct-Thinking-Heretic-Uncensored-Claude-4.5-Opus-High-Reasoning",
+  "family": "Llama",
+  "params": "8B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

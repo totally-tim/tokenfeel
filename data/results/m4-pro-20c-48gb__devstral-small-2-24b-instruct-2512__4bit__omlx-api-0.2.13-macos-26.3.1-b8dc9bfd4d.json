@@ -1,0 +1,90 @@
+{
+  "id": "m4-pro-20c-48gb__devstral-small-2-24b-instruct-2512__4bit__omlx-api-0.2.13-macos-26.3.1-b8dc9bfd4d",
+  "hardware": "m4-pro-20c-48gb",
+  "model": "devstral-small-2-24b-instruct-2512",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.13",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 141.5,
+      "tg": 17.7,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/1lrm6wv4",
+        "upstreamId": "1lrm6wv4",
+        "createdAt": "2026-03-16T16:59:02Z",
+        "ttftMs": 7235.1,
+        "peakMemoryGb": 13.92
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 139.4,
+      "tg": 16.7,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/iny28flc",
+        "upstreamId": "iny28flc",
+        "createdAt": "2026-03-16T16:59:03Z",
+        "ttftMs": 29380.2,
+        "peakMemoryGb": 14.57
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "iny28flc",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "1lrm6wv4 2026-03-16T16:59:02Z ctx=1024 pp=141.5 tg=17.7 omlx=0.2.13 os=macOS 26.3.1 https://omlx.ai/benchmarks/1lrm6wv4",
+      "iny28flc 2026-03-16T16:59:03Z ctx=4096 pp=139.4 tg=16.7 omlx=0.2.13 os=macOS 26.3.1 https://omlx.ai/benchmarks/iny28flc"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/1lrm6wv4",
+      "https://omlx.ai/benchmarks/iny28flc"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "iny28flc",
+      "latest_created_at": "2026-03-16T16:59:03Z",
+      "selected_omlx_versions": "0.2.13",
+      "selected_os_versions": "macOS 26.3.1"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.3.1",
+    "runtimeVersions": {
+      "omlx": "0.2.13"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Devstral-Small-2-24B-Instruct-2512 on M4 Pro (20c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/iny28flc",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-16",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.2.13 / macOS 26.3.1 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

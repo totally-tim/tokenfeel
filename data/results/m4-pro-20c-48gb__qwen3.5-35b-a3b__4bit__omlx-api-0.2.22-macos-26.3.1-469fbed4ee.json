@@ -1,0 +1,90 @@
+{
+  "id": "m4-pro-20c-48gb__qwen3.5-35b-a3b__4bit__omlx-api-0.2.22-macos-26.3.1-469fbed4ee",
+  "hardware": "m4-pro-20c-48gb",
+  "model": "qwen3.5-35b-a3b",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.22",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 899.5,
+      "tg": 64.8,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/sv12i5ju",
+        "upstreamId": "sv12i5ju",
+        "createdAt": "2026-04-01T15:13:22Z",
+        "ttftMs": 1138.5,
+        "peakMemoryGb": 20.09
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 923.1,
+      "tg": 61.6,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/xa19meex",
+        "upstreamId": "xa19meex",
+        "createdAt": "2026-04-01T15:13:25Z",
+        "ttftMs": 4437.1,
+        "peakMemoryGb": 21.04
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "xa19meex",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "sv12i5ju 2026-04-01T15:13:22Z ctx=1024 pp=899.5 tg=64.8 omlx=0.2.22 os=macOS 26.3.1 https://omlx.ai/benchmarks/sv12i5ju",
+      "xa19meex 2026-04-01T15:13:25Z ctx=4096 pp=923.1 tg=61.6 omlx=0.2.22 os=macOS 26.3.1 https://omlx.ai/benchmarks/xa19meex"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/sv12i5ju",
+      "https://omlx.ai/benchmarks/xa19meex"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 4,
+      "selected_depths": 2,
+      "latest_upstream_id": "xa19meex",
+      "latest_created_at": "2026-04-01T15:13:25Z",
+      "selected_omlx_versions": "0.2.22",
+      "selected_os_versions": "macOS 26.3.1"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.3.1",
+    "runtimeVersions": {
+      "omlx": "0.2.22"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Qwen3.5-35B-A3B on M4 Pro (20c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/xa19meex",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-04-01",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 4 upstream row(s) on oMLX 0.2.22 / macOS 26.3.1 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

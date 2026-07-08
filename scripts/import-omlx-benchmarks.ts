@@ -22,7 +22,7 @@ interface OmlxBatchingResult {
   speedup: number;
 }
 
-interface OmlxRow {
+export interface OmlxRow {
   id: string;
   created_at: string;
   chip_name: string;
@@ -88,7 +88,7 @@ interface ModelMetadata {
   notes: string;
 }
 
-interface Group {
+export interface Group {
   hardware: HardwareMetadata;
   model: ModelMetadata;
   quant: string;
@@ -270,8 +270,26 @@ function quantFromRow(row: OmlxRow): string {
   return slugify(row.quantization || "unknown", 40);
 }
 
-function runtimeSlug(row: OmlxRow): string {
-  return slugify(`omlx-api`, 56);
+function omlxVersionOf(row: OmlxRow): string {
+  const trimmed = row.omlx_version?.trim();
+  return trimmed || "unknown";
+}
+
+function osVersionOf(row: OmlxRow): string {
+  const trimmed = row.os_version?.trim();
+  return trimmed || "unknown";
+}
+
+export function runtimeSlug(row: OmlxRow): string {
+  const omlxVersion = omlxVersionOf(row);
+  const osVersion = osVersionOf(row);
+  const readable = slugify(`omlx-api-${omlxVersion}-${osVersion}`, 58);
+  // Distinct (omlxVersion, osVersion) pairs can slugify to the same string
+  // (e.g. "1.2.3"/"macOS 15" vs "1.2.3-macos"/"15"), which would otherwise
+  // collide into the same result id and silently overwrite a benchmark
+  // curve. Append a digest of the raw, unslugified pair to keep them apart.
+  const digest = sha256(`${omlxVersion} ${osVersion}`).slice(0, 10);
+  return `${readable}-${digest}`;
 }
 
 function rowIsUsableForCatalog(row: OmlxRow): boolean {
@@ -456,7 +474,7 @@ function writeMetadataFiles<T extends ExistingJson>(
   }
 }
 
-function buildGroups(rows: OmlxRow[]) {
+export function buildGroups(rows: OmlxRow[]) {
   const hardwareItems = new Map<string, HardwareMetadata>();
   const modelItems = new Map<string, ModelMetadata>();
   const groups = new Map<string, Group>();
@@ -471,9 +489,12 @@ function buildGroups(rows: OmlxRow[]) {
     const hardware = hardwareFromRow(row);
     const model = modelFromRow(row);
     const quant = quantFromRow(row);
-    const omlxVersion = row.omlx_version || "unknown";
-    const osVersion = row.os_version || "unknown";
-    const groupKey = [hardware.id, model.id, quant].join("|");
+    const omlxVersion = omlxVersionOf(row);
+    const osVersion = osVersionOf(row);
+    // The toolchain/OS version must be part of the grouping key: rows from
+    // different oMLX or macOS versions are different runs and must not be
+    // merged into one depth-sweep curve (see D1 in the data-integrity audit).
+    const groupKey = [hardware.id, model.id, quant, omlxVersion, osVersion].join("|");
     let group = groups.get(groupKey);
 
     hardwareItems.set(hardware.id, hardware);
@@ -505,7 +526,7 @@ function buildGroups(rows: OmlxRow[]) {
   return { hardwareItems, modelItems, groups, skippedRows };
 }
 
-function resultFromGroup(group: Group) {
+export function resultFromGroup(group: Group, retrievedAt: string) {
   const rows = [...group.selectedByDepth.values()].sort((left, right) => left.context_length - right.context_length);
   const latestRow = [...rows].sort((left, right) => timeValue(right.created_at) - timeValue(left.created_at))[0];
   const runtime = runtimeSlug(latestRow);
@@ -513,10 +534,10 @@ function resultFromGroup(group: Group) {
   const selectedUrls = rows.map((row) => detailUrl(row.id));
   const rawRows = rows.map(
     (row) =>
-      `${row.id} ${isoFromApiDate(row.created_at)} ctx=${row.context_length} pp=${row.pp_tps} tg=${row.tg_tps} omlx=${row.omlx_version || "unknown"} os=${row.os_version || "unknown"} ${detailUrl(row.id)}`
+      `${row.id} ${isoFromApiDate(row.created_at)} ctx=${row.context_length} pp=${row.pp_tps} tg=${row.tg_tps} omlx=${omlxVersionOf(row)} os=${osVersionOf(row)} ${detailUrl(row.id)}`
   );
-  const selectedOmlxVersions = [...new Set(rows.map((row) => row.omlx_version || "unknown"))].sort();
-  const selectedOsVersions = [...new Set(rows.map((row) => row.os_version || "unknown"))].sort();
+  const selectedOmlxVersions = [...new Set(rows.map((row) => omlxVersionOf(row)))].sort();
+  const selectedOsVersions = [...new Set(rows.map((row) => osVersionOf(row)))].sort();
 
   return {
     id: resultId,
@@ -525,7 +546,7 @@ function resultFromGroup(group: Group) {
     quant: group.quant,
     runtime: {
       name: "oMLX",
-      version: latestRow.omlx_version || "unknown",
+      version: omlxVersionOf(latestRow),
       backend: "MLX",
       flags: "oMLX community API; latest linked row per context",
       cache: "prefix" as const
@@ -547,7 +568,7 @@ function resultFromGroup(group: Group) {
     evidence: {
       rawUrl: apiUrl,
       rawFormat: "oMLX API JSONL mirror",
-      retrievedAt: new Date().toISOString(),
+      retrievedAt,
       upstreamId: latestRow.id,
       parserVersion,
       rawRows,
@@ -568,9 +589,9 @@ function resultFromGroup(group: Group) {
     },
     topology: {
       acceleratorCount: 1,
-      os: latestRow.os_version || "unknown",
+      os: osVersionOf(latestRow),
       runtimeVersions: {
-        omlx: latestRow.omlx_version || "unknown"
+        omlx: omlxVersionOf(latestRow)
       }
     },
     source: {
@@ -584,14 +605,35 @@ function resultFromGroup(group: Group) {
     submitter: "oMLX community",
     date: isoFromApiDate(latestRow.created_at).slice(0, 10),
     status: "community" as const,
-    notes: `${generatedNotePrefix} ${group.rows} upstream row(s) were scraped for this hardware/model/quant group; the latest row at each context depth was selected for simulation. Selected depths may span oMLX or macOS versions, and each measurement links to its exact upstream row.`
+    notes: `${generatedNotePrefix} ${group.rows} upstream row(s) on oMLX ${[...group.omlxVersions][0]} / ${[...group.osVersions][0]} were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row.`
   };
+}
+
+function readExistingRetrievedAt(): string | undefined {
+  if (!fs.existsSync(rawMetaPath)) return undefined;
+  const meta = JSON.parse(fs.readFileSync(rawMetaPath, "utf8")) as { retrievedAt?: string };
+  return meta.retrievedAt;
 }
 
 function generateCatalog(scrapeSummary?: Awaited<ReturnType<typeof scrapeRawRows>>) {
   const rows = readRows();
   const { hardwareItems, modelItems, groups, skippedRows } = buildGroups(rows);
-  const results = [...groups.values()].map(resultFromGroup);
+  // Deterministic even under --skip-fetch: reuse the retrieval timestamp
+  // already recorded for this cached raw file instead of stamping "now",
+  // so re-running against unchanged input produces byte-identical output.
+  const retrievedAt = scrapeSummary?.retrievedAt ?? readExistingRetrievedAt() ?? new Date(0).toISOString();
+  const results = [...groups.values()]
+    .map((group) => resultFromGroup(group, retrievedAt))
+    .sort((left, right) => left.id.localeCompare(right.id));
+
+  const seenResultIds = new Set<string>();
+  for (const result of results) {
+    if (seenResultIds.has(result.id)) {
+      throw new Error(`Duplicate result id "${result.id}" would overwrite an existing benchmark curve on disk`);
+    }
+    seenResultIds.add(result.id);
+  }
+
   const hardwareDir = path.join(root, "data", "hardware");
   const modelDir = path.join(root, "data", "models");
   const resultDir = path.join(root, "data", "results");
@@ -612,7 +654,7 @@ function generateCatalog(scrapeSummary?: Awaited<ReturnType<typeof scrapeRawRows
     api: apiUrl,
     apiQuery: `${apiUrl}?sort=created_at&order=asc&limit=${fetchLimit}`,
     parserVersion,
-    retrievedAt: scrapeSummary?.retrievedAt ?? new Date().toISOString(),
+    retrievedAt,
     rawFile: path.relative(root, rawJsonlPath),
     rawChecksum: sha256File(rawJsonlPath),
     rawRows: rows.length,
@@ -639,7 +681,9 @@ async function main() {
   );
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
+  main().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+}

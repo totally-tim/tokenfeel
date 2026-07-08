@@ -1,0 +1,90 @@
+{
+  "id": "m4-10c-16gb__phi-4-reasoning-plus__4bit__omlx-api-0.3.5.dev1-macos-15.7.5-4211fe6c35",
+  "hardware": "m4-10c-16gb",
+  "model": "phi-4-reasoning-plus",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.3.5.dev1",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 115.8,
+      "tg": 12.2,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/jw1vz0ad",
+        "upstreamId": "jw1vz0ad",
+        "createdAt": "2026-04-11T12:59:01Z",
+        "ttftMs": 8841.3,
+        "peakMemoryGb": 8.57
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 113.4,
+      "tg": 11,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/zfspa77b",
+        "upstreamId": "zfspa77b",
+        "createdAt": "2026-04-11T12:59:10Z",
+        "ttftMs": 36128.6,
+        "peakMemoryGb": 10.03
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "zfspa77b",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "jw1vz0ad 2026-04-11T12:59:01Z ctx=1024 pp=115.8 tg=12.2 omlx=0.3.5.dev1 os=macOS 15.7.5 https://omlx.ai/benchmarks/jw1vz0ad",
+      "zfspa77b 2026-04-11T12:59:10Z ctx=4096 pp=113.4 tg=11 omlx=0.3.5.dev1 os=macOS 15.7.5 https://omlx.ai/benchmarks/zfspa77b"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/jw1vz0ad",
+      "https://omlx.ai/benchmarks/zfspa77b"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "zfspa77b",
+      "latest_created_at": "2026-04-11T12:59:10Z",
+      "selected_omlx_versions": "0.3.5.dev1",
+      "selected_os_versions": "macOS 15.7.5"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 15.7.5",
+    "runtimeVersions": {
+      "omlx": "0.3.5.dev1"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Phi-4-reasoning-plus on M4 (10c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/zfspa77b",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-04-11",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.3.5.dev1 / macOS 15.7.5 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

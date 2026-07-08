@@ -1,0 +1,90 @@
+{
+  "id": "m5-max-40c-48gb__qwen3.5-27b-heretic-oq4__4bit__omlx-api-0.3.2-macos-26.4-47915d2cde",
+  "hardware": "m5-max-40c-48gb",
+  "model": "qwen3.5-27b-heretic-oq4",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.3.2",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 728.1,
+      "tg": 30.8,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/eognar2p",
+        "upstreamId": "eognar2p",
+        "createdAt": "2026-04-04T06:26:09Z",
+        "ttftMs": 1406.5,
+        "peakMemoryGb": 16.74
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 803,
+      "tg": 29.2,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/j6iobejt",
+        "upstreamId": "j6iobejt",
+        "createdAt": "2026-04-04T06:26:10Z",
+        "ttftMs": 5100.9,
+        "peakMemoryGb": 18.42
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "j6iobejt",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "eognar2p 2026-04-04T06:26:09Z ctx=1024 pp=728.1 tg=30.8 omlx=0.3.2 os=macOS 26.4 https://omlx.ai/benchmarks/eognar2p",
+      "j6iobejt 2026-04-04T06:26:10Z ctx=4096 pp=803 tg=29.2 omlx=0.3.2 os=macOS 26.4 https://omlx.ai/benchmarks/j6iobejt"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/eognar2p",
+      "https://omlx.ai/benchmarks/j6iobejt"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 4,
+      "selected_depths": 2,
+      "latest_upstream_id": "j6iobejt",
+      "latest_created_at": "2026-04-04T06:26:10Z",
+      "selected_omlx_versions": "0.3.2",
+      "selected_os_versions": "macOS 26.4"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.4",
+    "runtimeVersions": {
+      "omlx": "0.3.2"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Qwen3.5-27B-heretic-oQ4 on M5 Max (40c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/j6iobejt",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-04-04",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 4 upstream row(s) on oMLX 0.3.2 / macOS 26.4 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

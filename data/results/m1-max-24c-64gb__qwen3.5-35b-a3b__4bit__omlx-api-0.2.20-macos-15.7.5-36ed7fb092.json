@@ -1,0 +1,122 @@
+{
+  "id": "m1-max-24c-64gb__qwen3.5-35b-a3b__4bit__omlx-api-0.2.20-macos-15.7.5-36ed7fb092",
+  "hardware": "m1-max-24c-64gb",
+  "model": "qwen3.5-35b-a3b",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.20",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 429.8,
+      "tg": 58.9,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/vdhbgioy",
+        "upstreamId": "vdhbgioy",
+        "createdAt": "2026-03-25T08:57:48Z",
+        "ttftMs": 2382.5,
+        "peakMemoryGb": 20.09
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 466.6,
+      "tg": 55.4,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/hd6cg2wz",
+        "upstreamId": "hd6cg2wz",
+        "createdAt": "2026-03-25T08:57:50Z",
+        "ttftMs": 8777.9,
+        "peakMemoryGb": 21.04
+      }
+    },
+    {
+      "depth": 8192,
+      "pp": 458.7,
+      "tg": 51.7,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/yjxjbkk5",
+        "upstreamId": "yjxjbkk5",
+        "createdAt": "2026-03-25T08:57:52Z",
+        "ttftMs": 17860.4,
+        "peakMemoryGb": 21.35
+      }
+    },
+    {
+      "depth": 16384,
+      "pp": 437.3,
+      "tg": 44.6,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/p1lhgbb1",
+        "upstreamId": "p1lhgbb1",
+        "createdAt": "2026-03-25T08:57:55Z",
+        "ttftMs": 37462.2,
+        "peakMemoryGb": 22.03
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "p1lhgbb1",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "vdhbgioy 2026-03-25T08:57:48Z ctx=1024 pp=429.8 tg=58.9 omlx=0.2.20 os=macOS 15.7.5 https://omlx.ai/benchmarks/vdhbgioy",
+      "hd6cg2wz 2026-03-25T08:57:50Z ctx=4096 pp=466.6 tg=55.4 omlx=0.2.20 os=macOS 15.7.5 https://omlx.ai/benchmarks/hd6cg2wz",
+      "yjxjbkk5 2026-03-25T08:57:52Z ctx=8192 pp=458.7 tg=51.7 omlx=0.2.20 os=macOS 15.7.5 https://omlx.ai/benchmarks/yjxjbkk5",
+      "p1lhgbb1 2026-03-25T08:57:55Z ctx=16384 pp=437.3 tg=44.6 omlx=0.2.20 os=macOS 15.7.5 https://omlx.ai/benchmarks/p1lhgbb1"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/vdhbgioy",
+      "https://omlx.ai/benchmarks/hd6cg2wz",
+      "https://omlx.ai/benchmarks/yjxjbkk5",
+      "https://omlx.ai/benchmarks/p1lhgbb1"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 4,
+      "selected_depths": 4,
+      "latest_upstream_id": "p1lhgbb1",
+      "latest_created_at": "2026-03-25T08:57:55Z",
+      "selected_omlx_versions": "0.2.20",
+      "selected_os_versions": "macOS 15.7.5"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 15.7.5",
+    "runtimeVersions": {
+      "omlx": "0.2.20"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Qwen3.5-35B-A3B on M1 Max (24c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/p1lhgbb1",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-25",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 4 upstream row(s) on oMLX 0.2.20 / macOS 15.7.5 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

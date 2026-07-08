@@ -1,0 +1,9 @@
+{
+  "id": "nightmedia-qwen3-next-80b-a3b-thinking-1m-qx86n-hi",
+  "name": "nightmedia--Qwen3-Next-80B-A3B-Thinking-1M-qx86n-hi",
+  "family": "nightmedia",
+  "params": "80B",
+  "activeParams": "3B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

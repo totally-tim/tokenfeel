@@ -1,0 +1,8 @@
+{
+  "id": "unsloth-phi-4",
+  "name": "Unsloth-Phi-4",
+  "family": "Unsloth",
+  "params": "unknown",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

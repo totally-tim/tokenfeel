@@ -1,0 +1,90 @@
+{
+  "id": "m4-10c-24gb__gemma-4-26b-a4b-it__4bit__omlx-api-0.3.2-macos-15.5-ada7639312",
+  "hardware": "m4-10c-24gb",
+  "model": "gemma-4-26b-a4b-it",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.3.2",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 372.3,
+      "tg": 30.1,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/zs8jgszl",
+        "upstreamId": "zs8jgszl",
+        "createdAt": "2026-04-09T15:12:57Z",
+        "ttftMs": 2750.8,
+        "peakMemoryGb": 15.26
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 372.7,
+      "tg": 28.6,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/ijc43w3a",
+        "upstreamId": "ijc43w3a",
+        "createdAt": "2026-04-09T15:12:58Z",
+        "ttftMs": 10990.8,
+        "peakMemoryGb": 15.7
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "ijc43w3a",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "zs8jgszl 2026-04-09T15:12:57Z ctx=1024 pp=372.3 tg=30.1 omlx=0.3.2 os=macOS 15.5 https://omlx.ai/benchmarks/zs8jgszl",
+      "ijc43w3a 2026-04-09T15:12:58Z ctx=4096 pp=372.7 tg=28.6 omlx=0.3.2 os=macOS 15.5 https://omlx.ai/benchmarks/ijc43w3a"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/zs8jgszl",
+      "https://omlx.ai/benchmarks/ijc43w3a"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "ijc43w3a",
+      "latest_created_at": "2026-04-09T15:12:58Z",
+      "selected_omlx_versions": "0.3.2",
+      "selected_os_versions": "macOS 15.5"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 15.5",
+    "runtimeVersions": {
+      "omlx": "0.3.2"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX gemma-4-26b-a4b-it on M4 (10c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/ijc43w3a",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-04-09",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.3.2 / macOS 15.5 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

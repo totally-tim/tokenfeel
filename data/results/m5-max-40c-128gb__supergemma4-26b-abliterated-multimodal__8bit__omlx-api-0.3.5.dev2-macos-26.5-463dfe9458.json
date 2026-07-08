@@ -1,0 +1,106 @@
+{
+  "id": "m5-max-40c-128gb__supergemma4-26b-abliterated-multimodal__8bit__omlx-api-0.3.5.dev2-macos-26.5-463dfe9458",
+  "hardware": "m5-max-40c-128gb",
+  "model": "supergemma4-26b-abliterated-multimodal",
+  "quant": "8bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.3.5.dev2",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 1677,
+      "tg": 57.8,
+      "ppLabel": "8bit PP",
+      "tgLabel": "8bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/drsapgfw",
+        "upstreamId": "drsapgfw",
+        "createdAt": "2026-04-12T16:49:59Z",
+        "ttftMs": 610.6,
+        "peakMemoryGb": 25.73
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 1783.8,
+      "tg": 55.7,
+      "ppLabel": "8bit PP",
+      "tgLabel": "8bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/uo3jbivm",
+        "upstreamId": "uo3jbivm",
+        "createdAt": "2026-04-12T16:50:00Z",
+        "ttftMs": 2296.2,
+        "peakMemoryGb": 26.19
+      }
+    },
+    {
+      "depth": 8192,
+      "pp": 1964.7,
+      "tg": 33.1,
+      "ppLabel": "8bit PP",
+      "tgLabel": "8bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/s5j5hd7g",
+        "upstreamId": "s5j5hd7g",
+        "createdAt": "2026-04-12T16:50:00Z",
+        "ttftMs": 4169.6,
+        "peakMemoryGb": 26.28
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "uo3jbivm",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "drsapgfw 2026-04-12T16:49:59Z ctx=1024 pp=1677 tg=57.8 omlx=0.3.5.dev2 os=macOS 26.5 https://omlx.ai/benchmarks/drsapgfw",
+      "uo3jbivm 2026-04-12T16:50:00Z ctx=4096 pp=1783.8 tg=55.7 omlx=0.3.5.dev2 os=macOS 26.5 https://omlx.ai/benchmarks/uo3jbivm",
+      "s5j5hd7g 2026-04-12T16:50:00Z ctx=8192 pp=1964.7 tg=33.1 omlx=0.3.5.dev2 os=macOS 26.5 https://omlx.ai/benchmarks/s5j5hd7g"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/drsapgfw",
+      "https://omlx.ai/benchmarks/uo3jbivm",
+      "https://omlx.ai/benchmarks/s5j5hd7g"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 3,
+      "selected_depths": 3,
+      "latest_upstream_id": "uo3jbivm",
+      "latest_created_at": "2026-04-12T16:50:00Z",
+      "selected_omlx_versions": "0.3.5.dev2",
+      "selected_os_versions": "macOS 26.5"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.5",
+    "runtimeVersions": {
+      "omlx": "0.3.5.dev2"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX supergemma4-26b-abliterated-multimodal on M5 Max (40c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/uo3jbivm",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-04-12",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 3 upstream row(s) on oMLX 0.3.5.dev2 / macOS 26.5 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

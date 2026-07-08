@@ -1,0 +1,90 @@
+{
+  "id": "m4-pro-16c-48gb__irix-12b-model-stock__4bit__omlx-api-0.3.2-macos-26.2-ce1ba03d1d",
+  "hardware": "m4-pro-16c-48gb",
+  "model": "irix-12b-model-stock",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.3.2",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 224.9,
+      "tg": 25.2,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/tky5vrku",
+        "upstreamId": "tky5vrku",
+        "createdAt": "2026-04-04T16:12:14Z",
+        "ttftMs": 4558.2,
+        "peakMemoryGb": 7.27
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 220.2,
+      "tg": 22.1,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/d2cthdva",
+        "upstreamId": "d2cthdva",
+        "createdAt": "2026-04-04T16:12:15Z",
+        "ttftMs": 18607.8,
+        "peakMemoryGb": 7.71
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "d2cthdva",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "tky5vrku 2026-04-04T16:12:14Z ctx=1024 pp=224.9 tg=25.2 omlx=0.3.2 os=macOS 26.2 https://omlx.ai/benchmarks/tky5vrku",
+      "d2cthdva 2026-04-04T16:12:15Z ctx=4096 pp=220.2 tg=22.1 omlx=0.3.2 os=macOS 26.2 https://omlx.ai/benchmarks/d2cthdva"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/tky5vrku",
+      "https://omlx.ai/benchmarks/d2cthdva"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "d2cthdva",
+      "latest_created_at": "2026-04-04T16:12:15Z",
+      "selected_omlx_versions": "0.3.2",
+      "selected_os_versions": "macOS 26.2"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.2",
+    "runtimeVersions": {
+      "omlx": "0.3.2"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Irix-12B-Model_Stock on M4 Pro (16c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/d2cthdva",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-04-04",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.3.2 / macOS 26.2 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

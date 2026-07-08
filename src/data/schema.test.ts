@@ -27,8 +27,8 @@ describe("seed data", () => {
     expect(ids.has("dgx-spark-dual-qsfp__deepseek-v4-flash__fp4-fp8-mixed__vllm-dspark")).toBe(true);
     expect(ids.has("dgx-spark-dual-qsfp__deepseek-v4-flash__fp8__vllm-mtp")).toBe(true);
     expect(ids.has("dgx-spark-quad-qsfp__gpt-oss-120b__mxfp4__vllm")).toBe(true);
-    expect(ids.has("rtx-4090__qwen3.6-35b-a3b__q4_k_xl__llamacpp-cuda")).toBe(true);
-    expect(ids.has("m4-max__gpt-oss-120b__mxfp4__llamacpp-metal")).toBe(true);
+    expect(ids.has("rtx-4090-24gb__qwen3.6-35b-a3b__q4_k_xl__llamacpp-cuda")).toBe(true);
+    expect(ids.has("m4-max-128gb__gpt-oss-120b__mxfp4__llamacpp-metal")).toBe(true);
   });
 
   it("only exposes scenario/result combinations that can produce timelines", () => {
@@ -228,7 +228,7 @@ describe("catalog schema hardening", () => {
     ).toThrow(/hardware__model__quant__runtime-ish/);
   });
 
-  it("reports suspicious pp and tg increases as quality warnings", () => {
+  it("reports pp/tg increases beyond 10% as hard quality issues", () => {
     const parsed = catalogSchema.parse(
       validCatalogWithResult({
         measurements: [
@@ -238,9 +238,61 @@ describe("catalog schema hardening", () => {
       })
     );
 
-    expect(analyzeCatalogQuality(parsed).warnings).toEqual([
+    const quality = analyzeCatalogQuality(parsed);
+    expect(quality.issues).toEqual([
       'test-hardware__test-model__q4_k_m__llamacpp-cuda pp increases 12.0% from depth 0 to 4096',
       'test-hardware__test-model__q4_k_m__llamacpp-cuda tg increases 16.0% from depth 0 to 4096'
     ]);
+    expect(quality.warnings).toEqual([]);
+  });
+
+  it("reports pp/tg increases of 10% or less as soft quality warnings, not issues", () => {
+    const parsed = catalogSchema.parse(
+      validCatalogWithResult({
+        measurements: [
+          { depth: 0, pp: 100, tg: 50 },
+          { depth: 4096, pp: 108, tg: 50 }
+        ]
+      })
+    );
+
+    const quality = analyzeCatalogQuality(parsed);
+    expect(quality.warnings).toEqual([
+      'test-hardware__test-model__q4_k_m__llamacpp-cuda pp increases 8.0% from depth 0 to 4096'
+    ]);
+    expect(quality.issues).toEqual([]);
+  });
+
+  it("does not flag pp/tg decreases or flat runs", () => {
+    const parsed = catalogSchema.parse(
+      validCatalogWithResult({
+        measurements: [
+          { depth: 0, pp: 100, tg: 50 },
+          { depth: 4096, pp: 90, tg: 50 }
+        ]
+      })
+    );
+
+    const quality = analyzeCatalogQuality(parsed);
+    expect(quality.warnings).toEqual([]);
+    expect(quality.issues).toEqual([]);
+  });
+
+  it("exempts allowlisted result ids from hard issues, demoting them to explained warnings", () => {
+    const parsed = catalogSchema.parse(
+      validCatalogWithResult({
+        measurements: [
+          { depth: 0, pp: 100, tg: 50 },
+          { depth: 4096, pp: 112, tg: 58 }
+        ]
+      })
+    );
+
+    const quality = analyzeCatalogQuality(parsed, [
+      { id: "test-hardware__test-model__q4_k_m__llamacpp-cuda", reason: "known cold-start warm-up artifact" }
+    ]);
+    expect(quality.issues).toEqual([]);
+    expect(quality.warnings).toHaveLength(2);
+    expect(quality.warnings[0]).toContain("known cold-start warm-up artifact");
   });
 });

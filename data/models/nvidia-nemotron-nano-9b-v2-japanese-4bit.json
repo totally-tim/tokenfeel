@@ -1,0 +1,8 @@
+{
+  "id": "nvidia-nemotron-nano-9b-v2-japanese-4bit",
+  "name": "NVIDIA-Nemotron-Nano-9B-v2-Japanese-4bit",
+  "family": "NVIDIA",
+  "params": "9B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

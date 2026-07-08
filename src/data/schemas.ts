@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { runtimeKey } from "../lib/configMatrix";
 
 const idSchema = z.string().min(2).regex(/^[a-z0-9][a-z0-9._-]*$/);
 const isoDateTimeSchema = z.string().datetime({ offset: true });
@@ -210,6 +211,25 @@ export const catalogSchema = z
     checkUniqueIds(catalog.results, "results");
     checkUniqueIds(catalog.scenarios, "scenarios");
 
+    function checkUniqueConfigs(results: typeof catalog.results) {
+      const seenByConfig = new Map<string, string>();
+      for (const result of results) {
+        const configKey = [result.hardware, result.model, result.quant, runtimeKey(result)].join("::");
+        const firstId = seenByConfig.get(configKey);
+        if (firstId) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Result "${result.id}" is a true duplicate (same hardware, model, quant, and runtime config) of "${firstId}" -- resolve by hand, do not auto-pick a winner`,
+            path: ["results", result.id, "runtimeKey"]
+          });
+        } else {
+          seenByConfig.set(configKey, result.id);
+        }
+      }
+    }
+
+    checkUniqueConfigs(catalog.results);
+
     const hardwareIds = new Set(catalog.hardware.map((hardware) => hardware.id));
     const modelIds = new Set(catalog.models.map((model) => model.id));
 
@@ -255,11 +275,13 @@ export const catalogSchema = z
       if (
         resultIdParts.length !== 4 ||
         resultIdParts.some((part) => part.length === 0) ||
+        resultIdParts[0] !== result.hardware ||
+        resultIdParts[1] !== result.model ||
         resultIdParts[2] !== result.quant
       ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `Result id "${result.id}" must use hardware__model__quant__runtime-ish shape with quant "${result.quant}"`,
+          message: `Result id "${result.id}" must use hardware__model__quant__runtime-ish shape matching hardware "${result.hardware}", model "${result.model}", and quant "${result.quant}"`,
           path: ["results", result.id, "id"]
         });
       }
@@ -269,6 +291,14 @@ export const catalogSchema = z
           code: z.ZodIssueCode.custom,
           message: `Result ${result.id} has a future date ${result.date}`,
           path: ["results", result.id, "date"]
+        });
+      }
+
+      if (result.status === "verified" && !result.source.raw && !result.evidence?.rawUrl) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Result ${result.id} is status "verified" but has no raw evidence (source.raw or evidence.rawUrl)`,
+          path: ["results", result.id, "status"]
         });
       }
     }

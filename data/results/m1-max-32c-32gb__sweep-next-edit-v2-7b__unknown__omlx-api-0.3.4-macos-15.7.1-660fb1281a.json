@@ -1,0 +1,90 @@
+{
+  "id": "m1-max-32c-32gb__sweep-next-edit-v2-7b__unknown__omlx-api-0.3.4-macos-15.7.1-660fb1281a",
+  "hardware": "m1-max-32c-32gb",
+  "model": "sweep-next-edit-v2-7b",
+  "quant": "unknown",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.3.4",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 423.5,
+      "tg": 21.5,
+      "ppLabel": "unknown PP",
+      "tgLabel": "unknown TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/jcmy1zlj",
+        "upstreamId": "jcmy1zlj",
+        "createdAt": "2026-04-07T19:17:46Z",
+        "ttftMs": 2418,
+        "peakMemoryGb": 14.67
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 487.2,
+      "tg": 20.7,
+      "ppLabel": "unknown PP",
+      "tgLabel": "unknown TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/xrmcf5b9",
+        "upstreamId": "xrmcf5b9",
+        "createdAt": "2026-04-07T19:17:46Z",
+        "ttftMs": 8407.5,
+        "peakMemoryGb": 14.99
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "jcmy1zlj",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "jcmy1zlj 2026-04-07T19:17:46Z ctx=1024 pp=423.5 tg=21.5 omlx=0.3.4 os=macOS 15.7.1 https://omlx.ai/benchmarks/jcmy1zlj",
+      "xrmcf5b9 2026-04-07T19:17:46Z ctx=4096 pp=487.2 tg=20.7 omlx=0.3.4 os=macOS 15.7.1 https://omlx.ai/benchmarks/xrmcf5b9"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/jcmy1zlj",
+      "https://omlx.ai/benchmarks/xrmcf5b9"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "jcmy1zlj",
+      "latest_created_at": "2026-04-07T19:17:46Z",
+      "selected_omlx_versions": "0.3.4",
+      "selected_os_versions": "macOS 15.7.1"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 15.7.1",
+    "runtimeVersions": {
+      "omlx": "0.3.4"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX sweep-next-edit-v2-7B on M1 Max (32c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/jcmy1zlj",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-04-07",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.3.4 / macOS 15.7.1 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

@@ -1,0 +1,8 @@
+{
+  "id": "chandra",
+  "name": "chandra",
+  "family": "chandra",
+  "params": "unknown",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

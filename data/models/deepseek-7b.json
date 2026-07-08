@@ -1,0 +1,8 @@
+{
+  "id": "deepseek-7b",
+  "name": "deepseek-7b",
+  "family": "DeepSeek",
+  "params": "7B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

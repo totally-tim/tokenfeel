@@ -1,0 +1,90 @@
+{
+  "id": "m3-max-30c-36gb__gpt-oss-20b__8bit__omlx-api-0.3.1-macos-26.4.1-1dd36b8125",
+  "hardware": "m3-max-30c-36gb",
+  "model": "gpt-oss-20b",
+  "quant": "8bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.3.1",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 855.7,
+      "tg": 55.9,
+      "ppLabel": "8bit PP",
+      "tgLabel": "8bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/u47wmtug",
+        "upstreamId": "u47wmtug",
+        "createdAt": "2026-04-10T13:35:16Z",
+        "ttftMs": 1196.7,
+        "peakMemoryGb": 21.12
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 962,
+      "tg": 53,
+      "ppLabel": "8bit PP",
+      "tgLabel": "8bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/1cxjfe33",
+        "upstreamId": "1cxjfe33",
+        "createdAt": "2026-04-10T13:35:17Z",
+        "ttftMs": 4257.9,
+        "peakMemoryGb": 21.2
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "1cxjfe33",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "u47wmtug 2026-04-10T13:35:16Z ctx=1024 pp=855.7 tg=55.9 omlx=0.3.1 os=macOS 26.4.1 https://omlx.ai/benchmarks/u47wmtug",
+      "1cxjfe33 2026-04-10T13:35:17Z ctx=4096 pp=962 tg=53 omlx=0.3.1 os=macOS 26.4.1 https://omlx.ai/benchmarks/1cxjfe33"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/u47wmtug",
+      "https://omlx.ai/benchmarks/1cxjfe33"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "1cxjfe33",
+      "latest_created_at": "2026-04-10T13:35:17Z",
+      "selected_omlx_versions": "0.3.1",
+      "selected_os_versions": "macOS 26.4.1"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.4.1",
+    "runtimeVersions": {
+      "omlx": "0.3.1"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX gpt-oss-20b on M3 Max (30c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/1cxjfe33",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-04-10",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.3.1 / macOS 26.4.1 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

@@ -1,0 +1,8 @@
+{
+  "id": "qwen2.5-coder-3b",
+  "name": "Qwen2.5-Coder-3B",
+  "family": "Qwen",
+  "params": "3B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

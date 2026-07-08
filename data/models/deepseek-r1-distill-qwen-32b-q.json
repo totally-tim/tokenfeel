@@ -1,0 +1,8 @@
+{
+  "id": "deepseek-r1-distill-qwen-32b-q",
+  "name": "DeepSeek-R1-Distill-Qwen-32B-Q",
+  "family": "DeepSeek",
+  "params": "32B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

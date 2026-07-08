@@ -1,0 +1,90 @@
+{
+  "id": "m5-max-40c-128gb__deepseek-r1-distill-qwen-32b__8bit__omlx-api-0.2.22-macos-26.3.1-469fbed4ee",
+  "hardware": "m5-max-40c-128gb",
+  "model": "deepseek-r1-distill-qwen-32b",
+  "quant": "8bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.22",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 602.2,
+      "tg": 15.2,
+      "ppLabel": "8bit PP",
+      "tgLabel": "8bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/mbc1aofu",
+        "upstreamId": "mbc1aofu",
+        "createdAt": "2026-03-27T15:54:57Z",
+        "ttftMs": 1702.2,
+        "peakMemoryGb": 33.15
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 623,
+      "tg": 14.5,
+      "ppLabel": "8bit PP",
+      "tgLabel": "8bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/do2744fd",
+        "upstreamId": "do2744fd",
+        "createdAt": "2026-03-27T15:54:58Z",
+        "ttftMs": 6575.9,
+        "peakMemoryGb": 34.3
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "do2744fd",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "mbc1aofu 2026-03-27T15:54:57Z ctx=1024 pp=602.2 tg=15.2 omlx=0.2.22 os=macOS 26.3.1 https://omlx.ai/benchmarks/mbc1aofu",
+      "do2744fd 2026-03-27T15:54:58Z ctx=4096 pp=623 tg=14.5 omlx=0.2.22 os=macOS 26.3.1 https://omlx.ai/benchmarks/do2744fd"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/mbc1aofu",
+      "https://omlx.ai/benchmarks/do2744fd"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "do2744fd",
+      "latest_created_at": "2026-03-27T15:54:58Z",
+      "selected_omlx_versions": "0.2.22",
+      "selected_os_versions": "macOS 26.3.1"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.3.1",
+    "runtimeVersions": {
+      "omlx": "0.2.22"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX DeepSeek-R1-Distill-Qwen-32B on M5 Max (40c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/do2744fd",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-27",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.2.22 / macOS 26.3.1 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

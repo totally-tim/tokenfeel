@@ -1,0 +1,90 @@
+{
+  "id": "m4-10c-32gb__new-llama3.3-8b-instruct-thinking-heretic-uncensored-cl-f9deeaca__8bit__omlx-api-0.2.19-macos-15.7.2-385b067b6d",
+  "hardware": "m4-10c-32gb",
+  "model": "new-llama3.3-8b-instruct-thinking-heretic-uncensored-cl-f9deeaca",
+  "quant": "8bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.19",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 218.6,
+      "tg": 12.6,
+      "ppLabel": "8bit PP",
+      "tgLabel": "8bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/eik7wu8x",
+        "upstreamId": "eik7wu8x",
+        "createdAt": "2026-03-22T02:30:21Z",
+        "ttftMs": 4688.6,
+        "peakMemoryGb": 8.47
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 211.5,
+      "tg": 11.9,
+      "ppLabel": "8bit PP",
+      "tgLabel": "8bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/1m4w831k",
+        "upstreamId": "1m4w831k",
+        "createdAt": "2026-03-22T02:30:23Z",
+        "ttftMs": 19367.2,
+        "peakMemoryGb": 9.01
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "1m4w831k",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "eik7wu8x 2026-03-22T02:30:21Z ctx=1024 pp=218.6 tg=12.6 omlx=0.2.19 os=macOS 15.7.2 https://omlx.ai/benchmarks/eik7wu8x",
+      "1m4w831k 2026-03-22T02:30:23Z ctx=4096 pp=211.5 tg=11.9 omlx=0.2.19 os=macOS 15.7.2 https://omlx.ai/benchmarks/1m4w831k"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/eik7wu8x",
+      "https://omlx.ai/benchmarks/1m4w831k"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "1m4w831k",
+      "latest_created_at": "2026-03-22T02:30:23Z",
+      "selected_omlx_versions": "0.2.19",
+      "selected_os_versions": "macOS 15.7.2"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 15.7.2",
+    "runtimeVersions": {
+      "omlx": "0.2.19"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX New-Llama3.3-8B-Instruct-Thinking-Heretic-Uncensored-Claude-4.5-Opus-High-Reasoning on M4 (10c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/1m4w831k",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-22",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.2.19 / macOS 15.7.2 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

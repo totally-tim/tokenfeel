@@ -1,0 +1,90 @@
+{
+  "id": "m4-10c-16gb__lfm2-8b-a1b-3bit__3bit__omlx-api-0.2.9-macos-26.3.1-3411586132",
+  "hardware": "m4-10c-16gb",
+  "model": "lfm2-8b-a1b-3bit",
+  "quant": "3bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.9",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 813.5,
+      "tg": 101.8,
+      "ppLabel": "3bit PP",
+      "tgLabel": "3bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/s3q1nowc",
+        "upstreamId": "s3q1nowc",
+        "createdAt": "2026-03-12T13:37:36Z",
+        "ttftMs": 1260,
+        "peakMemoryGb": 5.07
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 817.7,
+      "tg": 93.7,
+      "ppLabel": "3bit PP",
+      "tgLabel": "3bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/qvap66h3",
+        "upstreamId": "qvap66h3",
+        "createdAt": "2026-03-12T13:37:36Z",
+        "ttftMs": 5010.7,
+        "peakMemoryGb": 5.21
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "s3q1nowc",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "s3q1nowc 2026-03-12T13:37:36Z ctx=1024 pp=813.5 tg=101.8 omlx=0.2.9 os=macOS 26.3.1 https://omlx.ai/benchmarks/s3q1nowc",
+      "qvap66h3 2026-03-12T13:37:36Z ctx=4096 pp=817.7 tg=93.7 omlx=0.2.9 os=macOS 26.3.1 https://omlx.ai/benchmarks/qvap66h3"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/s3q1nowc",
+      "https://omlx.ai/benchmarks/qvap66h3"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "s3q1nowc",
+      "latest_created_at": "2026-03-12T13:37:36Z",
+      "selected_omlx_versions": "0.2.9",
+      "selected_os_versions": "macOS 26.3.1"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.3.1",
+    "runtimeVersions": {
+      "omlx": "0.2.9"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX LFM2-8B-A1B-3bit on M4 (10c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/s3q1nowc",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-12",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.2.9 / macOS 26.3.1 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

@@ -1,0 +1,122 @@
+{
+  "id": "m4-max-32c-36gb__nvidia-nemotron-3-nano-30b-a3b5bit__5bit__omlx-api-0.2.22-macos-26.3.1-469fbed4ee",
+  "hardware": "m4-max-32c-36gb",
+  "model": "nvidia-nemotron-3-nano-30b-a3b5bit",
+  "quant": "5bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.22",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 1064,
+      "tg": 109.2,
+      "ppLabel": "5bit PP",
+      "tgLabel": "5bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/5k766jzj",
+        "upstreamId": "5k766jzj",
+        "createdAt": "2026-03-26T23:31:37Z",
+        "ttftMs": 962.4,
+        "peakMemoryGb": 22.46
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 1186.5,
+      "tg": 104.4,
+      "ppLabel": "5bit PP",
+      "tgLabel": "5bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/8jh3cte1",
+        "upstreamId": "8jh3cte1",
+        "createdAt": "2026-03-26T23:31:39Z",
+        "ttftMs": 3452.2,
+        "peakMemoryGb": 23.54
+      }
+    },
+    {
+      "depth": 8192,
+      "pp": 1188.6,
+      "tg": 100.6,
+      "ppLabel": "5bit PP",
+      "tgLabel": "5bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/5nm8z4h1",
+        "upstreamId": "5nm8z4h1",
+        "createdAt": "2026-03-26T23:31:41Z",
+        "ttftMs": 6892.3,
+        "peakMemoryGb": 23.56
+      }
+    },
+    {
+      "depth": 16384,
+      "pp": 1148.9,
+      "tg": 93.2,
+      "ppLabel": "5bit PP",
+      "tgLabel": "5bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/yt4akzef",
+        "upstreamId": "yt4akzef",
+        "createdAt": "2026-03-26T23:31:42Z",
+        "ttftMs": 14260,
+        "peakMemoryGb": 23.61
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "yt4akzef",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "5k766jzj 2026-03-26T23:31:37Z ctx=1024 pp=1064 tg=109.2 omlx=0.2.22 os=macOS 26.3.1 https://omlx.ai/benchmarks/5k766jzj",
+      "8jh3cte1 2026-03-26T23:31:39Z ctx=4096 pp=1186.5 tg=104.4 omlx=0.2.22 os=macOS 26.3.1 https://omlx.ai/benchmarks/8jh3cte1",
+      "5nm8z4h1 2026-03-26T23:31:41Z ctx=8192 pp=1188.6 tg=100.6 omlx=0.2.22 os=macOS 26.3.1 https://omlx.ai/benchmarks/5nm8z4h1",
+      "yt4akzef 2026-03-26T23:31:42Z ctx=16384 pp=1148.9 tg=93.2 omlx=0.2.22 os=macOS 26.3.1 https://omlx.ai/benchmarks/yt4akzef"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/5k766jzj",
+      "https://omlx.ai/benchmarks/8jh3cte1",
+      "https://omlx.ai/benchmarks/5nm8z4h1",
+      "https://omlx.ai/benchmarks/yt4akzef"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 4,
+      "selected_depths": 4,
+      "latest_upstream_id": "yt4akzef",
+      "latest_created_at": "2026-03-26T23:31:42Z",
+      "selected_omlx_versions": "0.2.22",
+      "selected_os_versions": "macOS 26.3.1"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.3.1",
+    "runtimeVersions": {
+      "omlx": "0.2.22"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX NVIDIA-Nemotron-3-Nano-30B-A3B5bit on M4 Max (32c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/yt4akzef",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-26",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 4 upstream row(s) on oMLX 0.2.22 / macOS 26.3.1 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

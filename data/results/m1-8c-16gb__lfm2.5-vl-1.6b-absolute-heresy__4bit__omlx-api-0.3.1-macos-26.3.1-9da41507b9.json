@@ -1,0 +1,90 @@
+{
+  "id": "m1-8c-16gb__lfm2.5-vl-1.6b-absolute-heresy__4bit__omlx-api-0.3.1-macos-26.3.1-9da41507b9",
+  "hardware": "m1-8c-16gb",
+  "model": "lfm2.5-vl-1.6b-absolute-heresy",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.3.1",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 540.9,
+      "tg": 59.8,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/zam2v6qk",
+        "upstreamId": "zam2v6qk",
+        "createdAt": "2026-04-03T08:11:20Z",
+        "ttftMs": 1895.2,
+        "peakMemoryGb": 2.05
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 526.2,
+      "tg": 55.5,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/jixpw6tk",
+        "upstreamId": "jixpw6tk",
+        "createdAt": "2026-04-03T08:11:20Z",
+        "ttftMs": 7786.4,
+        "peakMemoryGb": 2.17
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "zam2v6qk",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "zam2v6qk 2026-04-03T08:11:20Z ctx=1024 pp=540.9 tg=59.8 omlx=0.3.1 os=macOS 26.3.1 https://omlx.ai/benchmarks/zam2v6qk",
+      "jixpw6tk 2026-04-03T08:11:20Z ctx=4096 pp=526.2 tg=55.5 omlx=0.3.1 os=macOS 26.3.1 https://omlx.ai/benchmarks/jixpw6tk"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/zam2v6qk",
+      "https://omlx.ai/benchmarks/jixpw6tk"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "zam2v6qk",
+      "latest_created_at": "2026-04-03T08:11:20Z",
+      "selected_omlx_versions": "0.3.1",
+      "selected_os_versions": "macOS 26.3.1"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.3.1",
+    "runtimeVersions": {
+      "omlx": "0.3.1"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX LFM2.5-VL-1.6B-absolute-heresy on M1 (8c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/zam2v6qk",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-04-03",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.3.1 / macOS 26.3.1 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

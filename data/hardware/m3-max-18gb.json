@@ -1,0 +1,9 @@
+{
+  "id": "m3-max-18gb",
+  "name": "Apple M3 Max 18GB",
+  "shortName": "M3 Max",
+  "vendor": "Apple",
+  "memory": "18GB unified",
+  "accelerator": "M3 Max GPU",
+  "notes": "Generated from the oMLX community benchmark API import. Source hardware fields: chip=M3, variant=Max, gpu_cores=unknown."
+}

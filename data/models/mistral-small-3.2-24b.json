@@ -1,0 +1,8 @@
+{
+  "id": "mistral-small-3.2-24b",
+  "name": "Mistral-Small-3.2-24B",
+  "family": "Mistral",
+  "params": "24B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

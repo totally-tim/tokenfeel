@@ -1,0 +1,8 @@
+{
+  "id": "glm-4.7-flash-8bit-gs32",
+  "name": "GLM-4.7-Flash-8bit-gs32",
+  "family": "GLM",
+  "params": "8B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

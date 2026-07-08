@@ -1,0 +1,9 @@
+{
+  "id": "m2-max-8gb",
+  "name": "Apple M2 Max 8GB",
+  "shortName": "M2 Max",
+  "vendor": "Apple",
+  "memory": "8GB unified",
+  "accelerator": "M2 Max GPU",
+  "notes": "Generated from the oMLX community benchmark API import. Source hardware fields: chip=M2, variant=Max, gpu_cores=unknown."
+}

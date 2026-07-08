@@ -1,0 +1,8 @@
+{
+  "id": "bluesky-politics-v1",
+  "name": "bluesky-politics-v1",
+  "family": "bluesky",
+  "params": "unknown",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

@@ -1,0 +1,8 @@
+{
+  "id": "qwen2.5-0.5b-sft",
+  "name": "qwen2.5-0.5B-sft",
+  "family": "Qwen",
+  "params": "0.5B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

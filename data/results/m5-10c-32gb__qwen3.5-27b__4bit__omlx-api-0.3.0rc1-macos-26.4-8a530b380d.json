@@ -1,0 +1,122 @@
+{
+  "id": "m5-10c-32gb__qwen3.5-27b__4bit__omlx-api-0.3.0rc1-macos-26.4-8a530b380d",
+  "hardware": "m5-10c-32gb",
+  "model": "qwen3.5-27b",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.3.0rc1",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 215.5,
+      "tg": 7.9,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/djrcv5yr",
+        "upstreamId": "djrcv5yr",
+        "createdAt": "2026-03-30T11:18:10Z",
+        "ttftMs": 4752.7,
+        "peakMemoryGb": 15.76
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 213,
+      "tg": 7.8,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/1qrxukvp",
+        "upstreamId": "1qrxukvp",
+        "createdAt": "2026-03-30T11:18:10Z",
+        "ttftMs": 19233.2,
+        "peakMemoryGb": 17.33
+      }
+    },
+    {
+      "depth": 8192,
+      "pp": 187.1,
+      "tg": 8.2,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/tl7we1op",
+        "upstreamId": "tl7we1op",
+        "createdAt": "2026-03-30T09:00:19Z",
+        "ttftMs": 43795.4,
+        "peakMemoryGb": 17.96
+      }
+    },
+    {
+      "depth": 16384,
+      "pp": 162,
+      "tg": 7.4,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/fszvdgwi",
+        "upstreamId": "fszvdgwi",
+        "createdAt": "2026-03-30T09:00:21Z",
+        "ttftMs": 101107.8,
+        "peakMemoryGb": 19.26
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "djrcv5yr",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "djrcv5yr 2026-03-30T11:18:10Z ctx=1024 pp=215.5 tg=7.9 omlx=0.3.0rc1 os=macOS 26.4 https://omlx.ai/benchmarks/djrcv5yr",
+      "1qrxukvp 2026-03-30T11:18:10Z ctx=4096 pp=213 tg=7.8 omlx=0.3.0rc1 os=macOS 26.4 https://omlx.ai/benchmarks/1qrxukvp",
+      "tl7we1op 2026-03-30T09:00:19Z ctx=8192 pp=187.1 tg=8.2 omlx=0.3.0rc1 os=macOS 26.4 https://omlx.ai/benchmarks/tl7we1op",
+      "fszvdgwi 2026-03-30T09:00:21Z ctx=16384 pp=162 tg=7.4 omlx=0.3.0rc1 os=macOS 26.4 https://omlx.ai/benchmarks/fszvdgwi"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/djrcv5yr",
+      "https://omlx.ai/benchmarks/1qrxukvp",
+      "https://omlx.ai/benchmarks/tl7we1op",
+      "https://omlx.ai/benchmarks/fszvdgwi"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 6,
+      "selected_depths": 4,
+      "latest_upstream_id": "djrcv5yr",
+      "latest_created_at": "2026-03-30T11:18:10Z",
+      "selected_omlx_versions": "0.3.0rc1",
+      "selected_os_versions": "macOS 26.4"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.4",
+    "runtimeVersions": {
+      "omlx": "0.3.0rc1"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Qwen3.5-27B on M5 (10c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/djrcv5yr",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-30",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 6 upstream row(s) on oMLX 0.3.0rc1 / macOS 26.4 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

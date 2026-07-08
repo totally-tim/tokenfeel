@@ -1,0 +1,90 @@
+{
+  "id": "m2-ultra-60c-64gb__medgo-32b__4bit__omlx-api-0.3.0rc1-macos-26.3.1-06ce38f621",
+  "hardware": "m2-ultra-60c-64gb",
+  "model": "medgo-32b",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.3.0rc1",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 140.8,
+      "tg": 26.3,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/5k351fs7",
+        "upstreamId": "5k351fs7",
+        "createdAt": "2026-04-04T18:29:58Z",
+        "ttftMs": 7273.1,
+        "peakMemoryGb": 17.99
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 137.8,
+      "tg": 23,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/mmeqvz25",
+        "upstreamId": "mmeqvz25",
+        "createdAt": "2026-04-01T19:06:08Z",
+        "ttftMs": 29717.2,
+        "peakMemoryGb": 18.93
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "5k351fs7",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "5k351fs7 2026-04-04T18:29:58Z ctx=1024 pp=140.8 tg=26.3 omlx=0.3.0rc1 os=macOS 26.3.1 https://omlx.ai/benchmarks/5k351fs7",
+      "mmeqvz25 2026-04-01T19:06:08Z ctx=4096 pp=137.8 tg=23 omlx=0.3.0rc1 os=macOS 26.3.1 https://omlx.ai/benchmarks/mmeqvz25"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/5k351fs7",
+      "https://omlx.ai/benchmarks/mmeqvz25"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 12,
+      "selected_depths": 2,
+      "latest_upstream_id": "5k351fs7",
+      "latest_created_at": "2026-04-04T18:29:58Z",
+      "selected_omlx_versions": "0.3.0rc1",
+      "selected_os_versions": "macOS 26.3.1"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.3.1",
+    "runtimeVersions": {
+      "omlx": "0.3.0rc1"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX MedGo-32B on M2 Ultra (60c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/5k351fs7",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-04-04",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 12 upstream row(s) on oMLX 0.3.0rc1 / macOS 26.3.1 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

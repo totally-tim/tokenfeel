@@ -1,7 +1,9 @@
 import { describe, expect, test } from "vitest";
+import type { BenchmarkResult } from "../types";
 import { catalog, results } from "../data";
 import { createCatalogLookups } from "./catalog";
 import {
+  compareResultPreference,
   filterResultsBySelection,
   getHardwareOptions,
   getModelOptions,
@@ -13,6 +15,21 @@ import {
 } from "./configMatrix";
 
 const refs = createCatalogLookups(catalog);
+
+function makeResult(overrides: Partial<BenchmarkResult> & { id: string }): BenchmarkResult {
+  return {
+    hardware: "comparator-hw",
+    model: "comparator-model",
+    quant: "4bit",
+    runtime: { name: "TestRuntime", version: "1.0", backend: "CPU", flags: "default", cache: "prefix" },
+    measurements: [{ depth: 0, pp: 100, tg: 50 }],
+    source: { kind: "raw-json", title: "Synthetic comparator fixture", url: "https://example.com/a" },
+    submitter: "test",
+    date: "2026-01-01",
+    status: "community",
+    ...overrides
+  };
+}
 
 describe("configuration matrix", () => {
   test("lists hardware as hardware choices, not full benchmark result labels", () => {
@@ -63,9 +80,9 @@ describe("configuration matrix", () => {
 
     expect(resolved).toMatchObject({
       hardwareId: "m2-max-32gb",
-      modelId: "qwen3.5-9b",
-      quant: "8bit",
-      resultId: "m2-max__qwen3.5-9b__8bit__omlx"
+      modelId: "gemma-4-26b-a4b-it",
+      quant: "4bit",
+      resultId: "m2-max-32gb__gemma-4-26b-a4b-it__4bit__omlx-api-0.3.5.dev1-macos-26.5-78fd5c70d0"
     });
   });
 
@@ -97,9 +114,9 @@ describe("configuration matrix", () => {
 
     expect(next).toMatchObject({
       hardwareId: "m2-max-32gb",
-      modelId: "qwen3.5-9b",
-      quant: "8bit",
-      resultId: "m2-max__qwen3.5-9b__8bit__omlx"
+      modelId: "gemma-4-26b-a4b-it",
+      quant: "4bit",
+      resultId: "m2-max-32gb__gemma-4-26b-a4b-it__4bit__omlx-api-0.3.5.dev1-macos-26.5-78fd5c70d0"
     });
   });
 
@@ -125,5 +142,70 @@ describe("configuration matrix", () => {
     expect(selection).toEqual({ hardwareId: "dgx-spark" });
     expect(filtered.length).toBeGreaterThan(1);
     expect(new Set(filtered.map((result) => result.model)).size).toBeGreaterThan(1);
+  });
+});
+
+describe("compareResultPreference", () => {
+  test("prefers verified over community over flagged/illustrative", () => {
+    const verified = makeResult({ id: "a", status: "verified" });
+    const community = makeResult({ id: "b", status: "community" });
+    const flagged = makeResult({ id: "c", status: "flagged" });
+    const illustrative = makeResult({ id: "d", status: "illustrative" });
+
+    expect(compareResultPreference(verified, community)).toBeLessThan(0);
+    expect(compareResultPreference(community, flagged)).toBeLessThan(0);
+    expect(compareResultPreference(flagged, illustrative)).toBe(0);
+  });
+
+  test("among equal status, prefers raw evidence over none", () => {
+    const withEvidence = makeResult({ id: "a", evidence: { rawUrl: "https://example.com/raw" } });
+    const withoutEvidence = makeResult({ id: "b" });
+
+    expect(compareResultPreference(withEvidence, withoutEvidence)).toBeLessThan(0);
+  });
+
+  test("source.raw also counts as raw evidence", () => {
+    const withSourceRaw = makeResult({ id: "a", source: { kind: "raw-json", title: "x", url: "https://example.com", raw: "data/upstream/x.jsonl" } });
+    const withoutEvidence = makeResult({ id: "b" });
+
+    expect(compareResultPreference(withSourceRaw, withoutEvidence)).toBeLessThan(0);
+  });
+
+  test("among equal status and evidence, prefers more measurement depth points", () => {
+    const deeper = makeResult({
+      id: "a",
+      measurements: [
+        { depth: 0, pp: 100, tg: 50 },
+        { depth: 4096, pp: 90, tg: 45 }
+      ]
+    });
+    const shallower = makeResult({ id: "b", measurements: [{ depth: 0, pp: 100, tg: 50 }] });
+
+    expect(compareResultPreference(deeper, shallower)).toBeLessThan(0);
+  });
+
+  test("as a final tiebreak, prefers the most recent date", () => {
+    const newer = makeResult({ id: "a", date: "2026-06-01" });
+    const older = makeResult({ id: "b", date: "2026-01-01" });
+
+    expect(compareResultPreference(newer, older)).toBeLessThan(0);
+  });
+
+  test("resolveConfigSelection picks the comparator-preferred result among distinct-runtime duplicates for the same hardware/model/quant", () => {
+    const wellSourced = makeResult({
+      id: "comparator-hw__comparator-model__4bit__runtime-well-sourced",
+      status: "community",
+      evidence: { rawUrl: "https://example.com/raw" },
+      runtime: { name: "TestRuntime", version: "1.0", backend: "CPU", flags: "well-sourced", cache: "prefix" }
+    });
+    const handTyped = makeResult({
+      id: "comparator-hw__comparator-model__4bit__runtime-hand-typed",
+      status: "community",
+      runtime: { name: "TestRuntime", version: "1.0", backend: "CPU", flags: "hand-typed", cache: "prefix" }
+    });
+
+    const resolved = resolveConfigSelection([handTyped, wellSourced], { hardwareId: "comparator-hw" });
+
+    expect(resolved.resultId).toBe(wellSourced.id);
   });
 });

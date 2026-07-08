@@ -1,0 +1,8 @@
+{
+  "id": "nvidia-llama-3.1-nemotron-70b-instruct-hf",
+  "name": "nvidia_Llama-3.1-Nemotron-70B-Instruct-HF",
+  "family": "nvidia",
+  "params": "70B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}

@@ -1,0 +1,90 @@
+{
+  "id": "m4-max-128gb__gpt-oss-120b-mxfp4-q8__4bit__omlx-api-0.2.21-macos-26.0.1-718c677923",
+  "hardware": "m4-max-128gb",
+  "model": "gpt-oss-120b-mxfp4-q8",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.21",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 805.7,
+      "tg": 75.8,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/rxsud5v7",
+        "upstreamId": "rxsud5v7",
+        "createdAt": "2026-03-26T05:20:24Z",
+        "ttftMs": 1270.9,
+        "peakMemoryGb": 59.47
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 860.1,
+      "tg": 68.5,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/p004qplv",
+        "upstreamId": "p004qplv",
+        "createdAt": "2026-03-26T05:20:25Z",
+        "ttftMs": 4762.2,
+        "peakMemoryGb": 59.59
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "p004qplv",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "rxsud5v7 2026-03-26T05:20:24Z ctx=1024 pp=805.7 tg=75.8 omlx=0.2.21 os=macOS 26.0.1 https://omlx.ai/benchmarks/rxsud5v7",
+      "p004qplv 2026-03-26T05:20:25Z ctx=4096 pp=860.1 tg=68.5 omlx=0.2.21 os=macOS 26.0.1 https://omlx.ai/benchmarks/p004qplv"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/rxsud5v7",
+      "https://omlx.ai/benchmarks/p004qplv"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 4,
+      "selected_depths": 2,
+      "latest_upstream_id": "p004qplv",
+      "latest_created_at": "2026-03-26T05:20:25Z",
+      "selected_omlx_versions": "0.2.21",
+      "selected_os_versions": "macOS 26.0.1"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.0.1",
+    "runtimeVersions": {
+      "omlx": "0.2.21"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX gpt-oss-120b-MXFP4-Q8 on M4 Max (40c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/p004qplv",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-26",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 4 upstream row(s) on oMLX 0.2.21 / macOS 26.0.1 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

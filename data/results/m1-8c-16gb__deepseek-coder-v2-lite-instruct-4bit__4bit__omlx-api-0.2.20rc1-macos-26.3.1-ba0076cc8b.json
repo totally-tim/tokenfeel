@@ -1,0 +1,90 @@
+{
+  "id": "m1-8c-16gb__deepseek-coder-v2-lite-instruct-4bit__4bit__omlx-api-0.2.20rc1-macos-26.3.1-ba0076cc8b",
+  "hardware": "m1-8c-16gb",
+  "model": "deepseek-coder-v2-lite-instruct-4bit",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.2.20rc1",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 291.9,
+      "tg": 25.8,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/gonifond",
+        "upstreamId": "gonifond",
+        "createdAt": "2026-03-22T20:41:03Z",
+        "ttftMs": 3525.4,
+        "peakMemoryGb": 9.03
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 269.9,
+      "tg": 5.7,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/9z9el48l",
+        "upstreamId": "9z9el48l",
+        "createdAt": "2026-03-22T20:41:05Z",
+        "ttftMs": 15193.5,
+        "peakMemoryGb": 10.21
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "9z9el48l",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "gonifond 2026-03-22T20:41:03Z ctx=1024 pp=291.9 tg=25.8 omlx=0.2.20rc1 os=macOS 26.3.1 https://omlx.ai/benchmarks/gonifond",
+      "9z9el48l 2026-03-22T20:41:05Z ctx=4096 pp=269.9 tg=5.7 omlx=0.2.20rc1 os=macOS 26.3.1 https://omlx.ai/benchmarks/9z9el48l"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/gonifond",
+      "https://omlx.ai/benchmarks/9z9el48l"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 2,
+      "selected_depths": 2,
+      "latest_upstream_id": "9z9el48l",
+      "latest_created_at": "2026-03-22T20:41:05Z",
+      "selected_omlx_versions": "0.2.20rc1",
+      "selected_os_versions": "macOS 26.3.1"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.3.1",
+    "runtimeVersions": {
+      "omlx": "0.2.20rc1"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX DeepSeek-Coder-V2-Lite-Instruct-4bit on M1 (8c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/9z9el48l",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-03-22",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 2 upstream row(s) on oMLX 0.2.20rc1 / macOS 26.3.1 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

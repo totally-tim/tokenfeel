@@ -1,0 +1,35 @@
+{
+  "id": "m1-max-64gb__qwen3.6-35b-a3b__4bit__omlx",
+  "hardware": "m1-max-64gb",
+  "model": "qwen3.6-35b-a3b",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.4.4",
+    "backend": "MLX",
+    "flags": "community benchmark table",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 4000,
+      "pp": 599,
+      "tg": 60.8
+    },
+    {
+      "depth": 16000,
+      "pp": 560.4,
+      "tg": 60.4
+    }
+  ],
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Qwen3.6-35B-A3B M1 Max community benchmark",
+    "url": "https://omlx.ai/benchmarks/5y8tsdk9",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required"
+  },
+  "submitter": "oMLX community",
+  "date": "2026-07-04",
+  "status": "community",
+  "overheadMs": 90
+}

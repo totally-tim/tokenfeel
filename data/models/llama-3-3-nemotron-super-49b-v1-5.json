@@ -1,0 +1,8 @@
+{
+  "id": "llama-3-3-nemotron-super-49b-v1-5",
+  "name": "Llama-3_3-Nemotron-Super-49B-v1_5",
+  "family": "Llama",
+  "params": "49B",
+  "license": "See upstream model card",
+  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
+}
