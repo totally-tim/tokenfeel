@@ -1,4 +1,4 @@
-import { AlertTriangle, Database, GitPullRequest, Gauge, TimerReset } from "lucide-react";
+import { AlertTriangle, Database, GitPullRequest, Gauge, Scale, TimerReset } from "lucide-react";
 import { PhaseLegend } from "../components/PhaseLegend";
 
 export function MethodPage() {
@@ -16,12 +16,12 @@ export function MethodPage() {
         <article>
           <Gauge />
           <h2>Timing model</h2>
-          <p>Prefill uses measured TTFT when benchmark rows include it; otherwise it falls back to prompt tokens divided by pp(depth), plus submitted overhead. Decode is one over tg(depth) per token.</p>
+          <p>Prefill uses measured TTFT when benchmark rows include it; otherwise it falls back to prompt tokens divided by pp(depth), plus submitted overhead. Decode is one over tg(depth) per token. Both rates are integrated across the full depth span an event traverses, not sampled once at a single depth, so pricing reflects the real degradation over the span instead of a single snapshot.</p>
         </article>
         <article>
           <TimerReset />
           <h2>Depth interpolation</h2>
-          <p>Rates between measured depths are linear. Beyond the last row, the current app clamps flat and flags extrapolated events.</p>
+          <p>Rates between measured depths are linear. Beyond the last measured row, the app fits a trend to the submitted points and extrapolates it — this is now the canonical, realistic pace, with the old flat value kept only as an optimistic lower bound. A single-point submission has no trend to fit, so depths past that one point are explicitly flagged "no depth data" rather than silently held flat.</p>
         </article>
         <article>
           <Database />
@@ -32,6 +32,11 @@ export function MethodPage() {
           <GitPullRequest />
           <h2>Verification flow</h2>
           <p>Community rows are visible by default. Verified rows require maintainer reproduction or a trustworthy public leaderboard with raw logs.</p>
+        </article>
+        <article>
+          <Scale />
+          <h2>Uncertainty & race verdicts</h2>
+          <p>Every summary carries a wall-time range, not just a point estimate, and widens when non-measured depths make up more of the run or when contributors supply ppStddev/tgStddev. Race mode compares those ranges: if two configs' honest ranges overlap, it reports "too close to call from this data" instead of forcing a winner.</p>
         </article>
       </section>
       <section className="snippet-panel phase-legend-panel">

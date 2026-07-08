@@ -112,10 +112,17 @@ npm run convert:llama-bench -- path/to/output.txt \
 
 - Prefill uses measured TTFT when available, otherwise
   `prompt_tokens / pp(depth)` plus overhead.
-- Decode uses `1 / tg(depth)` per generated token.
+- Decode uses `1 / tg(depth)` per generated token. Both rates are integrated
+  across the depth span an event actually traverses, not sampled at a single
+  point.
+- Beyond the last measured depth, rates follow a fitted trend when at least
+  two measurements exist (flagged as extrapolated), or are flagged
+  "no depth data" when only one measurement exists.
 - Prefix cache behavior is modeled from runtime capability and scenario
   cache-bust events.
-- Race lanes run the same deterministic script.
+- Race lanes run the same deterministic script; if two configs' honest
+  ranges overlap, the verdict is "too close to call" rather than a forced
+  winner.
 - The UI should never treat projected time as final elapsed time.
 
 ## Public Release Notes
