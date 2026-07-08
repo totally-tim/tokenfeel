@@ -220,42 +220,11 @@ export function Disclosure({
   );
 }
 
-interface SelectBoxProps {
-  label: string;
-  value: string;
-  sub: string;
-  selectedValue: string;
-  options: Array<{ value: string; label: string; sub?: string }>;
-  onChange: (value: string) => void;
-}
-
-export function SelectBox({ label, value, sub, selectedValue, options, onChange }: SelectBoxProps) {
-  return (
-    <label className="field-block">
-      <span className="field-label">{label}</span>
-      <span className="select-shell">
-        <span>
-          <strong>{value}</strong>
-          <small>{sub}</small>
-        </span>
-        <select value={selectedValue} onChange={(event) => onChange(event.target.value)} aria-label={label}>
-          {options.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <ChevronDown size={16} />
-      </span>
-    </label>
-  );
-}
-
 interface SearchSelectProps {
   label: string;
   value: string;
   sub?: string;
-  selectedValue: string;
+  selectedValue: string | undefined;
   options: MatrixOption[];
   onChange: (value: string) => void;
   placeholder?: string;

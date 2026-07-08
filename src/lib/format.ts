@@ -19,8 +19,13 @@ export function formatRate(value: number): string {
 }
 
 export function formatTokens(value: number): string {
+  if (value >= 10_000) {
+    // Large counts drop the decimal -- "12k" instead of "12.3k" -- since a
+    // tenth-of-a-k is not meaningful precision once we're into 5+ digits.
+    return `${Math.round(value / 1000)}k`;
+  }
   if (value >= 1000) {
-    const rounded = value >= 10_000 ? Math.round(value / 100) / 10 : Math.round(value / 100) / 10;
+    const rounded = Math.round(value / 100) / 10;
     return `${rounded}k`;
   }
   return String(Math.round(value));
@@ -28,8 +33,4 @@ export function formatTokens(value: number): string {
 
 export function percent(value: number): string {
   return `${Math.round(value * 100)}%`;
-}
-
-export function statusLabel(status: string): string {
-  return status.toUpperCase();
 }

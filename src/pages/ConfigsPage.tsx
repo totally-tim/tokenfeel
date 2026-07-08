@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { StatusBadge } from "../components/StatusBadge";
 import { DepthRateCurve, EvidencePanel, QualityFlags } from "../components/Visualizations";
 import { createCatalogLookups, rankedResults, DEFAULT_SCENARIO_ID } from "../lib/catalog";
+import { baselineMeasurement } from "../lib/catalogQuality";
 import { formatNumber, formatRate, formatSeconds } from "../lib/format";
 import { defaultScenario } from "../lib/catalog";
 import { buildRaceShareUrl } from "../lib/raceShare";
@@ -17,7 +18,7 @@ import {
   updateConfigFilterSelection,
   type ConfigSelection
 } from "../lib/configMatrix";
-import type { BenchmarkResult } from "../types";
+import type { BenchmarkMeasurement, BenchmarkResult } from "../types";
 
 type SortKey = "seconds" | "pp" | "tg";
 
@@ -33,6 +34,16 @@ function plural(count: number, singular: string, pluralForm = `${singular}s`) {
   return count === 1 ? singular : pluralForm;
 }
 
+// Safe accessor for "the baseline (lowest-depth) measurement's pp/tg" --
+// replaces raw `result.measurements[0]` indexing, which silently assumed
+// index 0 was always the lowest-depth point and always present. Reads from
+// a pre-sorted map (see `baselineByResultId` below) instead of resorting
+// `result.measurements` on every call -- this page invokes it many times
+// per row across sorting and rendering.
+function baselineMetric(baselineByResultId: Map<string, BenchmarkMeasurement | undefined>, resultId: string, key: "pp" | "tg"): number {
+  return baselineByResultId.get(resultId)?.[key] ?? 0;
+}
+
 export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
   const [query, setQuery] = useState("");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
@@ -44,6 +55,17 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
   const [detailsById, setDetailsById] = useState<Record<string, BenchmarkResult>>({});
   const lookups = useMemo(() => createCatalogLookups(catalog), [catalog]);
   const rows = useMemo(() => rankedResults(catalog, defaultScenario(catalog)), [catalog]);
+  const baselineByResultId = useMemo(() => {
+    const map = new Map<string, BenchmarkMeasurement | undefined>();
+    for (const result of catalog.results) {
+      const baseline = baselineMeasurement(result);
+      if (!baseline) {
+        console.warn(`Result ${result.id} has no measurements; baseline pp/tg is falling back to 0`);
+      }
+      map.set(result.id, baseline);
+    }
+    return map;
+  }, [catalog.results]);
   const hardwareOptions = useMemo(() => getHardwareOptions(catalog.results, lookups), [catalog.results, lookups]);
   const modelOptions = useMemo(
     () => (selection.hardwareId ? getModelOptions(catalog.results, selection, lookups) : []),
@@ -67,8 +89,8 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
   }), [query, rows, selectedIds, verifiedOnly]);
   const sorted = useMemo(() => sortKey === "seconds"
       ? filtered
-      : [...filtered].sort((a, b) => b.result.measurements[0][sortKey] - a.result.measurements[0][sortKey]),
-    [filtered, sortKey]
+      : [...filtered].sort((a, b) => baselineMetric(baselineByResultId, b.result.id, sortKey) - baselineMetric(baselineByResultId, a.result.id, sortKey)),
+    [filtered, sortKey, baselineByResultId]
   );
   const pageCount = Math.max(1, Math.ceil(sorted.length / pageSize));
   const safePageIndex = Math.min(pageIndex, pageCount - 1);
@@ -178,7 +200,7 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
   const maxFrontierSeconds = Math.max(...frontierRows.map((row) => row.seconds), 1);
   const minFrontierSeconds = Math.min(...frontierRows.map((row) => row.seconds), maxFrontierSeconds);
   const frontierSecondsRange = maxFrontierSeconds - minFrontierSeconds;
-  const maxFrontierTg = Math.max(...frontierRows.map((row) => row.result.measurements[0].tg), 1);
+  const maxFrontierTg = Math.max(...frontierRows.map((row) => baselineMetric(baselineByResultId, row.result.id, "tg")), 1);
   const coverageRows = [...coverage.values()].sort((a, b) => b.total - a.total).slice(0, 8);
   const maxCoverageTotal = Math.max(...coverageRows.map((item) => item.total), 1);
   const configCount = new Set(sorted.map(({ result }) => result.hardware)).size;
@@ -309,7 +331,7 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
                 </div>
                 <h2>{hardware?.shortName ?? result.hardware}</h2>
                 <strong>{formatSeconds(seconds)}</strong>
-                <p>{result.runtime.backend} · {formatRate(result.measurements[0].tg)}</p>
+                <p>{result.runtime.backend} · {formatRate(baselineMetric(baselineByResultId, result.id, "tg"))}</p>
               </article>
             ))}
           </section>
@@ -334,12 +356,12 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
                   frontierSecondsRange === 0
                     ? 100
                     : Math.max(6, 6 + ((maxFrontierSeconds - seconds) / frontierSecondsRange) * 94);
-                const decodePct = Math.max(4, (result.measurements[0].tg / maxFrontierTg) * 100);
+                const decodePct = Math.max(4, (baselineMetric(baselineByResultId, result.id, "tg") / maxFrontierTg) * 100);
                 return (
                   <article
                     key={result.id}
                     className="frontier-bar-row"
-                    title={`${hardware?.shortName ?? result.hardware}: ${formatSeconds(seconds)} · ${formatRate(result.measurements[0].tg)}`}
+                    title={`${hardware?.shortName ?? result.hardware}: ${formatSeconds(seconds)} · ${formatRate(baselineMetric(baselineByResultId, result.id, "tg"))}`}
                   >
                     <span>
                       <strong>{hardware?.shortName ?? result.hardware}</strong>
@@ -355,7 +377,7 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
                     </div>
                     <span className="frontier-values">
                       <strong>{formatSeconds(seconds)}</strong>
-                      <small>{formatRate(result.measurements[0].tg)}</small>
+                      <small>{formatRate(baselineMetric(baselineByResultId, result.id, "tg"))}</small>
                     </span>
                   </article>
                 );
@@ -473,8 +495,8 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
                     <strong>{result.runtime.name}</strong>
                     <small>{result.runtime.backend}</small>
                   </span>
-                  <span>{formatNumber(result.measurements[0].pp)}</span>
-                  <span>{result.measurements[0].tg.toFixed(1)}</span>
+                  <span>{formatNumber(baselineMetric(baselineByResultId, result.id, "pp"))}</span>
+                  <span>{baselineMetric(baselineByResultId, result.id, "tg").toFixed(1)}</span>
                   <span className="accent-strong">{formatSeconds(seconds)}</span>
                   <span><StatusBadge status={result.status} /></span>
                   <span className="table-actions">
