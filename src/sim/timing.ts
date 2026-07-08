@@ -39,6 +39,56 @@ function rateToMsPerToken(rate: number): number {
 }
 
 /**
+ * Per-measurement rate stddev, propagated into ms/token terms via the
+ * derivative of `1000 / rate` (d(msPerToken) = -1000/rate^2 * d(rate)).
+ * Zero when the contributor didn't submit a stddev for this point — the
+ * widening this feeds is purely additive and never fabricates uncertainty.
+ */
+function stddevMsAtPoint(point: BenchmarkMeasurement, field: "pp" | "tg"): number {
+  const stddev = field === "pp" ? point.ppStddev : point.tgStddev;
+  if (!stddev) return 0;
+  const rate = point[field];
+  return (1000 * stddev) / (rate * rate);
+}
+
+/**
+ * Companion to `msPerTokenClampedAt`: the ms/token stddev at `depth`, flat
+ * beyond the measured span and linearly interpolated between bracketing
+ * points within it — same interpolation shape as the rate itself, so the
+ * uncertainty band tracks the curve it's widening.
+ */
+function msStddevClampedAt(
+  measurements: BenchmarkMeasurement[],
+  field: "pp" | "tg",
+  depth: number
+): number {
+  const points = sortMeasurementsByDepth(measurements);
+  const first = points[0];
+  if (depth <= first.depth) {
+    return stddevMsAtPoint(first, field);
+  }
+
+  const last = points[points.length - 1];
+  if (depth >= last.depth) {
+    return stddevMsAtPoint(last, field);
+  }
+
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const left = points[index];
+    const right = points[index + 1];
+    if (depth >= left.depth && depth <= right.depth) {
+      const span = right.depth - left.depth;
+      const progress = span === 0 ? 0 : (depth - left.depth) / span;
+      const leftStddevMs = stddevMsAtPoint(left, field);
+      const rightStddevMs = stddevMsAtPoint(right, field);
+      return leftStddevMs + (rightStddevMs - leftStddevMs) * progress;
+    }
+  }
+
+  return stddevMsAtPoint(last, field);
+}
+
+/**
  * Milliseconds-per-token at `depth`, interpolated LINEARLY IN TIME (ms/token)
  * between bracketing measured depths — the physically appropriate quantity
  * to interpolate, since it's what actually integrates to wall-clock time.
@@ -178,30 +228,36 @@ export function fitTimePerTokenLinear(
  *   measurements elsewhere) at the first measured point, since running a
  *   trend backward across a potentially large, wholly unmeasured gap isn't
  *   grounded data. There is no basis for a range in either case.
+ *
+ * `stddevMs` is the additional (purely additive) uncertainty half-width at
+ * `depth` derived from the contributor-submitted `ppStddev`/`tgStddev`, zero
+ * when absent. Callers that build a min/max range from `canonicalMs`/
+ * `optimisticMs` should subtract/add it to widen the bounds further.
  */
 export function msPerTokenRangeAt(
   measurements: BenchmarkMeasurement[],
   field: "pp" | "tg",
   depth: number
-): { canonicalMs: number; optimisticMs: number; confidence: RateConfidence } {
+): { canonicalMs: number; optimisticMs: number; stddevMs: number; confidence: RateConfidence } {
   const confidence = rateConfidenceAt(measurements, depth);
   const clampedMs = msPerTokenClampedAt(measurements, field, depth);
+  const stddevMs = msStddevClampedAt(measurements, field, depth);
 
   if (confidence !== "extrapolated-fitted") {
-    return { canonicalMs: clampedMs, optimisticMs: clampedMs, confidence };
+    return { canonicalMs: clampedMs, optimisticMs: clampedMs, stddevMs, confidence };
   }
 
   const points = sortMeasurementsByDepth(measurements);
   const fit = fitTimePerTokenLinear(measurements, field);
   if (!fit) {
     // Unreachable given rateConfidenceAt's guarantees, but keeps this total.
-    return { canonicalMs: clampedMs, optimisticMs: clampedMs, confidence };
+    return { canonicalMs: clampedMs, optimisticMs: clampedMs, stddevMs, confidence };
   }
 
   const last = points[points.length - 1];
   const anchorMs = rateToMsPerToken(last[field]);
   const fittedMs = Math.max(0, anchorMs + fit.slope * (depth - last.depth));
-  return { canonicalMs: fittedMs, optimisticMs: clampedMs, confidence };
+  return { canonicalMs: fittedMs, optimisticMs: clampedMs, stddevMs, confidence };
 }
 
 /**
@@ -218,18 +274,21 @@ export function msPerTokenRangeAt(
  * flat at the first measured value and it is always tagged
  * "extrapolated-unsupported" (same treatment as a single measurement).
  * `confidence` is the LOWEST-confidence tier encountered anywhere in the span.
+ * `stddevMs` is the trapezoidal integral of `msStddevClampedAt` over the same
+ * span — purely additive uncertainty widening from contributor-submitted
+ * `ppStddev`/`tgStddev`, zero when none was supplied.
  */
 export function integrateTimeRangeMs(
   measurements: BenchmarkMeasurement[],
   field: "pp" | "tg",
   fromDepth: number,
   toDepth: number
-): { canonicalMs: number; optimisticMs: number; confidence: RateConfidence } {
+): { canonicalMs: number; optimisticMs: number; stddevMs: number; confidence: RateConfidence } {
   if (measurements.length === 0) {
     throw new Error("Cannot integrate an empty measurement set");
   }
   if (toDepth <= fromDepth) {
-    return { canonicalMs: 0, optimisticMs: 0, confidence: rateConfidenceAt(measurements, fromDepth) };
+    return { canonicalMs: 0, optimisticMs: 0, stddevMs: 0, confidence: rateConfidenceAt(measurements, fromDepth) };
   }
 
   const points = sortMeasurementsByDepth(measurements);
@@ -237,6 +296,8 @@ export function integrateTimeRangeMs(
   const last = points[points.length - 1];
   const firstMs = rateToMsPerToken(first[field]);
   const lastMs = rateToMsPerToken(last[field]);
+  const firstStddevMs = stddevMsAtPoint(first, field);
+  const lastStddevMs = stddevMsAtPoint(last, field);
   const fit = fitTimePerTokenLinear(points, field);
 
   function integrateFittedMs(from: number, to: number): number {
@@ -252,6 +313,7 @@ export function integrateTimeRangeMs(
 
   let canonicalTotal = 0;
   let optimisticTotal = 0;
+  let stddevTotal = 0;
   let confidence: RateConfidence = "measured";
 
   // Segment before the first measured depth: no basis to extrapolate the
@@ -262,6 +324,7 @@ export function integrateTimeRangeMs(
     const width = preEnd - fromDepth;
     optimisticTotal += width * firstMs;
     canonicalTotal += width * firstMs;
+    stddevTotal += width * firstStddevMs;
     confidence = worseConfidence(confidence, "extrapolated-unsupported");
   }
 
@@ -279,11 +342,16 @@ export function integrateTimeRangeMs(
     const rightMs = rateToMsPerToken(right[field]);
     const valueAt = (depth: number) => leftMs + (rightMs - leftMs) * ((depth - left.depth) / span);
 
+    const leftStddevMs = stddevMsAtPoint(left, field);
+    const rightStddevMs = stddevMsAtPoint(right, field);
+    const stddevAt = (depth: number) => leftStddevMs + (rightStddevMs - leftStddevMs) * ((depth - left.depth) / span);
+
     const startValue = valueAt(segStart);
     const endValue = valueAt(segEnd);
     const segmentMs = ((startValue + endValue) / 2) * (segEnd - segStart);
     canonicalTotal += segmentMs;
     optimisticTotal += segmentMs;
+    stddevTotal += ((stddevAt(segStart) + stddevAt(segEnd)) / 2) * (segEnd - segStart);
     confidence = worseConfidence(confidence, "interpolated");
   }
 
@@ -292,6 +360,7 @@ export function integrateTimeRangeMs(
   if (postStart < toDepth) {
     const width = toDepth - postStart;
     optimisticTotal += width * lastMs;
+    stddevTotal += width * lastStddevMs;
     if (points.length >= 2) {
       canonicalTotal += Math.max(0, integrateFittedMs(postStart, toDepth));
       confidence = worseConfidence(confidence, "extrapolated-fitted");
@@ -301,7 +370,7 @@ export function integrateTimeRangeMs(
     }
   }
 
-  return { canonicalMs: canonicalTotal, optimisticMs: optimisticTotal, confidence };
+  return { canonicalMs: canonicalTotal, optimisticMs: optimisticTotal, stddevMs: stddevTotal, confidence };
 }
 
 function interpolateTtftMs(measurements: BenchmarkMeasurement[], depth: number): number | undefined {
@@ -360,6 +429,7 @@ export function buildTimeline(input: TimelineInput): Timeline {
     let prefillMs = 0;
     let prefillOptimisticMs = 0;
     let prefillIntegralMs = 0;
+    let prefillStddevMs = 0;
     let ppConfidence: RateConfidence = "measured";
     if (prefillTokens > 0) {
       const prefillRange = integrateTimeRangeMs(
@@ -369,6 +439,7 @@ export function buildTimeline(input: TimelineInput): Timeline {
         withoutCachePrefillTokens
       );
       prefillIntegralMs = prefillRange.canonicalMs;
+      prefillStddevMs = prefillRange.stddevMs;
       ppConfidence = prefillRange.confidence;
 
       const measuredTtftMs = interpolateTtftMs(result.measurements, withoutCachePrefillTokens);
@@ -400,6 +471,7 @@ export function buildTimeline(input: TimelineInput): Timeline {
 
     let decodeMs = 0;
     let decodeOptimisticMs = 0;
+    let decodeStddevMs = 0;
     let tgConfidence: RateConfidence = "measured";
     if (shouldDecode && event.tokens > 0) {
       const decodeRange = integrateTimeRangeMs(
@@ -410,6 +482,7 @@ export function buildTimeline(input: TimelineInput): Timeline {
       );
       decodeMs = decodeRange.canonicalMs;
       decodeOptimisticMs = decodeRange.optimisticMs;
+      decodeStddevMs = decodeRange.stddevMs;
       tgConfidence = decodeRange.confidence;
     }
 
@@ -431,12 +504,12 @@ export function buildTimeline(input: TimelineInput): Timeline {
           })();
 
     const prefillRangeMs = {
-      min: Math.min(prefillOptimisticMs, prefillMs),
-      max: Math.max(prefillOptimisticMs, prefillMs)
+      min: Math.max(0, Math.min(prefillOptimisticMs, prefillMs) - prefillStddevMs),
+      max: Math.max(prefillOptimisticMs, prefillMs) + prefillStddevMs
     };
     const decodeRangeMs = {
-      min: Math.min(decodeOptimisticMs, decodeMs),
-      max: Math.max(decodeOptimisticMs, decodeMs)
+      min: Math.max(0, Math.min(decodeOptimisticMs, decodeMs) - decodeStddevMs),
+      max: Math.max(decodeOptimisticMs, decodeMs) + decodeStddevMs
     };
 
     const toolLatencyMs = event.toolLatencyMs ?? 0;
@@ -497,6 +570,8 @@ export function buildTimeline(input: TimelineInput): Timeline {
   };
 }
 
+const NON_MEASURED_TIERS = new Set<RateConfidence>(["extrapolated-fitted", "extrapolated-unsupported"]);
+
 export function summarizeTimeline(timeline: Timeline): TimelineSummary {
   const generatedTokens = timeline.events
     .filter((event) => generatedRoles.has(event.role))
@@ -512,8 +587,23 @@ export function summarizeTimeline(timeline: Timeline): TimelineSummary {
       ? 0
       : Math.max(0, 1 - prefilledWithCache / prefilledWithoutCache);
 
+  const wallTimeRangeMs = timeline.events.reduce(
+    (range, event) => ({
+      min: range.min + event.toolLatencyMs + event.prefillRangeMs.min + event.decodeRangeMs.min,
+      max: range.max + event.toolLatencyMs + event.prefillRangeMs.max + event.decodeRangeMs.max
+    }),
+    { min: 0, max: 0 }
+  );
+
+  const nonMeasuredMs = timeline.events.reduce((sum, event) => {
+    const prefillNonMeasured = NON_MEASURED_TIERS.has(event.ppConfidence) ? event.prefillMs : 0;
+    const decodeNonMeasured = NON_MEASURED_TIERS.has(event.tgConfidence) ? event.decodeMs : 0;
+    return sum + prefillNonMeasured + decodeNonMeasured;
+  }, 0);
+
   return {
     wallTimeMs: timeline.totalMs,
+    wallTimeRangeMs,
     totalTokens: timeline.events.at(-1)?.contextAfter ?? timeline.scenario.systemPromptTokens,
     generatedTokens,
     prefilledWithCache,
@@ -523,6 +613,7 @@ export function summarizeTimeline(timeline: Timeline): TimelineSummary {
     decodeMs: totalDecodeMs,
     toolLatencyMs: timeline.events.reduce((sum, event) => sum + event.toolLatencyMs, 0),
     extrapolatedEvents: timeline.events.filter((event) => event.extrapolated).length,
+    nonMeasuredTimeShare: timeline.totalMs === 0 ? 0 : nonMeasuredMs / timeline.totalMs,
     avgDecodeTps: totalDecodeMs === 0 ? 0 : generatedTokens / (totalDecodeMs / 1000)
   };
 }

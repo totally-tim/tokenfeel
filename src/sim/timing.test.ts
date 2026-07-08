@@ -223,6 +223,18 @@ describe("msPerTokenRangeAt", () => {
     expect(range.canonicalMs).toBeCloseTo(10);
     expect(range.optimisticMs).toBeCloseTo(10);
   });
+
+  it("reports zero stddevMs by default and a nonzero one when a measurement supplies tgStddev", () => {
+    expect(msPerTokenRangeAt(result.measurements, "tg", 5000).stddevMs).toBe(0);
+
+    // tg: 20 +/- 2 @ depth 0 -> 50ms/token, stddev 5ms; 10 +/- 1 @ depth 10000
+    // -> 100ms/token, stddev 10ms. Midpoint (depth 5000) interpolates to 7.5ms.
+    const withStddev: BenchmarkMeasurement[] = [
+      { depth: 0, pp: 1000, tg: 20, tgStddev: 2 },
+      { depth: 10_000, pp: 500, tg: 10, tgStddev: 1 }
+    ];
+    expect(msPerTokenRangeAt(withStddev, "tg", 5000).stddevMs).toBeCloseTo(7.5);
+  });
 });
 
 describe("integrateTimeRangeMs", () => {
@@ -273,6 +285,23 @@ describe("integrateTimeRangeMs", () => {
     expect(range.canonicalMs).toBeCloseTo(50_000);
     expect(range.optimisticMs).toBeCloseTo(50_000);
     expect(range.confidence).toBe("extrapolated-unsupported");
+  });
+
+  it("is zero when no measurement supplies a stddev (purely additive, no behavior change by default)", () => {
+    const range = integrateTimeRangeMs(result.measurements, "tg", 2000, 9000);
+    expect(range.stddevMs).toBe(0);
+  });
+
+  it("widens by the trapezoidal integral of the interpolated tgStddev when contributors supply it", () => {
+    // tg: 20 tok/s +/- 2 @ depth 0 -> 50 ms/token, stddev = 1000*2/400 = 5ms.
+    // tg: 10 tok/s +/- 1 @ depth 10000 -> 100 ms/token, stddev = 1000*1/100 = 10ms.
+    // Over [0, 10000]: stddev interpolates linearly 5 -> 10, trapezoid avg 7.5 * 10000 = 75000.
+    const withStddev: BenchmarkMeasurement[] = [
+      { depth: 0, pp: 1000, tg: 20, tgStddev: 2 },
+      { depth: 10_000, pp: 500, tg: 10, tgStddev: 1 }
+    ];
+    const range = integrateTimeRangeMs(withStddev, "tg", 0, 10_000);
+    expect(range.stddevMs).toBeCloseTo(75_000);
   });
 });
 
@@ -755,5 +784,87 @@ describe("buildTimeline confidence tiers and ranges (Phase 2)", () => {
     // bounds hold flat at the same value.
     expect(event.decodeRangeMs.min).toBeCloseTo(event.decodeRangeMs.max);
     expect(event.decodeMs).toBeCloseTo(event.decodeRangeMs.max);
+  });
+});
+
+describe("summarizeTimeline wall-time range and non-measured share (Phase 3)", () => {
+  it("collapses wallTimeRangeMs to a single point equal to wallTimeMs when there is no uncertainty anywhere", () => {
+    const timeline = buildTimeline({
+      result,
+      scenario,
+      cacheMode: "runtime",
+      speed: 1
+    });
+
+    const summary = summarizeTimeline(timeline);
+    // The fixture scenario stays entirely within [0, 10000] (the measured
+    // range), so every event is measured/interpolated: no range width.
+    expect(timeline.events.every((event) => event.contextAfter <= 10_000)).toBe(true);
+    expect(summary.wallTimeRangeMs.min).toBeCloseTo(summary.wallTimeMs);
+    expect(summary.wallTimeRangeMs.max).toBeCloseTo(summary.wallTimeMs);
+    expect(summary.nonMeasuredTimeShare).toBe(0);
+  });
+
+  it("widens wallTimeRangeMs and reports a nonzero nonMeasuredTimeShare when part of the run runs past the measured depth", () => {
+    // First event stays within the measured range (interpolated); second
+    // event's decode straddles and runs well past the last measured depth
+    // (10000), landing in extrapolated-fitted territory.
+    const straddlingScenario: ScenarioScript = {
+      ...scenario,
+      systemPromptTokens: 8000,
+      events: [
+        { id: "u1", role: "user", text: "short prompt", tokens: 200 },
+        { id: "a1", role: "assistant", text: "long generation past the measured depth", tokens: 4000 }
+      ]
+    };
+
+    const timeline = buildTimeline({
+      result,
+      scenario: straddlingScenario,
+      cacheMode: "off",
+      speed: 1
+    });
+
+    const summary = summarizeTimeline(timeline);
+
+    // wallTimeMs is always the max (canonical/worse-case) bound.
+    expect(summary.wallTimeRangeMs.max).toBeCloseTo(summary.wallTimeMs);
+    // The extrapolated decode event widens the range: canonical (fitted,
+    // slower) total exceeds the optimistic (flat-clamp) total.
+    expect(summary.wallTimeRangeMs.min).toBeLessThan(summary.wallTimeRangeMs.max);
+
+    // Only the second (decode) event is non-measured; its share of total
+    // wall time, weighted by ms, should be strictly between 0 and 1 and
+    // should match a direct recomputation from the event data.
+    expect(summary.nonMeasuredTimeShare).toBeGreaterThan(0);
+    expect(summary.nonMeasuredTimeShare).toBeLessThan(1);
+
+    const decodeEvent = timeline.events[1];
+    expect(decodeEvent.tgConfidence).toBe("extrapolated-fitted");
+    const expectedShare = decodeEvent.decodeMs / summary.wallTimeMs;
+    expect(summary.nonMeasuredTimeShare).toBeCloseTo(expectedShare);
+  });
+
+  it("widens wallTimeRangeMs beyond the canonical/optimistic split when measurements carry a stddev, even fully within the measured range", () => {
+    const measurementsWithStddev: BenchmarkMeasurement[] = [
+      { depth: 0, pp: 1000, tg: 20, tgStddev: 4, ppStddev: 40 },
+      { depth: 10_000, pp: 500, tg: 10, tgStddev: 2, ppStddev: 20 }
+    ];
+    const resultWithStddev: BenchmarkResult = { ...result, measurements: measurementsWithStddev };
+
+    const plainTimeline = buildTimeline({ result, scenario, cacheMode: "runtime", speed: 1 });
+    const plainSummary = summarizeTimeline(plainTimeline);
+
+    const stddevTimeline = buildTimeline({ result: resultWithStddev, scenario, cacheMode: "runtime", speed: 1 });
+    const stddevSummary = summarizeTimeline(stddevTimeline);
+
+    // Entirely within the measured range (as asserted by the no-uncertainty
+    // test above), so without stddev the range collapses to a point.
+    expect(plainSummary.wallTimeRangeMs.max - plainSummary.wallTimeRangeMs.min).toBeCloseTo(0);
+    // With stddev supplied, the range widens on both ends around the same
+    // point estimate, purely additively.
+    expect(stddevSummary.wallTimeMs).toBeCloseTo(plainSummary.wallTimeMs);
+    expect(stddevSummary.wallTimeRangeMs.min).toBeLessThan(stddevSummary.wallTimeMs);
+    expect(stddevSummary.wallTimeRangeMs.max).toBeGreaterThan(stddevSummary.wallTimeMs);
   });
 });

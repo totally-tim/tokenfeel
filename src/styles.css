@@ -1663,6 +1663,25 @@ mark {
   font-size: 17px;
 }
 
+.non-measured-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.non-measured-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border: 1px solid var(--border-hair);
+  border-radius: 999px;
+  background: var(--surface-secondary);
+  color: var(--fg-secondary);
+  font-family: "Geist Mono", monospace;
+  font-size: 11px;
+}
+
 .race-page {
   display: flex;
   flex-direction: column;

@@ -1,14 +1,33 @@
 import { describe, expect, test } from "vitest";
-import type { BenchmarkResult, Catalog } from "../types";
+import type { BenchmarkResult, Catalog, TimelineSummary } from "../types";
 import {
   comparisonSummary,
   constraintsForFieldChange,
   raceFieldOptions,
   raceSetupOrders,
+  raceVerdict,
   resolveRaceSelection,
   selectionFromResult,
   suggestComparableResults
 } from "./raceComparison";
+
+function summary(overrides: Partial<TimelineSummary> & { wallTimeMs: number }): TimelineSummary {
+  return {
+    wallTimeRangeMs: { min: overrides.wallTimeMs, max: overrides.wallTimeMs },
+    totalTokens: 0,
+    generatedTokens: 0,
+    prefilledWithCache: 0,
+    prefilledWithoutCache: 0,
+    cacheSavedRatio: 0,
+    prefillMs: 0,
+    decodeMs: 0,
+    toolLatencyMs: 0,
+    extrapolatedEvents: 0,
+    nonMeasuredTimeShare: 0,
+    avgDecodeTps: 0,
+    ...overrides
+  };
+}
 
 const baseResult = {
   measurements: [{ depth: 0, pp: 100, tg: 50 }],
@@ -107,5 +126,38 @@ describe("race comparison helpers", () => {
       detail: "Same model and hardware, but quant and runtime both differ.",
       level: "related"
     });
+  });
+});
+
+describe("raceVerdict", () => {
+  test("reports too-close when point estimates differ but wall-time ranges overlap", () => {
+    const left = summary({ wallTimeMs: 10_000, wallTimeRangeMs: { min: 9_000, max: 10_000 } });
+    const right = summary({ wallTimeMs: 9_500, wallTimeRangeMs: { min: 9_200, max: 11_000 } });
+
+    // Point estimates differ (10000 vs 9500) but [9000,10000] overlaps [9200,11000].
+    expect(raceVerdict(left, right)).toMatchObject({ winner: "too-close", deltaMs: 500 });
+  });
+
+  test("reports a clear winner when ranges do not overlap and there is no extrapolation", () => {
+    const left = summary({ wallTimeMs: 8_000 });
+    const right = summary({ wallTimeMs: 12_000 });
+
+    expect(raceVerdict(left, right)).toEqual({ winner: "left", deltaMs: 4_000 });
+    expect(raceVerdict(right, left)).toEqual({ winner: "right", deltaMs: 4_000 });
+  });
+
+  test("treats touching range boundaries as overlapping (too-close), not a clear winner", () => {
+    const left = summary({ wallTimeMs: 10_000, wallTimeRangeMs: { min: 9_000, max: 10_000 } });
+    const right = summary({ wallTimeMs: 10_500, wallTimeRangeMs: { min: 10_000, max: 11_000 } });
+
+    expect(raceVerdict(left, right).winner).toBe("too-close");
+  });
+
+  test("falls back to too-close instead of a false winner when a summary field is NaN", () => {
+    const left = summary({ wallTimeMs: NaN, wallTimeRangeMs: { min: NaN, max: NaN } });
+    const right = summary({ wallTimeMs: 9_500, wallTimeRangeMs: { min: 9_000, max: 10_000 } });
+
+    expect(raceVerdict(left, right)).toEqual({ winner: "too-close", deltaMs: 0 });
+    expect(raceVerdict(right, left)).toEqual({ winner: "too-close", deltaMs: 0 });
   });
 });

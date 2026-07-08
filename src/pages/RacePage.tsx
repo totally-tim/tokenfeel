@@ -17,6 +17,7 @@ import {
   constraintsForFieldChange,
   raceFieldOptions,
   raceSetupOrders,
+  raceVerdict,
   resolveRaceSelection,
   selectionFromResult,
   suggestComparableResults,
@@ -174,8 +175,13 @@ export function RacePage({ catalog, onNavigate }: RacePageProps) {
   const raceStarted = leftPlayback.hasStarted || rightPlayback.hasStarted;
   const raceRunning = leftPlayback.isPlaying || rightPlayback.isPlaying;
   const raceComplete = leftPlayback.isComplete && rightPlayback.isComplete;
-  const leftWins = leftPlayback.summary.wallTimeMs <= rightPlayback.summary.wallTimeMs;
-  const gap = Math.abs(leftPlayback.summary.wallTimeMs - rightPlayback.summary.wallTimeMs);
+  const verdict = raceVerdict(leftPlayback.summary, rightPlayback.summary);
+  const gap = verdict.deltaMs;
+  // "too-close" carries no lane preference of its own; fall back to the
+  // point-estimate comparison so the gap sign stays consistent with RaceGapBreakdown.
+  const leftLeads =
+    verdict.winner === "left" ||
+    (verdict.winner === "too-close" && leftPlayback.summary.wallTimeMs <= rightPlayback.summary.wallTimeMs);
   const comparison = useMemo(() => comparisonSummary(catalog, left, right), [catalog, left, right]);
   const suggestions = useMemo(() => suggestComparableResults(catalog, left, 3), [catalog, left]);
   const scenarioTokens = totalScenarioTokens(scenario);
@@ -356,7 +362,7 @@ export function RacePage({ catalog, onNavigate }: RacePageProps) {
           activeEvent={leftPlayback.activeEvent}
           elapsedMs={leftPlayback.elapsedMs}
           hasStarted={leftPlayback.hasStarted}
-          winner={leftWins}
+          winner={verdict.winner === "left"}
         />
         <aside className="delta-spine">
           <div className={`race-clock-card ${raceRunning ? "running" : raceComplete ? "complete" : ""}`}>
@@ -366,8 +372,18 @@ export function RacePage({ catalog, onNavigate }: RacePageProps) {
           </div>
           <div className="gap-summary">
             <span>GAP</span>
-            <strong>{leftWins ? "+" : "-"}{formatClock(gap)}</strong>
-            <p>{raceComplete ? (leftWins ? "Lane A won" : "Lane B won") : raceStarted ? "projected finish gap" : "projected gap"}</p>
+            <strong>{leftLeads ? "+" : "-"}{formatClock(gap)}</strong>
+            <p>
+              {raceComplete
+                ? verdict.winner === "too-close"
+                  ? "Too close to call from this data"
+                  : verdict.winner === "left"
+                    ? "Lane A won"
+                    : "Lane B won"
+                : raceStarted
+                  ? "projected finish gap"
+                  : "projected gap"}
+            </p>
           </div>
           <div className="spine-progress">
             <div>
@@ -382,7 +398,7 @@ export function RacePage({ catalog, onNavigate }: RacePageProps) {
             </div>
           </div>
           <Disclosure label="Gap breakdown · prefill vs decode vs tool">
-            <RaceGapBreakdown left={leftPlayback.summary} right={rightPlayback.summary} leftWins={leftWins} />
+            <RaceGapBreakdown left={leftPlayback.summary} right={rightPlayback.summary} winner={verdict.winner} />
           </Disclosure>
         </aside>
         <RaceLane
@@ -394,7 +410,7 @@ export function RacePage({ catalog, onNavigate }: RacePageProps) {
           activeEvent={rightPlayback.activeEvent}
           elapsedMs={rightPlayback.elapsedMs}
           hasStarted={rightPlayback.hasStarted}
-          winner={!leftWins}
+          winner={verdict.winner === "right"}
         />
       </section>
     </main>

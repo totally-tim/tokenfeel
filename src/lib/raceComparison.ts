@@ -1,5 +1,5 @@
 import { filterResultsBySelection, runtimeKey, type ConfigSelection, type ConfigSelectionField, type ConfigMatrixRefs, type MatrixOption } from "./configMatrix";
-import type { BenchmarkResult, Catalog } from "../types";
+import type { BenchmarkResult, Catalog, TimelineSummary } from "../types";
 
 export type RaceSetupField = ConfigSelectionField;
 export type RaceSetupMode = "model" | "hardware" | "runtime";
@@ -186,6 +186,52 @@ export function suggestComparableResults(catalog: Catalog, anchor: BenchmarkResu
     .filter((suggestion) => suggestion.score > 50)
     .sort((a, b) => b.score - a.score || a.result.id.localeCompare(b.result.id))
     .slice(0, limit);
+}
+
+export type RaceWinner = "left" | "right" | "too-close";
+
+export interface RaceVerdict {
+  winner: RaceWinner;
+  deltaMs: number;
+}
+
+/**
+ * Decides a race verdict from each lane's wall-time range rather than a
+ * naive point-estimate comparison: if the lanes' `wallTimeRangeMs` overlap,
+ * the data doesn't support a confident winner, so this reports "too-close"
+ * instead of crowning whichever lane happens to have the lower point
+ * estimate. `deltaMs` is always the absolute point-estimate (`wallTimeMs`)
+ * difference, regardless of which winner is reported.
+ *
+ * Falls back to "too-close" if any of the four inputs is non-finite (NaN or
+ * Infinity) — NaN comparisons are always false, which would otherwise slip
+ * past the overlap check and crown a false winner from garbage data.
+ */
+export function raceVerdict(leftSummary: TimelineSummary, rightSummary: TimelineSummary): RaceVerdict {
+  const deltaMs = Math.abs(leftSummary.wallTimeMs - rightSummary.wallTimeMs);
+
+  const allFinite = [
+    leftSummary.wallTimeMs,
+    rightSummary.wallTimeMs,
+    leftSummary.wallTimeRangeMs.min,
+    leftSummary.wallTimeRangeMs.max,
+    rightSummary.wallTimeRangeMs.min,
+    rightSummary.wallTimeRangeMs.max
+  ].every(Number.isFinite);
+
+  if (!allFinite) {
+    return { winner: "too-close", deltaMs: Number.isFinite(deltaMs) ? deltaMs : 0 };
+  }
+
+  const rangesOverlap =
+    leftSummary.wallTimeRangeMs.min <= rightSummary.wallTimeRangeMs.max &&
+    rightSummary.wallTimeRangeMs.min <= leftSummary.wallTimeRangeMs.max;
+
+  if (rangesOverlap) {
+    return { winner: "too-close", deltaMs };
+  }
+
+  return { winner: leftSummary.wallTimeMs <= rightSummary.wallTimeMs ? "left" : "right", deltaMs };
 }
 
 export function comparisonSummary(catalog: Catalog, left: BenchmarkResult, right: BenchmarkResult): { label: string; detail: string; level: "strong" | "related" | "loose" } {

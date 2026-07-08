@@ -228,6 +228,7 @@ export interface Timeline {
 
 export interface TimelineSummary {
   wallTimeMs: number;
+  wallTimeRangeMs: { min: number; max: number };
   totalTokens: number;
   generatedTokens: number;
   prefilledWithCache: number;
@@ -237,5 +238,6 @@ export interface TimelineSummary {
   decodeMs: number;
   toolLatencyMs: number;
   extrapolatedEvents: number;
+  nonMeasuredTimeShare: number;
   avgDecodeTps: number;
 }

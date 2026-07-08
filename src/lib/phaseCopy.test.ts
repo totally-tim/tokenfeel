@@ -53,6 +53,7 @@ describe("phase copy", () => {
   test("does not label projected total as elapsed", () => {
     const keys = statFootItems({
       wallTimeMs: 10_000,
+      wallTimeRangeMs: { min: 10_000, max: 10_000 },
       totalTokens: 2000,
       generatedTokens: 500,
       prefilledWithCache: 1500,
@@ -62,6 +63,7 @@ describe("phase copy", () => {
       decodeMs: 3000,
       toolLatencyMs: 0,
       extrapolatedEvents: 0,
+      nonMeasuredTimeShare: 0,
       avgDecodeTps: 20
     }).map((item) => item.label);
 

@@ -1,5 +1,6 @@
 import { AlertTriangle, Database, FileText, Link as LinkIcon, Sigma } from "lucide-react";
 import { formatClock, formatNumber, formatRate, formatTokens, percent } from "../lib/format";
+import type { RaceWinner } from "../lib/raceComparison";
 import type { BenchmarkResult, Timeline, TimelineEvent, TimelineSummary } from "../types";
 
 function pct(value: number, total: number): number {
@@ -181,12 +182,16 @@ export function EvidencePanel({ result }: { result: BenchmarkResult }) {
 export function RaceGapBreakdown({
   left,
   right,
-  leftWins
+  winner: raceWinner
 }: {
   left: TimelineSummary;
   right: TimelineSummary;
-  leftWins: boolean;
+  winner: RaceWinner;
 }) {
+  // "too-close" carries no lane preference of its own; fall back to the
+  // point-estimate comparison so the phase breakdown below still has a
+  // consistent sign (matches the pre-tri-state tie-breaking behavior).
+  const leftWins = raceWinner === "left" || (raceWinner === "too-close" && left.wallTimeMs <= right.wallTimeMs);
   const winner = leftWins ? left : right;
   const loser = leftWins ? right : left;
   const rows = [
@@ -211,6 +216,10 @@ export function RaceGapBreakdown({
           <strong>{row.delta >= 0 ? "+" : "-"}{formatClock(Math.abs(row.delta))}</strong>
         </div>
       ))}
+      <div className="non-measured-chips">
+        <span className="non-measured-chip">A extrapolated {percent(left.nonMeasuredTimeShare)}</span>
+        <span className="non-measured-chip">B extrapolated {percent(right.nonMeasuredTimeShare)}</span>
+      </div>
     </div>
   );
 }
