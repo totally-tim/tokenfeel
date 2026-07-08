@@ -9,7 +9,34 @@ import type {
 const DEFAULT_OVERHEAD_MS = 80;
 const generatedRoles = new Set(["assistant", "thinking", "tool_call"]);
 
-export function interpolateRate(
+/**
+ * Milliseconds-per-token at `depth`, interpolated LINEARLY IN TIME (ms/token)
+ * between bracketing measured depths — the physically appropriate quantity
+ * to interpolate, since it's what actually integrates to wall-clock time.
+ *
+ * Beyond the min/max measured depth this stays flat-clamped to the nearest
+ * measured point, identical to the old point-sample-in-rate-space approach's
+ * extrapolation behavior. Honest extrapolation (trend-fitted beyond the last
+ * point) is a later phase — kept separate for isolated review.
+ */
+function sortMeasurementsByDepth(measurements: BenchmarkMeasurement[]): BenchmarkMeasurement[] {
+  const points = [...measurements].sort((a, b) => a.depth - b.depth);
+  for (let index = 1; index < points.length; index += 1) {
+    if (points[index].depth === points[index - 1].depth) {
+      throw new Error(`Duplicate measurement depth ${points[index].depth}`);
+    }
+  }
+  return points;
+}
+
+function rateToMsPerToken(rate: number): number {
+  if (!(rate > 0)) {
+    throw new Error(`Measurement rate must be positive, got ${rate}`);
+  }
+  return 1000 / rate;
+}
+
+export function msPerTokenAt(
   measurements: BenchmarkMeasurement[],
   field: "pp" | "tg",
   depth: number
@@ -18,14 +45,15 @@ export function interpolateRate(
     throw new Error("Cannot interpolate an empty measurement set");
   }
 
-  const points = [...measurements].sort((a, b) => a.depth - b.depth);
-  if (depth <= points[0].depth) {
-    return points[0][field];
+  const points = sortMeasurementsByDepth(measurements);
+  const first = points[0];
+  if (depth <= first.depth) {
+    return rateToMsPerToken(first[field]);
   }
 
   const last = points[points.length - 1];
   if (depth >= last.depth) {
-    return last[field];
+    return rateToMsPerToken(last[field]);
   }
 
   for (let index = 0; index < points.length - 1; index += 1) {
@@ -34,11 +62,76 @@ export function interpolateRate(
     if (depth >= left.depth && depth <= right.depth) {
       const span = right.depth - left.depth;
       const progress = span === 0 ? 0 : (depth - left.depth) / span;
-      return left[field] + (right[field] - left[field]) * progress;
+      const leftMs = rateToMsPerToken(left[field]);
+      const rightMs = rateToMsPerToken(right[field]);
+      return leftMs + (rightMs - leftMs) * progress;
     }
   }
 
-  return last[field];
+  return rateToMsPerToken(last[field]);
+}
+
+/**
+ * Exact trapezoidal integral of `msPerTokenAt` over [fromDepth, toDepth]
+ * (fromDepth <= toDepth). `msPerTokenAt` is piecewise-linear with breakpoints
+ * at each measured depth plus flat clamps before the first / after the last
+ * point, so this is computed as an exact analytic sum over each linear
+ * segment intersected with the requested range (average height * width per
+ * segment) rather than fine-grained numerical stepping.
+ */
+export function integrateTimeMs(
+  measurements: BenchmarkMeasurement[],
+  field: "pp" | "tg",
+  fromDepth: number,
+  toDepth: number
+): number {
+  if (measurements.length === 0) {
+    throw new Error("Cannot integrate an empty measurement set");
+  }
+  if (toDepth <= fromDepth) {
+    return 0;
+  }
+
+  const points = sortMeasurementsByDepth(measurements);
+  const first = points[0];
+  const last = points[points.length - 1];
+  const firstMs = rateToMsPerToken(first[field]);
+  const lastMs = rateToMsPerToken(last[field]);
+
+  let total = 0;
+
+  // Flat segment before the first measured depth.
+  const preEnd = Math.min(toDepth, first.depth);
+  if (fromDepth < preEnd) {
+    total += (preEnd - fromDepth) * firstMs;
+  }
+
+  // Linear segments between consecutive measured depths.
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const left = points[index];
+    const right = points[index + 1];
+    const span = right.depth - left.depth;
+
+    const segStart = Math.max(fromDepth, left.depth);
+    const segEnd = Math.min(toDepth, right.depth);
+    if (segStart >= segEnd) continue;
+
+    const leftMs = rateToMsPerToken(left[field]);
+    const rightMs = rateToMsPerToken(right[field]);
+    const valueAt = (depth: number) => leftMs + (rightMs - leftMs) * ((depth - left.depth) / span);
+
+    const startValue = valueAt(segStart);
+    const endValue = valueAt(segEnd);
+    total += ((startValue + endValue) / 2) * (segEnd - segStart);
+  }
+
+  // Flat segment after the last measured depth.
+  const postStart = Math.max(fromDepth, last.depth);
+  if (postStart < toDepth) {
+    total += (toDepth - postStart) * lastMs;
+  }
+
+  return total;
 }
 
 export function isExtrapolated(measurements: BenchmarkMeasurement[], depth: number): boolean {
@@ -98,16 +191,52 @@ export function buildTimeline(input: TimelineInput): Timeline {
         ? 0
         : Math.max(0, withoutCachePrefillTokens - effectiveCachedPrefix);
     const ppDepth = shouldPrefill ? withoutCachePrefillTokens : contextBefore;
-    const ppRate = interpolateRate(result.measurements, "pp", ppDepth);
-    const tgRate = interpolateRate(result.measurements, "tg", contextBefore);
-    const measuredTtftMs = interpolateTtftMs(result.measurements, withoutCachePrefillTokens);
-    const measuredPrefillMs =
-      measuredTtftMs === undefined || withoutCachePrefillTokens === 0
-        ? undefined
-        : measuredTtftMs * (prefillTokens / withoutCachePrefillTokens);
-    const prefillMs =
-      prefillTokens === 0 ? 0 : measuredPrefillMs ?? (prefillTokens / ppRate) * 1000 + overheadMs;
-    const decodeMs = shouldDecode && event.tokens > 0 ? (event.tokens / tgRate) * 1000 : 0;
+
+    let prefillMs = 0;
+    let prefillIntegralMs = 0;
+    if (prefillTokens > 0) {
+      prefillIntegralMs = integrateTimeMs(
+        result.measurements,
+        "pp",
+        effectiveCachedPrefix,
+        withoutCachePrefillTokens
+      );
+      const measuredTtftMs = interpolateTtftMs(result.measurements, withoutCachePrefillTokens);
+      if (measuredTtftMs !== undefined) {
+        const fullPrefillIntegralMs = integrateTimeMs(
+          result.measurements,
+          "pp",
+          0,
+          withoutCachePrefillTokens
+        );
+        // impliedOverheadMs is the fixed launch cost the model's integral doesn't
+        // capture; adding it back to the (possibly cache-shortened) integral
+        // reproduces measuredTtftMs exactly for a fully cold prefill, since
+        // prefillIntegralMs === fullPrefillIntegralMs in that case.
+        const impliedOverheadMs = measuredTtftMs - fullPrefillIntegralMs;
+        const rawPrefillMs = impliedOverheadMs + prefillIntegralMs;
+        prefillMs = Number.isFinite(rawPrefillMs)
+          ? Math.max(0, rawPrefillMs)
+          : prefillIntegralMs + overheadMs;
+      } else {
+        prefillMs = prefillIntegralMs + overheadMs;
+      }
+    }
+
+    const decodeMs =
+      shouldDecode && event.tokens > 0
+        ? integrateTimeMs(result.measurements, "tg", contextBefore, contextBefore + event.tokens)
+        : 0;
+
+    const ppRate =
+      prefillTokens > 0
+        ? prefillTokens / (prefillIntegralMs / 1000)
+        : 1000 / msPerTokenAt(result.measurements, "pp", ppDepth);
+    const tgRate =
+      shouldDecode && event.tokens > 0
+        ? event.tokens / (decodeMs / 1000)
+        : 1000 / msPerTokenAt(result.measurements, "tg", contextBefore);
+
     const toolLatencyMs = event.toolLatencyMs ?? 0;
     const startMs = cursorMs;
     const toolDoneMs = startMs + toolLatencyMs;
@@ -146,7 +275,7 @@ export function buildTimeline(input: TimelineInput): Timeline {
       ppRate,
       tgRate,
       toolLatencyMs,
-      extrapolated: isExtrapolated(result.measurements, Math.max(contextBefore, withoutCachePrefillTokens))
+      extrapolated: isExtrapolated(result.measurements, contextDepth)
     };
   });
 
