@@ -107,7 +107,7 @@ export function LandingPage({ catalog, onNavigate }: LandingPageProps) {
             <PipelinePanel
               n="02"
               title="TIMING MODEL"
-              lines={["TTFT = measured", "fallback = prompt ÷ pp(depth)", "t/tok = 1 ÷ tg(depth)", "interp — linear", "extrap — flat ⚠"]}
+              lines={["TTFT = measured", "fallback = prompt ÷ pp(depth)", "t/tok = 1 ÷ tg(depth)", "interp — linear", "extrap — fitted trend ⚠"]}
             />
             <Connector />
             <PipelinePanel
