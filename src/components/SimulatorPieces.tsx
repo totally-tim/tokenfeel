@@ -1,5 +1,5 @@
 import { Brain, Check, ChevronDown, ChevronRight, Clock, Cpu, Gauge, MessageSquare, Play, Square, Terminal, Wrench } from "lucide-react";
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { formatClock, formatNumber, formatRate, formatTokens, percent } from "../lib/format";
 import type { BenchmarkResult, CacheMode, Catalog, RateConfidence, RuntimeMetadata, ScenarioEvent, Timeline, TimelineEvent, TimelineSummary } from "../types";
 import { compactResultLabel, resultMeta } from "../lib/catalog";
@@ -229,6 +229,15 @@ interface SearchSelectProps {
   onChange: (value: string) => void;
   placeholder?: string;
   limit?: number;
+  /**
+   * Compact rendering for tight toolbar contexts (Configs filter row): drops
+   * the label/count caption row and shrinks the trigger to match neighboring
+   * filter controls. Same combobox behavior either way -- this is a shared
+   * component (design.md: "search pickers" are shared vocabulary across
+   * Landing, Playground, Race, and Configs), not a parallel implementation.
+   */
+  compact?: boolean;
+  disabled?: boolean;
 }
 
 export function SearchSelect({
@@ -239,15 +248,44 @@ export function SearchSelect({
   options,
   onChange,
   placeholder = "Search",
-  limit = 40
+  limit = 40,
+  compact = false,
+  disabled = false
 }: SearchSelectProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const listboxId = useId();
   const visibleOptions = useMemo(
     () => filterPickerOptions(options, query, selectedValue, limit),
     [limit, options, query, selectedValue]
   );
+
+  // Reset the keyboard-highlighted row to the top whenever the panel opens
+  // or the query narrows/widens the result set.
+  useEffect(() => {
+    setHighlightedIndex(0);
+  }, [open, query]);
+
+  // Clamp separately (rather than resetting to 0) when the option list
+  // itself shrinks with the query unchanged -- e.g. a cascading filter
+  // upstream narrows `options` while this panel is still open -- so arrow
+  // keys never point past the end of the list and the highlight stays near
+  // its prior position instead of jumping back to the top.
+  useEffect(() => {
+    setHighlightedIndex((index) => Math.min(index, Math.max(0, visibleOptions.length - 1)));
+  }, [visibleOptions]);
+
+  // A disabled trigger must not leave its popover open and interactive
+  // behind it -- close and clear any in-progress search immediately.
+  useEffect(() => {
+    if (disabled && open) {
+      setQuery("");
+      setOpen(false);
+    }
+  }, [disabled, open]);
 
   useEffect(() => {
     if (!open) return;
@@ -263,7 +301,10 @@ export function SearchSelect({
     };
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") close();
+      if (event.key === "Escape") {
+        close();
+        triggerRef.current?.focus();
+      }
     };
 
     document.addEventListener("pointerdown", onPointerDown);
@@ -274,24 +315,57 @@ export function SearchSelect({
     };
   }, [open]);
 
+  // Keep the highlighted option scrolled into view as arrow keys move it.
+  useEffect(() => {
+    if (!open) return;
+    const option = visibleOptions[highlightedIndex];
+    if (!option) return;
+    const node = rootRef.current?.querySelector(`#${CSS.escape(`${listboxId}-${highlightedIndex}`)}`);
+    node?.scrollIntoView({ block: "nearest" });
+  }, [highlightedIndex, open, visibleOptions, listboxId]);
+
   const choose = (nextValue: string) => {
     onChange(nextValue);
     setQuery("");
     setOpen(false);
+    triggerRef.current?.focus();
+  };
+
+  // Arrow-key navigation + Enter-to-choose, matching the existing
+  // Escape-to-close behavior so the listbox/option ARIA roles this component
+  // advertises are backed by real keyboard behavior, not just mouse/pointer.
+  const onSearchKeyDown = (event: ReactKeyboardEvent<HTMLInputElement>) => {
+    if (visibleOptions.length === 0) return;
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setHighlightedIndex((index) => (index + 1) % visibleOptions.length);
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setHighlightedIndex((index) => (index - 1 + visibleOptions.length) % visibleOptions.length);
+    } else if (event.key === "Enter") {
+      event.preventDefault();
+      const option = visibleOptions[highlightedIndex];
+      if (option) choose(option.value);
+    }
   };
 
   return (
-    <div ref={rootRef} className={`search-select ${open ? "open" : ""}`}>
-      <div className="search-select-label">
-        <span>{label}</span>
-        <small>{formatNumber(options.length)} choices</small>
-      </div>
+    <div ref={rootRef} className={`search-select ${compact ? "compact" : ""} ${open ? "open" : ""}`}>
+      {!compact && (
+        <div className="search-select-label">
+          <span>{label}</span>
+          <small>{formatNumber(options.length)} choices</small>
+        </div>
+      )}
       <button
+        ref={triggerRef}
         type="button"
         className="search-select-trigger"
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => setOpen((current) => !current)}
         aria-expanded={open}
         aria-haspopup="listbox"
+        aria-label={`${label}: ${value}`}
+        disabled={disabled}
       >
         <span>
           <strong>{value}</strong>
@@ -299,25 +373,36 @@ export function SearchSelect({
         </span>
         <ChevronDown size={16} />
       </button>
-      {open && (
+      {open && !disabled && (
         <div className="search-select-panel">
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
+            onKeyDown={onSearchKeyDown}
             placeholder={placeholder}
             aria-label={`${label} search`}
+            role="combobox"
+            aria-expanded={open}
+            aria-controls={listboxId}
+            aria-activedescendant={visibleOptions[highlightedIndex] ? `${listboxId}-${highlightedIndex}` : undefined}
+            aria-autocomplete="list"
             autoFocus
           />
-          <div className="search-select-results" role="listbox" aria-label={`${label} options`}>
+          <div id={listboxId} className="search-select-results" role="listbox" aria-label={`${label} options`}>
             {visibleOptions.length === 0 ? (
               <p>No matches. Try hardware, model, runtime, backend, or quant.</p>
             ) : (
-              visibleOptions.map((option) => (
+              visibleOptions.map((option, index) => (
                 <button
                   key={option.value}
+                  id={`${listboxId}-${index}`}
                   type="button"
-                  className={option.value === selectedValue ? "active" : ""}
+                  tabIndex={-1}
+                  className={[option.value === selectedValue ? "active" : "", index === highlightedIndex ? "focused" : ""]
+                    .filter(Boolean)
+                    .join(" ")}
                   onClick={() => choose(option.value)}
+                  onMouseEnter={() => setHighlightedIndex(index)}
                   role="option"
                   aria-selected={option.value === selectedValue}
                 >

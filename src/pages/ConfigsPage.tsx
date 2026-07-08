@@ -1,6 +1,7 @@
 import { ArrowRight, ExternalLink, Flag, Search, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { StatusBadge } from "../components/StatusBadge";
+import { SearchSelect } from "../components/SimulatorPieces";
 import { DepthRateCurve, EvidencePanel, QualityFlags } from "../components/Visualizations";
 import { createCatalogLookups, rankedResults, DEFAULT_SCENARIO_ID } from "../lib/catalog";
 import { baselineMeasurement } from "../lib/catalogQuality";
@@ -42,6 +43,14 @@ function plural(count: number, singular: string, pluralForm = `${singular}s`) {
 // per row across sorting and rendering.
 function baselineMetric(baselineByResultId: Map<string, BenchmarkMeasurement | undefined>, resultId: string, key: "pp" | "tg"): number {
   return baselineByResultId.get(resultId)?.[key] ?? 0;
+}
+
+// Filters here are optional/clearable (unlike Race's SearchSelect fields,
+// which always resolve to a real result). Prepend a synthetic "All X" option
+// so the shared SearchSelect combobox can represent "no filter" the same way
+// the previous native <select>'s blank option did.
+function withAllOption(allLabel: string, options: Array<{ value: string; label: string; sub?: string }>) {
+  return [{ value: "", label: allLabel }, ...options];
 }
 
 export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
@@ -223,65 +232,47 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
               <Search size={15} />
               <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Filter configs..." />
             </label>
-            <label className="filter-select">
-              <select
-                value={selection.hardwareId ?? ""}
-                onChange={(event) => setSelection((current) => updateConfigFilterSelection(current, "hardwareId", event.target.value))}
-                aria-label="Hardware filter"
-              >
-                <option value="">All hardware</option>
-                {hardwareOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className={`filter-select ${selection.hardwareId ? "" : "disabled"}`}>
-              <select
-                value={selection.modelId ?? ""}
-                onChange={(event) => setSelection((current) => updateConfigFilterSelection(current, "modelId", event.target.value))}
-                aria-label="Model filter"
-                disabled={!selection.hardwareId}
-              >
-                <option value="">{selection.hardwareId ? "All models" : "Model"}</option>
-                {modelOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className={`filter-select ${selection.modelId ? "" : "disabled"}`}>
-              <select
-                value={selection.quant ?? ""}
-                onChange={(event) => setSelection((current) => updateConfigFilterSelection(current, "quant", event.target.value))}
-                aria-label="Quant filter"
-                disabled={!selection.modelId}
-              >
-                <option value="">{selection.modelId ? "All quants" : "Quant"}</option>
-                {quantOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className={`filter-select ${selection.quant ? "" : "disabled"}`}>
-              <select
-                value={selection.runtimeKey ?? ""}
-                onChange={(event) => setSelection((current) => updateConfigFilterSelection(current, "runtimeKey", event.target.value))}
-                aria-label="Runtime filter"
-                disabled={!selection.quant}
-              >
-                <option value="">{selection.quant ? "All runtimes" : "Runtime"}</option>
-                {runtimeOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <SearchSelect
+              compact
+              label="Hardware"
+              value={selection.hardwareId ? labelFor(hardwareOptions, selection.hardwareId) : "All hardware"}
+              selectedValue={selection.hardwareId ?? ""}
+              options={withAllOption("All hardware", hardwareOptions)}
+              onChange={(next) => setSelection((current) => updateConfigFilterSelection(current, "hardwareId", next))}
+              placeholder="Search hardware"
+              limit={80}
+            />
+            <SearchSelect
+              compact
+              disabled={!selection.hardwareId}
+              label="Model"
+              value={!selection.hardwareId ? "Model" : selection.modelId ? labelFor(modelOptions, selection.modelId) : "All models"}
+              selectedValue={selection.modelId ?? ""}
+              options={withAllOption(selection.hardwareId ? "All models" : "Model", modelOptions)}
+              onChange={(next) => setSelection((current) => updateConfigFilterSelection(current, "modelId", next))}
+              placeholder="Search models"
+              limit={80}
+            />
+            <SearchSelect
+              compact
+              disabled={!selection.modelId}
+              label="Quant"
+              value={!selection.modelId ? "Quant" : selection.quant ? labelFor(quantOptions, selection.quant) : "All quants"}
+              selectedValue={selection.quant ?? ""}
+              options={withAllOption(selection.modelId ? "All quants" : "Quant", quantOptions)}
+              onChange={(next) => setSelection((current) => updateConfigFilterSelection(current, "quant", next))}
+              placeholder="Search quants"
+            />
+            <SearchSelect
+              compact
+              disabled={!selection.quant}
+              label="Runtime"
+              value={!selection.quant ? "Runtime" : selection.runtimeKey ? labelFor(runtimeOptions, selection.runtimeKey) : "All runtimes"}
+              selectedValue={selection.runtimeKey ?? ""}
+              options={withAllOption(selection.quant ? "All runtimes" : "Runtime", runtimeOptions)}
+              onChange={(next) => setSelection((current) => updateConfigFilterSelection(current, "runtimeKey", next))}
+              placeholder="Search runtimes"
+            />
             <button
               type="button"
               className={verifiedOnly ? "active" : ""}

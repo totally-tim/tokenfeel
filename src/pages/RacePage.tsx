@@ -3,10 +3,10 @@ import { useEffect, useMemo, useState } from "react";
 import { CacheModeSelector, Disclosure, RaceLane, SearchSelect, SpeedSelector } from "../components/SimulatorPieces";
 import { RaceGapBreakdown } from "../components/Visualizations";
 import {
-  DEFAULT_LEFT_RESULT_ID,
-  DEFAULT_RIGHT_RESULT_ID,
   DEFAULT_SCENARIO_ID,
   createCatalogLookups,
+  defaultLeftResultId,
+  defaultRightResultId,
   getResult,
   getScenario,
   scenarioOptions
@@ -60,8 +60,8 @@ function resolveRaceState(catalog: Catalog, parsed: ReturnType<typeof parseRaceS
   const scenarioIds = new Set(catalog.scenarios.map((scenario) => scenario.id));
 
   return {
-    leftId: parsed.leftId && resultIds.has(parsed.leftId) ? parsed.leftId : DEFAULT_LEFT_RESULT_ID,
-    rightId: parsed.rightId && resultIds.has(parsed.rightId) ? parsed.rightId : DEFAULT_RIGHT_RESULT_ID,
+    leftId: parsed.leftId && resultIds.has(parsed.leftId) ? parsed.leftId : defaultLeftResultId(catalog),
+    rightId: parsed.rightId && resultIds.has(parsed.rightId) ? parsed.rightId : defaultRightResultId(catalog),
     scenarioId: parsed.scenarioId && scenarioIds.has(parsed.scenarioId) ? parsed.scenarioId : DEFAULT_SCENARIO_ID,
     speed: parsed.speed && supportedSpeeds.has(parsed.speed) ? parsed.speed : 1,
     cacheMode: parsed.cacheMode ?? "runtime"
@@ -205,7 +205,13 @@ export function RacePage({ catalog, onNavigate }: RacePageProps) {
   useEffect(() => {
     const onHash = () => {
       const parsed = parseRaceShareHash(window.location.hash);
-      const next = resolveRaceState(catalog, parsed);
+      let next: ReturnType<typeof resolveRaceState>;
+      try {
+        next = resolveRaceState(catalog, parsed);
+      } catch (error) {
+        console.error("Failed to resolve race state from hash change", error);
+        return;
+      }
       setLeftId(next.leftId);
       setRightId(next.rightId);
       setScenarioId(next.scenarioId);
