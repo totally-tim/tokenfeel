@@ -1182,6 +1182,12 @@ mark {
   line-height: 1.45;
 }
 
+.thinking-row-scroll {
+  max-height: 220px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
 .cursor {
   color: var(--accent);
 }
@@ -4412,6 +4418,11 @@ mark {
 
   .race-output-event pre,
   .race-output-event .tool-result {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .thinking-row-scroll {
     max-height: none;
     overflow: visible;
   }
