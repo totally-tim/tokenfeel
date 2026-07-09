@@ -42,7 +42,7 @@ import { PhaseWaterfall, QualityFlags } from "./Visualizations";
 import { filterPickerOptions } from "../lib/pickerOptions";
 import type { MatrixOption } from "../lib/configMatrix";
 import { phaseCopyForEvent, statFootItems, turnMetricForEvent } from "../lib/phaseCopy";
-import { phaseTrackVisualState } from "../lib/phaseProgress";
+import { cadenceDurationMs, phaseTrackVisualState, sweepDurationMs } from "../lib/phaseProgress";
 import { raceOutputWindow } from "../lib/raceOutput";
 import { activePhaseForEvent, type PhaseKind } from "../lib/activePhase";
 
@@ -117,7 +117,9 @@ export function PhaseState({
   const trackVisual = phaseTrackVisualState(phase.progress, waiting);
   const trackStyle = {
     "--phase-fill-width": trackVisual.fillWidth,
-    "--phase-pip-left": trackVisual.pipLeft
+    "--phase-pip-left": trackVisual.pipLeft,
+    "--cadence-duration": `${cadenceDurationMs(event.tgRate)}ms`,
+    "--sweep-duration": `${sweepDurationMs(event.ppRate)}ms`
   } as CSSProperties;
 
   return (
