@@ -399,3 +399,41 @@ describe("scenarioEventSchema cache_bust marker role (T1)", () => {
     ).toThrow(/cache_bust.*cacheBust property/);
   });
 });
+
+describe("scenarioEventSchema content-density floor (thinking-token streaming realism)", () => {
+  it("rejects a generated-role event whose text is far too sparse for its declared token count", () => {
+    expect(() =>
+      scenarioEventSchema.parse({
+        id: "sparse-thinking",
+        role: "thinking",
+        text: "Too short for the claimed token count.",
+        tokens: 5200
+      })
+    ).toThrow(/content-density floor/);
+  });
+
+  it("accepts a generated-role event whose text clears the density floor", () => {
+    const parsed = scenarioEventSchema.parse({
+      id: "dense-thinking",
+      role: "thinking",
+      text: "x".repeat(5200),
+      tokens: 5200
+    });
+    expect(parsed.tokens).toBe(5200);
+  });
+
+  it("does not apply the density floor to non-generated roles", () => {
+    expect(() =>
+      scenarioEventSchema.parse({ id: "short-user-turn", role: "user", text: "Yes.", tokens: 5200 })
+    ).not.toThrow();
+    expect(() =>
+      scenarioEventSchema.parse({ id: "short-tool-result", role: "tool_result", text: "OK", tokens: 5200 })
+    ).not.toThrow();
+  });
+
+  it("never trips on a legitimately short generated reply", () => {
+    expect(() =>
+      scenarioEventSchema.parse({ id: "short-reply", role: "assistant", text: "Yes.", tokens: 3 })
+    ).not.toThrow();
+  });
+});
