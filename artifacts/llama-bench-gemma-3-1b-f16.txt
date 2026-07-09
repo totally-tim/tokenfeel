@@ -1,0 +1,16 @@
+COMMAND: "G:/coding/llamacpp/llama-bench.exe" -m "G:/models/Gemma-3-1B-it-GLM-4.7-Flash-Heretic-Uncensored-Thinking_F16.gguf" -p 512 -n 64 -d 0,4096,8192 -fa 1 -ngl 99 -r 5 -o md
+ggml_cuda_init: found 1 CUDA devices:
+  Device 0: NVIDIA GeForce RTX 5070 Ti, compute capability 12.0, VMM: yes
+load_backend: loaded CUDA backend from G:\coding\llamacpp\ggml-cuda.dll
+load_backend: loaded RPC backend from G:\coding\llamacpp\ggml-rpc.dll
+load_backend: loaded CPU backend from G:\coding\llamacpp\ggml-cpu-alderlake.dll
+| model                          |       size |     params | backend    | ngl | fa |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | -: | --------------: | -------------------: |
+| gemma3 1B F16                  |   1.86 GiB |   999.89 M | CUDA       |  99 |  1 |           pp512 |   28063.63 ± 4855.33 |
+| gemma3 1B F16                  |   1.86 GiB |   999.89 M | CUDA       |  99 |  1 |            tg64 |        257.01 ± 2.15 |
+| gemma3 1B F16                  |   1.86 GiB |   999.89 M | CUDA       |  99 |  1 |   pp512 @ d4096 |   25743.18 ± 1655.01 |
+| gemma3 1B F16                  |   1.86 GiB |   999.89 M | CUDA       |  99 |  1 |    tg64 @ d4096 |        251.52 ± 2.70 |
+| gemma3 1B F16                  |   1.86 GiB |   999.89 M | CUDA       |  99 |  1 |   pp512 @ d8192 |   24502.40 ± 1449.98 |
+| gemma3 1B F16                  |   1.86 GiB |   999.89 M | CUDA       |  99 |  1 |    tg64 @ d8192 |        248.96 ± 4.69 |
+
+build: 5452d736f (8131)

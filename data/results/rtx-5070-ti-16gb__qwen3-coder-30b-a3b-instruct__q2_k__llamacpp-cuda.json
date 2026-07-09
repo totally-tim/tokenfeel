@@ -1,0 +1,86 @@
+{
+  "id": "rtx-5070-ti-16gb__qwen3-coder-30b-a3b-instruct__q2_k__llamacpp-cuda",
+  "hardware": "rtx-5070-ti-16gb",
+  "model": "qwen3-coder-30b-a3b-instruct",
+  "quant": "q2_k",
+  "runtime": {
+    "name": "llama.cpp",
+    "version": "5452d736f (8131)",
+    "backend": "CUDA",
+    "flags": "-p 512 -n 64 -d 0,4096,8192 -fa 1 -ngl 99 -r 5 --model Qwen3-Coder-30B-A3B-Instruct-Q2_K.gguf",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 0,
+      "pp": 3292.68,
+      "ppLabel": "pp512",
+      "ppStddev": 117.42,
+      "tg": 190.07,
+      "tgLabel": "tg64",
+      "tgStddev": 2.26
+    },
+    {
+      "depth": 4096,
+      "pp": 3018.54,
+      "ppLabel": "pp512 @ d4096",
+      "ppStddev": 20.36,
+      "tg": 158.95,
+      "tgLabel": "tg64 @ d4096",
+      "tgStddev": 0.94
+    },
+    {
+      "depth": 8192,
+      "pp": 2752.52,
+      "ppLabel": "pp512 @ d8192",
+      "ppStddev": 8.28,
+      "tg": 145.57,
+      "tgLabel": "tg64 @ d8192",
+      "tgStddev": 1.98
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://raw.githubusercontent.com/totally-tim/tokenfeel/benchmark/rtx-5070-ti-llamacpp/artifacts/llama-bench-qwen3-coder-30b-q2_k.txt",
+    "rawFormat": "llama-bench",
+    "retrievedAt": "2026-07-09T14:29:32.261Z",
+    "parserVersion": "tokenfeel-convert/1",
+    "rawRows": [
+      "| qwen3moe 30B.A3B Q2_K - Medium |  10.48 GiB |    30.53 B | CUDA       |  99 |  1 |           pp512 |     3292.68 ± 117.42 |",
+      "| qwen3moe 30B.A3B Q2_K - Medium |  10.48 GiB |    30.53 B | CUDA       |  99 |  1 |            tg64 |        190.07 ± 2.26 |",
+      "| qwen3moe 30B.A3B Q2_K - Medium |  10.48 GiB |    30.53 B | CUDA       |  99 |  1 |   pp512 @ d4096 |      3018.54 ± 20.36 |",
+      "| qwen3moe 30B.A3B Q2_K - Medium |  10.48 GiB |    30.53 B | CUDA       |  99 |  1 |    tg64 @ d4096 |        158.95 ± 0.94 |",
+      "| qwen3moe 30B.A3B Q2_K - Medium |  10.48 GiB |    30.53 B | CUDA       |  99 |  1 |   pp512 @ d8192 |       2752.52 ± 8.28 |",
+      "| qwen3moe 30B.A3B Q2_K - Medium |  10.48 GiB |    30.53 B | CUDA       |  99 |  1 |    tg64 @ d8192 |        145.57 ± 1.98 |"
+    ]
+  },
+  "benchmark": {
+    "tool": "llama-bench",
+    "command": "llama-bench.exe -m G:/models/Qwen3-Coder-30B-A3B-Instruct-Q2_K.gguf -p 512 -n 64 -d 0,4096,8192 -fa 1 -ngl 99 -r 5 -o md",
+    "outputFormat": "text",
+    "ppTokens": 512,
+    "tgTokens": 64,
+    "runs": 5,
+    "warmup": 1
+  },
+  "topology": {
+    "nodeCount": 1,
+    "acceleratorCount": 1,
+    "os": "Windows 11 Pro 10.0.26200",
+    "driver": "596.49",
+    "cuda": "13",
+    "runtimeVersions": {
+      "cpu": "Intel Core i9-14900K (24c/32t)",
+      "systemMemory": "64GB"
+    }
+  },
+  "source": {
+    "kind": "llama-bench",
+    "title": "RTX 5070 Ti llama-bench: Qwen3-Coder-30B-A3B-Instruct Q2_K",
+    "url": "https://raw.githubusercontent.com/totally-tim/tokenfeel/benchmark/rtx-5070-ti-llamacpp/artifacts/llama-bench-qwen3-coder-30b-q2_k.txt",
+    "raw": "preserved in evidence.rawRows"
+  },
+  "submitter": "totally-tim",
+  "date": "2026-07-09",
+  "status": "community",
+  "notes": "Depths above 8192 were not measured on this 16GB GPU; compare using pp512/tg64 labels."
+}
