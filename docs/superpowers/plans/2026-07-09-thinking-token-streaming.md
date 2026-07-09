@@ -438,6 +438,109 @@ git commit -m "Densify agent-bugfix thinking/answer/tool-call text to realistic 
 
 ---
 
+## Task 3B: Densify `chatbot-trip-planning` scenario content
+
+**Scope-gap note:** Tasks 1–3 were scoped from a search for scenario events
+with `"role": "thinking"`, which found exactly three scenario files. There is
+a fourth scenario file, `scenarios/chatbot-trip-planning/script.json` (a
+plain six-turn chatbot conversation, no `thinking`/`tool_call` events), whose
+six `assistant` events have the identical sparse-text bug and were missed by
+that search. This task closes the gap using the same rigor as Tasks 1–3,
+before Task 4's guard is verified against the full scenario set.
+
+**Files:**
+- Modify: `scenarios/chatbot-trip-planning/script.json`
+
+**Interfaces:**
+- Produces: no code interface — data-only change.
+
+Current file (only `text` on the six `assistant` events changes; every
+`user` event and every other field stays exactly as-is):
+
+```json
+{
+  "id": "chatbot-trip-planning",
+  "title": "Chatbot trip planning",
+  "type": "chatbot",
+  "systemPromptTokens": 850,
+  "description": "A pleasant six-turn travel planning conversation with steadily growing context.",
+  "events": [
+    { "id": "trip-u1", "role": "user", "text": "Plan a three-day route through the Dolomites that keeps driving under two hours per day.", "tokens": 42 },
+    { "id": "trip-a1", "role": "assistant", "text": "Start in Bolzano, sleep near Ortisei, then loop through Val Gardena, Seceda and Lago di Braies with short hikes each afternoon.", "tokens": 390 },
+    { "id": "trip-u2", "role": "user", "text": "Make it friendlier for a parent travelling with a seven-year-old.", "tokens": 30 },
+    { "id": "trip-a2", "role": "assistant", "text": "Swap the longest hut walk for cable-car viewpoints, add playground stops and schedule the lake visit early to avoid crowds.", "tokens": 420 },
+    { "id": "trip-u3", "role": "user", "text": "Now turn it into a packing and booking checklist.", "tokens": 24 },
+    { "id": "trip-a3", "role": "assistant", "text": "Book two bases, reserve lift tickets, pack layers, rain shells, snacks, offline maps, booster seat details and a compact first-aid kit.", "tokens": 360 },
+    { "id": "trip-u4", "role": "user", "text": "Add restaurant ideas that do not require long dinners.", "tokens": 26 },
+    { "id": "trip-a4", "role": "assistant", "text": "Prioritize refugios and casual pizzerias near the route, keep one picnic dinner in the plan, and book only the final night so tired evenings stay flexible.", "tokens": 410 },
+    { "id": "trip-u5", "role": "user", "text": "What if rain closes the cable cars on day two?", "tokens": 28 },
+    { "id": "trip-a5", "role": "assistant", "text": "Move the mountain viewpoint to day three, use the Ortisei pool and wood-carving museum as the rainy-day anchor, and keep the drive short by staying in the same valley.", "tokens": 445 },
+    { "id": "trip-u6", "role": "user", "text": "Finish with a text I can send to my partner.", "tokens": 24 },
+    { "id": "trip-a6", "role": "assistant", "text": "Here is the short version: two easy bases, cable-car views instead of long climbs, early lake visit, flexible dinners, rainy-day backup in Ortisei, and a kid-friendly checklist before we book.", "tokens": 382 }
+  ]
+}
+```
+
+Rewrite targets (assistant target: 1.3–1.6 tokens/word):
+
+| event id | tokens | current words | target words |
+|---|---|---|---|
+| `trip-a1` | 390 | 21 | 244–300 |
+| `trip-a2` | 420 | 20 | 263–323 |
+| `trip-a3` | 360 | 21 | 225–277 |
+| `trip-a4` | 410 | 26 | 257–315 |
+| `trip-a5` | 445 | 29 | 279–342 |
+| `trip-a6` | 382 | 30 | 239–294 |
+
+- [ ] **Step 1: Rewrite `trip-a1` through `trip-a6`**
+
+Expand each terse reply into a fuller, warm, practical travel-planning
+answer that preserves every concrete fact already stated (place names,
+the two-base structure, cable-car swap, lake-crowds timing, checklist
+items, restaurant/dinner-booking plan, rainy-day backup, and the closing
+summary text) — do not invent contradicting facts, and keep each answer
+consistent with the ones before and after it (this is one continuous
+six-turn conversation with growing context, not six independent scenes).
+Register: clean, confident, conversational chat-assistant prose, not
+internal monologue. Target the word range in the table above for each.
+
+- [ ] **Step 2: Verify density**
+
+Run:
+
+```bash
+node -e "
+const fs = require('fs');
+const data = JSON.parse(fs.readFileSync('scenarios/chatbot-trip-planning/script.json', 'utf8'));
+for (const e of data.events) {
+  if (e.role !== 'assistant') continue;
+  const words = e.text.split(/\s+/).filter(Boolean).length;
+  console.log(e.id, 'tokens=' + e.tokens, 'words=' + words, 'tok/word=' + (e.tokens / words).toFixed(2));
+}
+"
+```
+
+Expected: all six events print `tok/word` between 1.3 and 1.6.
+
+- [ ] **Step 3: Confirm `event.tokens` is unchanged, then validate**
+
+Run: `git diff scenarios/chatbot-trip-planning/script.json`
+Expected: diff only touches the six `"text"` values; every `"tokens"` line
+and every `user` event is unchanged.
+
+Run: `npm --userconfig=/dev/null run validate:data`
+Expected: passes (schema-well-formedness check only — the density floor
+guard from Task 4 isn't wired in yet at this point in the plan).
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add scenarios/chatbot-trip-planning/script.json
+git commit -m "Densify chatbot-trip-planning assistant text to realistic token density"
+```
+
+---
+
 ## Task 4: Add content-density floor guard to `scenarioEventSchema`
 
 **Files:**
@@ -448,7 +551,7 @@ git commit -m "Densify agent-bugfix thinking/answer/tool-call text to realistic 
 - Consumes: nothing new — extends the existing `scenarioEventSchema` export.
 - Produces: `scenarioEventSchema` now rejects any `assistant`/`thinking`/`tool_call` event whose `text.length < tokens * 1` (below 1 char/token). No new exports.
 
-This task runs *after* Tasks 1–3 so the real scenario data already clears the floor by the time the guard is added — `validate:data` never goes red mid-plan.
+This task runs *after* Tasks 1–3B so the real scenario data (all four scenario files) already clears the floor by the time the guard is added — `validate:data` never goes red mid-plan.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -583,7 +686,7 @@ Expected: all tests in the file PASS, including the four new ones and the pre-ex
 - [ ] **Step 5: Run the full validation/test/build pipeline against the now-densified real scenario data**
 
 Run: `npm --userconfig=/dev/null run validate:data && npm --userconfig=/dev/null run test && npm --userconfig=/dev/null run build`
-Expected: all three pass — confirms Tasks 1–3's rewritten `reasoning-math`, `repo-wide-refactor`, and `agent-bugfix` content clears the new floor.
+Expected: all three pass — confirms Tasks 1–3B's rewritten `reasoning-math`, `repo-wide-refactor`, `agent-bugfix`, and `chatbot-trip-planning` content clears the new floor.
 
 - [ ] **Step 6: Commit**
 
