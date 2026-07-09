@@ -1,14 +1,25 @@
 export type CacheMode = "runtime" | "on" | "off";
 
+/**
+ * Confidence tier for a rate/time estimate at a given depth, from most to
+ * least trustworthy:
+ * - "measured": an exact submitted benchmark depth.
+ * - "interpolated": strictly between two measured depths.
+ * - "extrapolated-fitted": past the last measured depth, with >= 2
+ *   measurements so a least-squares trend line can be fit and extrapolated
+ *   forward.
+ * - "extrapolated-unsupported": beyond the measured range with no fit
+ *   applied — either only a single submitted measurement exists, or the
+ *   depth is before the first measured point (a trend is never run backward
+ *   across an unmeasured gap, regardless of how many measurements exist
+ *   elsewhere) — only a flat guess either way.
+ */
+export type RateConfidence = "measured" | "interpolated" | "extrapolated-fitted" | "extrapolated-unsupported";
+
 export type ResultStatus = "community" | "verified" | "flagged" | "illustrative";
 
 export type SourceKind =
-  | "llama-bench"
-  | "llama-benchy"
-  | "writeup"
-  | "leaderboard"
-  | "raw-json"
-  | "community-benchmark";
+  "llama-bench" | "llama-benchy" | "writeup" | "leaderboard" | "raw-json" | "community-benchmark";
 
 export interface HardwareConfig {
   id: string;
@@ -87,6 +98,8 @@ export interface BenchmarkMeasurement {
   tg: number;
   ppLabel?: string;
   tgLabel?: string;
+  ppStddev?: number;
+  tgStddev?: number;
   source?: {
     url: string;
     upstreamId: string;
@@ -125,13 +138,16 @@ export interface BenchmarkResult {
 
 export type ScenarioType = "chatbot" | "agent" | "reasoning" | "rag";
 
-export type ScenarioRole =
-  | "user"
-  | "assistant"
-  | "tool_call"
-  | "tool_result"
-  | "thinking"
-  | "cache_bust";
+/**
+ * "cache_bust" is a zero-content, zero-duration marker role: a standalone
+ * event using it must carry `tokens === 0` and no `toolLatencyMs`/`cacheBust`
+ * (enforced by `scenarioEventSchema`) and never prefills, decodes, advances
+ * context depth, or adds wall-clock time in `buildTimeline` -- it exists
+ * purely to annotate a point in the scenario timeline. To model an actual
+ * partial cache invalidation with real content, set the `cacheBust` property
+ * on a normal "user"/"tool_result" event instead.
+ */
+export type ScenarioRole = "user" | "assistant" | "tool_call" | "tool_result" | "thinking" | "cache_bust";
 
 export interface CacheBust {
   retainedPrefixTokens: number;
@@ -167,7 +183,6 @@ export interface TimelineInput {
   result: BenchmarkResult;
   scenario: ScenarioScript;
   cacheMode: CacheMode;
-  speed: number;
 }
 
 export interface TimelineEvent extends ScenarioEvent {
@@ -188,6 +203,18 @@ export interface TimelineEvent extends ScenarioEvent {
   withoutCachePrefillTokens: number;
   ppRate: number;
   tgRate: number;
+  ppConfidence: RateConfidence;
+  tgConfidence: RateConfidence;
+  prefillRangeMs: { min: number; max: number };
+  decodeRangeMs: { min: number; max: number };
+  /**
+   * Cumulative canonical decode ms from decode-start to each token count —
+   * length `tokens + 1`, `decodeCumulativeMs[0] === 0`. Built from the real
+   * depth-dependent per-token rate curve (`integrateTimeRangeMs`), so token
+   * reveal pacing can follow actual deceleration with context depth instead
+   * of a flat linear fraction of elapsed time. `[0]` for non-decode events.
+   */
+  decodeCumulativeMs: number[];
   extrapolated: boolean;
 }
 
@@ -195,13 +222,13 @@ export interface Timeline {
   result: BenchmarkResult;
   scenario: ScenarioScript;
   cacheMode: CacheMode;
-  speed: number;
   events: TimelineEvent[];
   totalMs: number;
 }
 
 export interface TimelineSummary {
   wallTimeMs: number;
+  wallTimeRangeMs: { min: number; max: number };
   totalTokens: number;
   generatedTokens: number;
   prefilledWithCache: number;
@@ -211,5 +238,6 @@ export interface TimelineSummary {
   decodeMs: number;
   toolLatencyMs: number;
   extrapolatedEvents: number;
+  nonMeasuredTimeShare: number;
   avgDecodeTps: number;
 }

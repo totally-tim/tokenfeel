@@ -1,36 +1,61 @@
 import { useMemo, useState } from "react";
-import { CacheModeSelector, Disclosure, PhaseState, PlayButton, ScenarioCard, SearchSelect, SessionHeader, SourceNote, SpeedSelector, StatFoot, Transcript, ContextMeter } from "../components/SimulatorPieces";
+import {
+  CacheModeSelector,
+  Disclosure,
+  PhaseState,
+  PlayButton,
+  ScenarioCard,
+  SearchSelect,
+  SessionHeader,
+  SourceNote,
+  SpeedSelector,
+  StatFoot,
+  Transcript,
+  ContextMeter
+} from "../components/SimulatorPieces";
 import { CacheLedger, DepthRateCurve, QualityFlags, TimelineStrip } from "../components/Visualizations";
-import { createCatalogLookups, scenarioOptions, getResult, getScenario, DEFAULT_LEFT_RESULT_ID, DEFAULT_SCENARIO_ID } from "../lib/catalog";
+import {
+  createCatalogLookups,
+  scenarioOptions,
+  getResult,
+  getScenario,
+  DEFAULT_LEFT_CONFIG,
+  DEFAULT_SCENARIO_ID
+} from "../lib/catalog";
+import { baselineMeasurement, maxMeasuredDepth } from "../lib/catalogQuality";
 import {
   getHardwareOptions,
   getModelOptions,
   getQuantOptions,
   getRuntimeOptions,
   resolveConfigSelection,
-  runtimeKey,
-  updateConfigSelection
+  updateConfigSelection,
+  type ConfigSelection
 } from "../lib/configMatrix";
 import { usePlayback } from "../hooks/usePlayback";
+import { liveDepthForEvent } from "../lib/streaming";
 import { formatNumber } from "../lib/format";
 import type { CacheMode, Catalog } from "../types";
 
 export function PlaygroundPage({ catalog }: { catalog: Catalog }) {
   const lookups = useMemo(() => createCatalogLookups(catalog), [catalog]);
-  const [selection, setSelection] = useState(() => {
-    const result = getResult(catalog, DEFAULT_LEFT_RESULT_ID);
-    return resolveConfigSelection(catalog.results, {
-      hardwareId: result.hardware,
-      modelId: result.model,
-      quant: result.quant,
-      runtimeKey: runtimeKey(result)
-    }, lookups);
-  });
+  // `selection` intentionally stays whatever `updateConfigSelection` hands
+  // back -- including partial/cleared fields when the user clears a picker.
+  // The fully-resolved config used to actually play a result is derived
+  // separately below (`resolvedSelection`) and never written back into this
+  // state, so clearing a field doesn't get immediately re-resolved away.
+  const [selection, setSelection] = useState<ConfigSelection>(() =>
+    resolveConfigSelection(catalog.results, DEFAULT_LEFT_CONFIG, lookups)
+  );
   const [scenarioId, setScenarioId] = useState(DEFAULT_SCENARIO_ID);
   const [cacheMode, setCacheMode] = useState<CacheMode>("runtime");
   const [speed, setSpeed] = useState(1);
 
-  const result = getResult(catalog, selection.resultId);
+  const resolvedSelection = useMemo(
+    () => resolveConfigSelection(catalog.results, selection, lookups),
+    [catalog.results, selection, lookups]
+  );
+  const result = getResult(catalog, resolvedSelection.resultId);
   const scenario = getScenario(catalog, scenarioId);
   const playback = usePlayback({ result, scenario, cacheMode, speed });
   const activeIndex = playback.activeEvent.index;
@@ -38,9 +63,18 @@ export function PlaygroundPage({ catalog }: { catalog: Catalog }) {
   const model = lookups.modelById(result.model);
 
   const hardwareOptions = useMemo(() => getHardwareOptions(catalog.results, lookups), [catalog.results, lookups]);
-  const modelOptions = useMemo(() => getModelOptions(catalog.results, selection, lookups), [catalog.results, lookups, selection.hardwareId]);
-  const quantOptions = useMemo(() => getQuantOptions(catalog.results, selection), [catalog.results, selection.hardwareId, selection.modelId]);
-  const runtimeOptions = useMemo(() => getRuntimeOptions(catalog.results, selection), [catalog.results, selection.hardwareId, selection.modelId, selection.quant]);
+  const modelOptions = useMemo(
+    () => getModelOptions(catalog.results, selection, lookups),
+    [catalog.results, lookups, selection.hardwareId]
+  );
+  const quantOptions = useMemo(
+    () => getQuantOptions(catalog.results, selection),
+    [catalog.results, selection.hardwareId, selection.modelId]
+  );
+  const runtimeOptions = useMemo(
+    () => getRuntimeOptions(catalog.results, selection),
+    [catalog.results, selection.hardwareId, selection.modelId, selection.quant]
+  );
   const scenarios = useMemo(() => scenarioOptions(catalog), [catalog]);
   const selectedRuntime = runtimeOptions.find((option) => option.value === selection.runtimeKey);
 
@@ -59,11 +93,7 @@ export function PlaygroundPage({ catalog }: { catalog: Catalog }) {
           options={hardwareOptions}
           onChange={(hardwareId) =>
             setSelection((current) =>
-              resolveConfigSelection(
-                catalog.results,
-                updateConfigSelection(catalog.results, current, "hardwareId", hardwareId, lookups),
-                lookups
-              )
+              updateConfigSelection(catalog.results, current, "hardwareId", hardwareId, lookups)
             )
           }
           placeholder="Search hardware"
@@ -75,30 +105,18 @@ export function PlaygroundPage({ catalog }: { catalog: Catalog }) {
           selectedValue={selection.modelId}
           options={modelOptions}
           onChange={(modelId) =>
-            setSelection((current) =>
-              resolveConfigSelection(
-                catalog.results,
-                updateConfigSelection(catalog.results, current, "modelId", modelId, lookups),
-                lookups
-              )
-            )
+            setSelection((current) => updateConfigSelection(catalog.results, current, "modelId", modelId, lookups))
           }
           placeholder="Search models"
         />
         <SearchSelect
           label="QUANT"
           value={result.quant.toUpperCase()}
-          sub={result.measurements[0].ppLabel ?? "submitted benchmark"}
+          sub={baselineMeasurement(result)?.ppLabel ?? "submitted benchmark"}
           selectedValue={selection.quant}
           options={quantOptions}
           onChange={(quant) =>
-            setSelection((current) =>
-              resolveConfigSelection(
-                catalog.results,
-                updateConfigSelection(catalog.results, current, "quant", quant, lookups),
-                lookups
-              )
-            )
+            setSelection((current) => updateConfigSelection(catalog.results, current, "quant", quant, lookups))
           }
           placeholder="Search quant"
         />
@@ -110,11 +128,7 @@ export function PlaygroundPage({ catalog }: { catalog: Catalog }) {
           options={runtimeOptions}
           onChange={(selectedRuntimeKey) =>
             setSelection((current) =>
-              resolveConfigSelection(
-                catalog.results,
-                updateConfigSelection(catalog.results, current, "runtimeKey", selectedRuntimeKey, lookups),
-                lookups
-              )
+              updateConfigSelection(catalog.results, current, "runtimeKey", selectedRuntimeKey, lookups)
             )
           }
           placeholder="Search runtime"
@@ -170,7 +184,6 @@ export function PlaygroundPage({ catalog }: { catalog: Catalog }) {
           title={scenario.title}
           result={result}
           activeEvent={playback.activeEvent}
-          summary={playback.summary}
           hasStarted={playback.hasStarted}
           isComplete={playback.isComplete}
         />
@@ -196,19 +209,31 @@ export function PlaygroundPage({ catalog }: { catalog: Catalog }) {
                 cached={playback.activeEvent.cachedPrefixTokens}
                 reprefill={playback.activeEvent.prefillTokens}
                 total={playback.activeEvent.contextAfter}
+                dataHorizon={maxMeasuredDepth(result)}
               />
             </div>
           </div>
           <Disclosure label="Cache ledger · phase map · depth curve · provenance">
             <div className="playback-details">
               <CacheLedger summary={playback.summary} activeEvent={playback.activeEvent} />
-              <DepthRateCurve result={result} />
+              <DepthRateCurve
+                result={result}
+                activeDepth={liveDepthForEvent(playback.activeEvent, playback.elapsedMs)}
+              />
               <div className="detail-extra">
                 <TimelineStrip timeline={playback.timeline} activeIndex={activeIndex} />
                 <div className="legend-row">
-                  <span><i className="legend cached" /> cached prefix · {formatNumber(Math.round(playback.activeEvent.cachedPrefixTokens))} tok</span>
-                  <span><i className="legend reprefill" /> re-prefilled this turn · {formatNumber(Math.round(playback.activeEvent.prefillTokens))} tok</span>
-                  <span><i className="legend headroom" /> headroom</span>
+                  <span>
+                    <i className="legend cached" /> cached prefix ·{" "}
+                    {formatNumber(Math.round(playback.activeEvent.cachedPrefixTokens))} tok
+                  </span>
+                  <span>
+                    <i className="legend reprefill" /> re-prefilled this turn ·{" "}
+                    {formatNumber(Math.round(playback.activeEvent.prefillTokens))} tok
+                  </span>
+                  <span>
+                    <i className="legend headroom" /> headroom
+                  </span>
                 </div>
                 <QualityFlags result={result} extrapolatedEvents={playback.summary.extrapolatedEvents} />
                 <SourceNote catalog={catalog} result={result} />

@@ -30,7 +30,8 @@ export function parseRaceShareHash(hash: string): Partial<RaceShareState> {
   const params = new URLSearchParams(query);
   const speed = Number(params.get("speed"));
   const rawCacheMode = params.get("cache");
-  const cacheMode = rawCacheMode === "on" || rawCacheMode === "off" || rawCacheMode === "runtime" ? rawCacheMode : undefined;
+  const cacheMode =
+    rawCacheMode === "on" || rawCacheMode === "off" || rawCacheMode === "runtime" ? rawCacheMode : undefined;
 
   return {
     leftId: params.get("a") ?? undefined,

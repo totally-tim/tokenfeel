@@ -1,8 +1,41 @@
-import { Brain, Check, ChevronDown, ChevronRight, Clock, Cpu, Gauge, MessageSquare, Play, Square, Terminal, Wrench } from "lucide-react";
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { formatClock, formatNumber, formatRate, formatTokens, percent } from "../lib/format";
-import type { BenchmarkResult, CacheMode, Catalog, RuntimeMetadata, ScenarioEvent, Timeline, TimelineEvent, TimelineSummary } from "../types";
+import {
+  Brain,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  Cpu,
+  Gauge,
+  MessageSquare,
+  Play,
+  Square,
+  Terminal,
+  Wrench
+} from "lucide-react";
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type ReactNode
+} from "react";
+import { formatClock, formatNumber, formatRate, formatTokens } from "../lib/format";
+import type {
+  BenchmarkResult,
+  CacheMode,
+  Catalog,
+  RateConfidence,
+  RuntimeMetadata,
+  ScenarioEvent,
+  Timeline,
+  TimelineEvent,
+  TimelineSummary
+} from "../types";
 import { compactResultLabel, resultMeta } from "../lib/catalog";
+import { maxMeasuredDepth } from "../lib/catalogQuality";
 import { StatusBadge } from "./StatusBadge";
 import { isGeneratedEvent, streamFrameForEvent } from "../lib/streaming";
 import { PhaseWaterfall, QualityFlags } from "./Visualizations";
@@ -11,77 +44,7 @@ import type { MatrixOption } from "../lib/configMatrix";
 import { phaseCopyForEvent, statFootItems, turnMetricForEvent } from "../lib/phaseCopy";
 import { phaseTrackVisualState } from "../lib/phaseProgress";
 import { raceOutputWindow } from "../lib/raceOutput";
-
-type PhaseKind = "idle" | "tool" | "prefill" | "decode" | "complete" | "instant";
-
-interface ActivePhase {
-  kind: PhaseKind;
-  elapsedMs: number;
-  totalMs: number;
-  progress: number;
-}
-
-function clamp01(value: number): number {
-  return Math.max(0, Math.min(1, value));
-}
-
-function phaseProgress(elapsedMs: number, startMs: number, endMs: number): number {
-  return clamp01((elapsedMs - startMs) / Math.max(1, endMs - startMs));
-}
-
-function activePhaseForEvent(event: TimelineEvent, elapsedMs: number, hasStarted: boolean, complete: boolean): ActivePhase {
-  if (!hasStarted) {
-    return {
-      kind: "idle",
-      elapsedMs: 0,
-      totalMs: Math.max(1, event.endMs - event.startMs),
-      progress: 0
-    };
-  }
-
-  if (complete || elapsedMs >= event.endMs) {
-    return {
-      kind: "complete",
-      elapsedMs: event.endMs - event.startMs,
-      totalMs: Math.max(1, event.endMs - event.startMs),
-      progress: 1
-    };
-  }
-
-  if (event.toolLatencyMs > 0 && elapsedMs < event.toolDoneMs) {
-    return {
-      kind: "tool",
-      elapsedMs: Math.max(0, elapsedMs - event.startMs),
-      totalMs: Math.max(1, event.toolLatencyMs),
-      progress: phaseProgress(elapsedMs, event.startMs, event.toolDoneMs)
-    };
-  }
-
-  if (event.prefillMs > 0 && elapsedMs < event.prefillDoneMs) {
-    return {
-      kind: "prefill",
-      elapsedMs: Math.max(0, elapsedMs - event.toolDoneMs),
-      totalMs: Math.max(1, event.prefillMs),
-      progress: phaseProgress(elapsedMs, event.toolDoneMs, event.prefillDoneMs)
-    };
-  }
-
-  if (event.decodeMs > 0 && elapsedMs < event.endMs) {
-    return {
-      kind: "decode",
-      elapsedMs: Math.max(0, elapsedMs - event.prefillDoneMs),
-      totalMs: Math.max(1, event.decodeMs),
-      progress: phaseProgress(elapsedMs, event.prefillDoneMs, event.endMs)
-    };
-  }
-
-  return {
-    kind: "instant",
-    elapsedMs: Math.max(0, elapsedMs - event.startMs),
-    totalMs: Math.max(1, event.endMs - event.startMs),
-    progress: 1
-  };
-}
+import { activePhaseForEvent, type PhaseKind } from "../lib/activePhase";
 
 function PhaseIcon({ kind }: { kind: PhaseKind }) {
   if (kind === "prefill") return <Cpu size={15} />;
@@ -89,6 +52,16 @@ function PhaseIcon({ kind }: { kind: PhaseKind }) {
   if (kind === "tool") return <Wrench size={15} />;
   if (kind === "complete") return <Check size={15} />;
   return <Clock size={15} />;
+}
+
+// Badge copy for the dominant "NOW" readout when the active phase's rate
+// isn't backed by measured/interpolated data — surfaced inline instead of
+// buried in QualityFlags inside a Disclosure, since this is the primary
+// reading path during playback.
+function confidenceBadgeLabel(confidence: RateConfidence): string | undefined {
+  if (confidence === "extrapolated-fitted") return "fitted estimate";
+  if (confidence === "extrapolated-unsupported") return "no depth data";
+  return undefined;
 }
 
 function compactPhaseLabel(kind: PhaseKind) {
@@ -123,7 +96,7 @@ export function PhaseState({
       ? `${formatTokens(processedPromptTokens)} / ${formatTokens(event.prefillTokens)} ${copy.tokenLabel}`
       : phase.kind === "decode"
         ? `${formatNumber(streamFrame.tokens)} / ${formatNumber(event.tokens)} ${copy.tokenLabel}`
-      : phase.kind === "tool"
+        : phase.kind === "tool"
           ? copy.tokenLabel
           : phase.kind === "complete"
             ? copy.tokenLabel
@@ -138,6 +111,9 @@ export function PhaseState({
           : phase.kind === "complete"
             ? "done"
             : "idle";
+  const activeConfidence =
+    phase.kind === "prefill" ? event.ppConfidence : phase.kind === "decode" ? event.tgConfidence : undefined;
+  const confidenceBadge = activeConfidence ? confidenceBadgeLabel(activeConfidence) : undefined;
   const trackVisual = phaseTrackVisualState(phase.progress, waiting);
   const trackStyle = {
     "--phase-fill-width": trackVisual.fillWidth,
@@ -151,7 +127,9 @@ export function PhaseState({
           <PhaseIcon kind={phase.kind} />
           {copy.label}
         </span>
-        <strong>{formatClock(phase.elapsedMs)} / {formatClock(phase.totalMs)}</strong>
+        <strong>
+          {formatClock(phase.elapsedMs)} / {formatClock(phase.totalMs)}
+        </strong>
       </div>
       <div
         className="phase-state-track"
@@ -164,14 +142,17 @@ export function PhaseState({
         style={trackStyle}
       >
         {waiting && <em className="phase-dot" />}
-        <span className="phase-fill">
-          {phase.kind === "prefill" && <i className="phase-sweep" />}
-        </span>
+        <span className="phase-fill">{phase.kind === "prefill" && <i className="phase-sweep" />}</span>
         {phase.kind === "decode" && <b className="phase-pip" />}
       </div>
       <div className="phase-state-meta">
         <span>{phaseTokens}</span>
-        <span>{phaseRate}</span>
+        <span className="phase-rate-group">
+          {phaseRate}
+          {confidenceBadge && activeConfidence && (
+            <em className={`confidence-badge confidence-badge-${activeConfidence}`}>{confidenceBadge}</em>
+          )}
+        </span>
       </div>
       <p>{copy.detail}</p>
     </div>
@@ -192,7 +173,12 @@ export function Disclosure({
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div className={`disclosure ${open ? "open" : ""}`}>
-      <button type="button" className="disclosure-toggle" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
+      <button
+        type="button"
+        className="disclosure-toggle"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+      >
         <ChevronRight size={13} />
         {label}
       </button>
@@ -201,46 +187,24 @@ export function Disclosure({
   );
 }
 
-interface SelectBoxProps {
-  label: string;
-  value: string;
-  sub: string;
-  selectedValue: string;
-  options: Array<{ value: string; label: string; sub?: string }>;
-  onChange: (value: string) => void;
-}
-
-export function SelectBox({ label, value, sub, selectedValue, options, onChange }: SelectBoxProps) {
-  return (
-    <label className="field-block">
-      <span className="field-label">{label}</span>
-      <span className="select-shell">
-        <span>
-          <strong>{value}</strong>
-          <small>{sub}</small>
-        </span>
-        <select value={selectedValue} onChange={(event) => onChange(event.target.value)} aria-label={label}>
-          {options.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <ChevronDown size={16} />
-      </span>
-    </label>
-  );
-}
-
 interface SearchSelectProps {
   label: string;
   value: string;
   sub?: string;
-  selectedValue: string;
+  selectedValue: string | undefined;
   options: MatrixOption[];
   onChange: (value: string) => void;
   placeholder?: string;
   limit?: number;
+  /**
+   * Compact rendering for tight toolbar contexts (Configs filter row): drops
+   * the label/count caption row and shrinks the trigger to match neighboring
+   * filter controls. Same combobox behavior either way -- this is a shared
+   * component (design.md: "search pickers" are shared vocabulary across
+   * Landing, Playground, Race, and Configs), not a parallel implementation.
+   */
+  compact?: boolean;
+  disabled?: boolean;
 }
 
 export function SearchSelect({
@@ -251,15 +215,44 @@ export function SearchSelect({
   options,
   onChange,
   placeholder = "Search",
-  limit = 40
+  limit = 40,
+  compact = false,
+  disabled = false
 }: SearchSelectProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const listboxId = useId();
   const visibleOptions = useMemo(
     () => filterPickerOptions(options, query, selectedValue, limit),
     [limit, options, query, selectedValue]
   );
+
+  // Reset the keyboard-highlighted row to the top whenever the panel opens
+  // or the query narrows/widens the result set.
+  useEffect(() => {
+    setHighlightedIndex(0);
+  }, [open, query]);
+
+  // Clamp separately (rather than resetting to 0) when the option list
+  // itself shrinks with the query unchanged -- e.g. a cascading filter
+  // upstream narrows `options` while this panel is still open -- so arrow
+  // keys never point past the end of the list and the highlight stays near
+  // its prior position instead of jumping back to the top.
+  useEffect(() => {
+    setHighlightedIndex((index) => Math.min(index, Math.max(0, visibleOptions.length - 1)));
+  }, [visibleOptions]);
+
+  // A disabled trigger must not leave its popover open and interactive
+  // behind it -- close and clear any in-progress search immediately.
+  useEffect(() => {
+    if (disabled && open) {
+      setQuery("");
+      setOpen(false);
+    }
+  }, [disabled, open]);
 
   useEffect(() => {
     if (!open) return;
@@ -275,7 +268,10 @@ export function SearchSelect({
     };
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") close();
+      if (event.key === "Escape") {
+        close();
+        triggerRef.current?.focus();
+      }
     };
 
     document.addEventListener("pointerdown", onPointerDown);
@@ -286,24 +282,57 @@ export function SearchSelect({
     };
   }, [open]);
 
+  // Keep the highlighted option scrolled into view as arrow keys move it.
+  useEffect(() => {
+    if (!open) return;
+    const option = visibleOptions[highlightedIndex];
+    if (!option) return;
+    const node = rootRef.current?.querySelector(`#${CSS.escape(`${listboxId}-${highlightedIndex}`)}`);
+    node?.scrollIntoView({ block: "nearest" });
+  }, [highlightedIndex, open, visibleOptions, listboxId]);
+
   const choose = (nextValue: string) => {
     onChange(nextValue);
     setQuery("");
     setOpen(false);
+    triggerRef.current?.focus();
+  };
+
+  // Arrow-key navigation + Enter-to-choose, matching the existing
+  // Escape-to-close behavior so the listbox/option ARIA roles this component
+  // advertises are backed by real keyboard behavior, not just mouse/pointer.
+  const onSearchKeyDown = (event: ReactKeyboardEvent<HTMLInputElement>) => {
+    if (visibleOptions.length === 0) return;
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setHighlightedIndex((index) => (index + 1) % visibleOptions.length);
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setHighlightedIndex((index) => (index - 1 + visibleOptions.length) % visibleOptions.length);
+    } else if (event.key === "Enter") {
+      event.preventDefault();
+      const option = visibleOptions[highlightedIndex];
+      if (option) choose(option.value);
+    }
   };
 
   return (
-    <div ref={rootRef} className={`search-select ${open ? "open" : ""}`}>
-      <div className="search-select-label">
-        <span>{label}</span>
-        <small>{formatNumber(options.length)} choices</small>
-      </div>
+    <div ref={rootRef} className={`search-select ${compact ? "compact" : ""} ${open ? "open" : ""}`}>
+      {!compact && (
+        <div className="search-select-label">
+          <span>{label}</span>
+          <small>{formatNumber(options.length)} choices</small>
+        </div>
+      )}
       <button
+        ref={triggerRef}
         type="button"
         className="search-select-trigger"
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => setOpen((current) => !current)}
         aria-expanded={open}
         aria-haspopup="listbox"
+        aria-label={`${label}: ${value}`}
+        disabled={disabled}
       >
         <span>
           <strong>{value}</strong>
@@ -311,25 +340,39 @@ export function SearchSelect({
         </span>
         <ChevronDown size={16} />
       </button>
-      {open && (
+      {open && !disabled && (
         <div className="search-select-panel">
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
+            onKeyDown={onSearchKeyDown}
             placeholder={placeholder}
             aria-label={`${label} search`}
+            role="combobox"
+            aria-expanded={open}
+            aria-controls={listboxId}
+            aria-activedescendant={visibleOptions[highlightedIndex] ? `${listboxId}-${highlightedIndex}` : undefined}
+            aria-autocomplete="list"
             autoFocus
           />
-          <div className="search-select-results" role="listbox" aria-label={`${label} options`}>
+          <div id={listboxId} className="search-select-results" role="listbox" aria-label={`${label} options`}>
             {visibleOptions.length === 0 ? (
               <p>No matches. Try hardware, model, runtime, backend, or quant.</p>
             ) : (
-              visibleOptions.map((option) => (
+              visibleOptions.map((option, index) => (
                 <button
                   key={option.value}
+                  id={`${listboxId}-${index}`}
                   type="button"
-                  className={option.value === selectedValue ? "active" : ""}
+                  tabIndex={-1}
+                  className={[
+                    option.value === selectedValue ? "active" : "",
+                    index === highlightedIndex ? "focused" : ""
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
                   onClick={() => choose(option.value)}
+                  onMouseEnter={() => setHighlightedIndex(index)}
                   role="option"
                   aria-selected={option.value === selectedValue}
                 >
@@ -362,12 +405,7 @@ export function SpeedSelector({ speed, onSpeed }: SpeedSelectorProps) {
   return (
     <div className="speed-grid" role="group" aria-label="Playback speed">
       {[1, 2, 4, 8].map((item) => (
-        <button
-          key={item}
-          type="button"
-          className={speed === item ? "active" : ""}
-          onClick={() => onSpeed(item)}
-        >
+        <button key={item} type="button" className={speed === item ? "active" : ""} onClick={() => onSpeed(item)}>
           {item}×
         </button>
       ))}
@@ -432,11 +470,27 @@ interface ContextMeterProps {
   total: number;
   max?: number;
   compact?: boolean;
+  /**
+   * Depth of the last measured benchmark point (from `maxMeasuredDepth`,
+   * shared with `catalogQuality`/`raceComparison`). When provided, renders a
+   * "data ends here" tick on the meter track so it's visible how much of the
+   * context window rests on measured versus extrapolated rates.
+   */
+  dataHorizon?: number;
 }
 
-export function ContextMeter({ cached, reprefill, total, max = 128_000, compact = false }: ContextMeterProps) {
+export function ContextMeter({
+  cached,
+  reprefill,
+  total,
+  max = 128_000,
+  compact = false,
+  dataHorizon
+}: ContextMeterProps) {
   const cachedPct = Math.min(100, (cached / max) * 100);
   const reprefillPct = Math.min(100 - cachedPct, (reprefill / max) * 100);
+  const dataHorizonPct =
+    dataHorizon !== undefined && dataHorizon >= 0 ? Math.min(100, (dataHorizon / max) * 100) : undefined;
 
   return (
     <div className={`context-meter ${compact ? "compact" : ""}`}>
@@ -449,7 +503,19 @@ export function ContextMeter({ cached, reprefill, total, max = 128_000, compact 
       <div className="meter-track">
         <span className="meter-cached" style={{ width: `${cachedPct}%` }} />
         <span className="meter-reprefill" style={{ width: `${reprefillPct}%` }} />
+        {dataHorizonPct !== undefined && (
+          <i
+            className="meter-data-horizon"
+            style={{ left: `${dataHorizonPct}%` }}
+            title={`data ends here · ${formatTokens(dataHorizon ?? 0)} ctx`}
+          />
+        )}
       </div>
+      {dataHorizonPct !== undefined && (
+        <div className="meter-data-horizon-label" style={{ left: `${dataHorizonPct}%` }}>
+          data ends here
+        </div>
+      )}
     </div>
   );
 }
@@ -501,17 +567,29 @@ export function Transcript({
           >
             <div className="event-head">
               <span>{eventLabel(event)}</span>
-              <span>{isGeneratedEvent(event) && active ? `${formatNumber(streamedTokens)} / ${formatNumber(event.tokens)} tok` : `${formatNumber(event.tokens)} tok`}</span>
+              <span>
+                {isGeneratedEvent(event) && active
+                  ? `${formatNumber(streamedTokens)} / ${formatNumber(event.tokens)} tok`
+                  : `${formatNumber(event.tokens)} tok`}
+              </span>
               {event.cacheBust && <span className="warn-text">re-prefilled · cache bust</span>}
             </div>
             {event.role === "tool_call" ? (
-              <pre>{streamedText}{showCursor ? <span className="cursor">▍</span> : null}</pre>
+              <pre>
+                {streamedText}
+                {showCursor ? <span className="cursor">▍</span> : null}
+              </pre>
             ) : event.role === "tool_result" ? (
               <div className="tool-result">{event.text}</div>
             ) : event.role === "thinking" ? (
               <div className="thinking-row">
-                <span>› THINKING · {formatNumber(streamedTokens)} / {formatNumber(event.tokens)} tokens</span>
-                <p>{streamedText}{showCursor ? <span className="cursor">▍</span> : null}</p>
+                <span>
+                  › THINKING · {formatNumber(streamedTokens)} / {formatNumber(event.tokens)} tokens
+                </span>
+                <p>
+                  {streamedText}
+                  {showCursor ? <span className="cursor">▍</span> : null}
+                </p>
               </div>
             ) : (
               <p>
@@ -531,17 +609,19 @@ interface SessionHeaderProps {
   title: string;
   result: BenchmarkResult;
   activeEvent: TimelineEvent;
-  summary: TimelineSummary;
   hasStarted: boolean;
   isComplete: boolean;
 }
 
-export function SessionHeader({ catalog, title, result, activeEvent, summary, hasStarted, isComplete }: SessionHeaderProps) {
+export function SessionHeader({ catalog, title, result, activeEvent, hasStarted, isComplete }: SessionHeaderProps) {
   return (
     <div className="session-header">
       <div>
         <h1>{title}</h1>
-        <p>{compactResultLabel(catalog, result)} · {result.quant.toUpperCase()} · {result.runtime.name}/{result.runtime.backend}</p>
+        <p>
+          {compactResultLabel(catalog, result)} · {result.quant.toUpperCase()} · {result.runtime.name}/
+          {result.runtime.backend}
+        </p>
       </div>
       <div className="session-header-right">
         <StatusBadge status={!hasStarted ? "idle" : isComplete ? "finished" : "generating"} />
@@ -580,7 +660,17 @@ interface LaneProps {
   winner?: boolean;
 }
 
-export function RaceLane({ catalog, label, result, timeline, summary, activeEvent, elapsedMs, hasStarted, winner = false }: LaneProps) {
+export function RaceLane({
+  catalog,
+  label,
+  result,
+  timeline,
+  summary,
+  activeEvent,
+  elapsedMs,
+  hasStarted,
+  winner = false
+}: LaneProps) {
   const complete = hasStarted && elapsedMs >= timeline.totalMs;
   const active = hasStarted && !complete;
   const phase = activePhaseForEvent(activeEvent, elapsedMs, hasStarted, complete);
@@ -595,7 +685,11 @@ export function RaceLane({ catalog, label, result, timeline, summary, activeEven
         ? "tool wait"
         : "decode";
   const labelParts = compactResultLabel(catalog, result).split(" · ");
-  const laneStatus = complete ? formatClock(summary.wallTimeMs) : active ? `turn ${activeEvent.index + 1} live` : "ready";
+  const laneStatus = complete
+    ? formatClock(summary.wallTimeMs)
+    : active
+      ? `turn ${activeEvent.index + 1} live`
+      : "ready";
   const primaryLabel = complete ? "FINAL ELAPSED" : active ? "CURRENT PHASE" : "READY";
   const primaryValue = complete ? formatClock(summary.wallTimeMs) : active ? compactPhaseLabel(phase.kind) : "Ready";
   const progressValue = active ? `${Math.round(phase.progress * 100)}% phase` : `${timeline.events.length} turns`;
@@ -605,7 +699,9 @@ export function RaceLane({ catalog, label, result, timeline, summary, activeEven
   }, [activeEvent.index]);
 
   return (
-    <section className={`race-lane ${label === "B" ? "lane-b" : "lane-a"} ${winner && complete ? "winner" : ""} ${active ? "active" : ""}`}>
+    <section
+      className={`race-lane ${label === "B" ? "lane-b" : "lane-a"} ${winner && complete ? "winner" : ""} ${active ? "active" : ""}`}
+    >
       <div className="lane-stripe" />
       <div className="lane-inner">
         <div className="lane-head">
@@ -614,11 +710,11 @@ export function RaceLane({ catalog, label, result, timeline, summary, activeEven
               <span className="lane-tag">LANE {label}</span>
               <h2>{labelParts[0]}</h2>
             </div>
-            <p>{labelParts.slice(1).join(" · ")} · {result.runtime.name}/{result.runtime.backend}</p>
+            <p>
+              {labelParts.slice(1).join(" · ")} · {result.runtime.name}/{result.runtime.backend}
+            </p>
           </div>
-          <span className={`lane-state-text ${active ? "live" : complete ? "done" : ""}`}>
-            {laneStatus}
-          </span>
+          <span className={`lane-state-text ${active ? "live" : complete ? "done" : ""}`}>{laneStatus}</span>
         </div>
         <div className="lane-big">
           <div>
@@ -635,62 +731,78 @@ export function RaceLane({ catalog, label, result, timeline, summary, activeEven
         <div className="race-output-panel">
           <div className="race-output-head">
             <span>LIVE OUTPUT</span>
-            <strong>turn {activeEvent.index + 1} · {eventLabel(activeEvent).toLowerCase()}</strong>
+            <strong>
+              turn {activeEvent.index + 1} · {eventLabel(activeEvent).toLowerCase()}
+            </strong>
           </div>
           <div className="race-output-scroll" aria-label={`Lane ${label} live transcript`}>
             {outputEvents.length === 0 ? (
-              <div className="race-output-empty">
-                Start the race to stream this lane's transcript.
-              </div>
-            ) : outputEvents.map((event) => {
-              const eventActive = event.index === activeEvent.index;
-              const eventElapsedMs = eventActive ? elapsedMs : event.endMs;
-              const streamFrame = streamFrameForEvent(event, eventElapsedMs);
-              const streamedText = streamFrame.text;
-              const waitingForOutput =
-                eventActive && isGeneratedEvent(event) && streamedText.length === 0 && streamFrame.tokens === 0 && elapsedMs < event.endMs;
-              const waitingCopy =
-                event.toolLatencyMs > 0 && elapsedMs < event.toolDoneMs
-                  ? "Waiting on tool latency before output can stream."
-                  : "Decode will stream here as soon as the first token arrives.";
-              const showCursor = eventActive && isGeneratedEvent(event) && streamFrame.progress < 1;
-              const eventMetric =
-                eventActive && isGeneratedEvent(event)
-                  ? `${formatNumber(streamFrame.tokens)} / ${formatNumber(event.tokens)} tok`
-                  : eventActive
-                    ? turnMetricForEvent(event)
-                    : `${formatNumber(event.tokens)} tok`;
+              <div className="race-output-empty">Start the race to stream this lane's transcript.</div>
+            ) : (
+              outputEvents.map((event) => {
+                const eventActive = event.index === activeEvent.index;
+                const eventElapsedMs = eventActive ? elapsedMs : event.endMs;
+                const streamFrame = streamFrameForEvent(event, eventElapsedMs);
+                const streamedText = streamFrame.text;
+                const waitingForOutput =
+                  eventActive &&
+                  isGeneratedEvent(event) &&
+                  streamedText.length === 0 &&
+                  streamFrame.tokens === 0 &&
+                  elapsedMs < event.endMs;
+                const waitingCopy =
+                  event.toolLatencyMs > 0 && elapsedMs < event.toolDoneMs
+                    ? "Waiting on tool latency before output can stream."
+                    : "Decode will stream here as soon as the first token arrives.";
+                const showCursor = eventActive && isGeneratedEvent(event) && streamFrame.progress < 1;
+                const eventMetric =
+                  eventActive && isGeneratedEvent(event)
+                    ? `${formatNumber(streamFrame.tokens)} / ${formatNumber(event.tokens)} tok`
+                    : eventActive
+                      ? turnMetricForEvent(event)
+                      : `${formatNumber(event.tokens)} tok`;
 
-              return (
-                <article
-                  key={event.id}
-                  ref={eventActive ? activeOutputRef : undefined}
-                  className={`race-output-event event-${event.role} ${eventActive ? "current" : ""}`}
-                >
-                  <div className="event-head">
-                    <span>turn {event.index + 1} · {eventLabel(event)}</span>
-                    <span>{eventMetric}</span>
-                  </div>
-                  {waitingForOutput ? (
-                    <p className="race-output-waiting">{waitingCopy}</p>
-                  ) : event.role === "tool_call" ? (
-                    <pre>{streamedText}{showCursor ? <span className="cursor">▍</span> : null}</pre>
-                  ) : event.role === "tool_result" ? (
-                    <div className="tool-result">{event.text}</div>
-                  ) : event.role === "thinking" ? (
-                    <div className="thinking-row">
-                      <span>› THINKING · {formatNumber(streamFrame.tokens)} / {formatNumber(event.tokens)} tokens</span>
-                      <p>{streamedText}{showCursor ? <span className="cursor">▍</span> : null}</p>
+                return (
+                  <article
+                    key={event.id}
+                    ref={eventActive ? activeOutputRef : undefined}
+                    className={`race-output-event event-${event.role} ${eventActive ? "current" : ""}`}
+                  >
+                    <div className="event-head">
+                      <span>
+                        turn {event.index + 1} · {eventLabel(event)}
+                      </span>
+                      <span>{eventMetric}</span>
                     </div>
-                  ) : (
-                    <p>
-                      {streamedText}
-                      {showCursor ? <span className="cursor">▍</span> : null}
-                    </p>
-                  )}
-                </article>
-              );
-            })}
+                    {waitingForOutput ? (
+                      <p className="race-output-waiting">{waitingCopy}</p>
+                    ) : event.role === "tool_call" ? (
+                      <pre>
+                        {streamedText}
+                        {showCursor ? <span className="cursor">▍</span> : null}
+                      </pre>
+                    ) : event.role === "tool_result" ? (
+                      <div className="tool-result">{event.text}</div>
+                    ) : event.role === "thinking" ? (
+                      <div className="thinking-row">
+                        <span>
+                          › THINKING · {formatNumber(streamFrame.tokens)} / {formatNumber(event.tokens)} tokens
+                        </span>
+                        <p>
+                          {streamedText}
+                          {showCursor ? <span className="cursor">▍</span> : null}
+                        </p>
+                      </div>
+                    ) : (
+                      <p>
+                        {streamedText}
+                        {showCursor ? <span className="cursor">▍</span> : null}
+                      </p>
+                    )}
+                  </article>
+                );
+              })
+            )}
           </div>
           {complete && (
             <p className="done-line">
@@ -705,6 +817,7 @@ export function RaceLane({ catalog, label, result, timeline, summary, activeEven
             cached={activeEvent.cachedPrefixTokens}
             reprefill={activeEvent.prefillTokens}
             total={activeEvent.contextAfter}
+            dataHorizon={maxMeasuredDepth(result)}
           />
           <PhaseWaterfall event={activeEvent} elapsedMs={elapsedMs} />
           <QualityFlags result={result} extrapolatedEvents={summary.extrapolatedEvents} />

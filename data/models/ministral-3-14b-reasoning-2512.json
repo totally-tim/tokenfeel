@@ -1,8 +1,0 @@
-{
-  "id": "ministral-3-14b-reasoning-2512",
-  "name": "Ministral-3-14B-Reasoning-2512",
-  "family": "Ministral",
-  "params": "14B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

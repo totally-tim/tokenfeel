@@ -1,8 +1,0 @@
-{
-  "id": "mimo-v2-flash6.5bit",
-  "name": "MiMo-V2-Flash6.5bit",
-  "family": "MiMo",
-  "params": "6.5B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

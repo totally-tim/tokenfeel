@@ -24,7 +24,7 @@ const baseResult = {
 const tempRoots: string[] = [];
 
 function result(overrides: Partial<BenchmarkResult>): BenchmarkResult {
-  return { ...baseResult, ...overrides } as BenchmarkResult;
+  return { ...baseResult, ...overrides };
 }
 
 function fixtureCatalog(): Catalog {
@@ -58,12 +58,32 @@ function fixtureCatalog(): Catalog {
     ],
     models: [
       { id: "kept-model", name: "Kept Model", family: "Qwen", params: "9B", license: "test", notes: "Retained" },
-      { id: "bad-model", name: "Bad Model", family: "Qwen", params: "9B", license: "test", notes: "Unknown quant result" },
-      { id: "orphan-model", name: "Orphan Model", family: "Qwen", params: "4B", license: "test", notes: "No retained result" }
+      {
+        id: "bad-model",
+        name: "Bad Model",
+        family: "Qwen",
+        params: "9B",
+        license: "test",
+        notes: "Unknown quant result"
+      },
+      {
+        id: "orphan-model",
+        name: "Orphan Model",
+        family: "Qwen",
+        params: "4B",
+        license: "test",
+        notes: "No retained result"
+      }
     ],
     results: [kept, bad],
     scenarios: [
-      { id: "scenario", title: "Scenario", type: "agent", systemPromptTokens: 10, events: [{ id: "u1", role: "user", text: "hi", tokens: 1 }] }
+      {
+        id: "scenario",
+        title: "Scenario",
+        type: "agent",
+        systemPromptTokens: 10,
+        events: [{ id: "u1", role: "user", text: "hi", tokens: 1 }]
+      }
     ]
   };
 }

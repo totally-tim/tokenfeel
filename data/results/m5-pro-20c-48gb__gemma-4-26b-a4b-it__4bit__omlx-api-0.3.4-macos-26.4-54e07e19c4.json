@@ -1,0 +1,186 @@
+{
+  "id": "m5-pro-20c-48gb__gemma-4-26b-a4b-it__4bit__omlx-api-0.3.4-macos-26.4-54e07e19c4",
+  "hardware": "m5-pro-20c-48gb",
+  "model": "gemma-4-26b-a4b-it",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.3.4",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 1304.7,
+      "tg": 71,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/81h06hjo",
+        "upstreamId": "81h06hjo",
+        "createdAt": "2026-04-07T10:43:09Z",
+        "ttftMs": 784.9,
+        "peakMemoryGb": 14.24
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 1902.3,
+      "tg": 66.6,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/0geubz42",
+        "upstreamId": "0geubz42",
+        "createdAt": "2026-04-07T10:43:11Z",
+        "ttftMs": 2153.2,
+        "peakMemoryGb": 14.71
+      }
+    },
+    {
+      "depth": 8192,
+      "pp": 2053,
+      "tg": 61,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/j68c5fqf",
+        "upstreamId": "j68c5fqf",
+        "createdAt": "2026-04-07T02:21:31Z",
+        "ttftMs": 3990.2,
+        "peakMemoryGb": 14.79
+      }
+    },
+    {
+      "depth": 16384,
+      "pp": 1956.6,
+      "tg": 46.4,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/b5yfwrvu",
+        "upstreamId": "b5yfwrvu",
+        "createdAt": "2026-04-07T02:21:32Z",
+        "ttftMs": 8373.5,
+        "peakMemoryGb": 15.19
+      }
+    },
+    {
+      "depth": 32768,
+      "pp": 1808.1,
+      "tg": 33.8,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/6lsld6x0",
+        "upstreamId": "6lsld6x0",
+        "createdAt": "2026-04-07T02:21:34Z",
+        "ttftMs": 18123.2,
+        "peakMemoryGb": 15.97
+      }
+    },
+    {
+      "depth": 65536,
+      "pp": 1422.5,
+      "tg": 20.9,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/55c38mbc",
+        "upstreamId": "55c38mbc",
+        "createdAt": "2026-04-07T02:21:35Z",
+        "ttftMs": 46070.1,
+        "peakMemoryGb": 17.66
+      }
+    },
+    {
+      "depth": 131072,
+      "pp": 981.7,
+      "tg": 14,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/l65nwusx",
+        "upstreamId": "l65nwusx",
+        "createdAt": "2026-04-07T02:21:36Z",
+        "ttftMs": 133517.2,
+        "peakMemoryGb": 21.22
+      }
+    },
+    {
+      "depth": 200000,
+      "pp": 721.9,
+      "tg": 10.4,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/pavmf3bu",
+        "upstreamId": "pavmf3bu",
+        "createdAt": "2026-04-07T02:21:39Z",
+        "ttftMs": 277043.4,
+        "peakMemoryGb": 24.95
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "0geubz42",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "81h06hjo 2026-04-07T10:43:09Z ctx=1024 pp=1304.7 tg=71 omlx=0.3.4 os=macOS 26.4 https://omlx.ai/benchmarks/81h06hjo",
+      "0geubz42 2026-04-07T10:43:11Z ctx=4096 pp=1902.3 tg=66.6 omlx=0.3.4 os=macOS 26.4 https://omlx.ai/benchmarks/0geubz42",
+      "j68c5fqf 2026-04-07T02:21:31Z ctx=8192 pp=2053 tg=61 omlx=0.3.4 os=macOS 26.4 https://omlx.ai/benchmarks/j68c5fqf",
+      "b5yfwrvu 2026-04-07T02:21:32Z ctx=16384 pp=1956.6 tg=46.4 omlx=0.3.4 os=macOS 26.4 https://omlx.ai/benchmarks/b5yfwrvu",
+      "6lsld6x0 2026-04-07T02:21:34Z ctx=32768 pp=1808.1 tg=33.8 omlx=0.3.4 os=macOS 26.4 https://omlx.ai/benchmarks/6lsld6x0",
+      "55c38mbc 2026-04-07T02:21:35Z ctx=65536 pp=1422.5 tg=20.9 omlx=0.3.4 os=macOS 26.4 https://omlx.ai/benchmarks/55c38mbc",
+      "l65nwusx 2026-04-07T02:21:36Z ctx=131072 pp=981.7 tg=14 omlx=0.3.4 os=macOS 26.4 https://omlx.ai/benchmarks/l65nwusx",
+      "pavmf3bu 2026-04-07T02:21:39Z ctx=200000 pp=721.9 tg=10.4 omlx=0.3.4 os=macOS 26.4 https://omlx.ai/benchmarks/pavmf3bu"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/81h06hjo",
+      "https://omlx.ai/benchmarks/0geubz42",
+      "https://omlx.ai/benchmarks/j68c5fqf",
+      "https://omlx.ai/benchmarks/b5yfwrvu",
+      "https://omlx.ai/benchmarks/6lsld6x0",
+      "https://omlx.ai/benchmarks/55c38mbc",
+      "https://omlx.ai/benchmarks/l65nwusx",
+      "https://omlx.ai/benchmarks/pavmf3bu"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 36,
+      "selected_depths": 8,
+      "latest_upstream_id": "0geubz42",
+      "latest_created_at": "2026-04-07T10:43:11Z",
+      "selected_omlx_versions": "0.3.4",
+      "selected_os_versions": "macOS 26.4"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.4",
+    "runtimeVersions": {
+      "omlx": "0.3.4"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX gemma-4-26b-a4b-it on M5 Pro (20c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/0geubz42",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-04-07",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 36 upstream row(s) on oMLX 0.3.4 / macOS 26.4 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

@@ -1,8 +1,0 @@
-{
-  "id": "huihui-qwen3.5-27b-claude-4.6-opus-abliteratedoq6",
-  "name": "Huihui-Qwen3.5-27B-Claude-4.6-Opus-abliteratedoQ6",
-  "family": "Huihui",
-  "params": "27B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

@@ -1,8 +1,0 @@
-{
-  "id": "gg-qwen3.5-35b-a3biq4-m",
-  "name": "GG:Qwen3.5-35B-A3BIQ4_M",
-  "family": "GG:Qwen3.5",
-  "params": "35B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

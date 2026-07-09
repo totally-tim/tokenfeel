@@ -1,0 +1,63 @@
+{
+  "id": "dgx-spark__test-qwen3-coder-30b-a3b__q8_0__llamacpp-cuda",
+  "hardware": "dgx-spark",
+  "model": "test-qwen3-coder-30b-a3b",
+  "quant": "q8_0",
+  "runtime": {
+    "name": "llama.cpp",
+    "version": "b7941",
+    "backend": "CUDA",
+    "flags": "-fa 1 -ub 2048 -mmp 0",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 0,
+      "pp": 2986.97,
+      "tg": 61.06,
+      "ppLabel": "pp2048",
+      "tgLabel": "tg32"
+    },
+    {
+      "depth": 4096,
+      "pp": 2633.45,
+      "tg": 54.77,
+      "ppLabel": "pp2048 @ d4096",
+      "tgLabel": "tg32 @ d4096"
+    },
+    {
+      "depth": 8192,
+      "pp": 2354.14,
+      "tg": 48.02,
+      "ppLabel": "pp2048 @ d8192",
+      "tgLabel": "tg32 @ d8192"
+    },
+    {
+      "depth": 16384,
+      "pp": 1908.86,
+      "tg": 40.23,
+      "ppLabel": "pp2048 @ d16384",
+      "tgLabel": "tg32 @ d16384"
+    },
+    {
+      "depth": 32768,
+      "pp": 1348.17,
+      "tg": 30.21,
+      "ppLabel": "pp2048 @ d32768",
+      "tgLabel": "tg32 @ d32768"
+    }
+  ],
+  "source": {
+    "kind": "llama-bench",
+    "title": "llama.cpp DGX Spark benchmark file",
+    "url": "https://github.com/ggml-org/llama.cpp/blob/master/benches/dgx-spark/dgx-spark.md",
+    "raw": "Qwen3-Coder-30B-A3B-Instruct-Q8_0-GGUF llama-bench table",
+    "license": "MIT",
+    "notes": "Maintainer-hosted benchmark file with pp and tg rows at multiple depths."
+  },
+  "submitter": "ggml-org",
+  "date": "2026-02-05",
+  "status": "verified",
+  "overheadMs": 100,
+  "notes": "Seeded from visible pp2048/tg32 rows; labels preserve benchmark test size."
+}

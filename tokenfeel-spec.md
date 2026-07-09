@@ -1,6 +1,6 @@
 # Tokenfeel (working title)
 
-An open source, static web playground that lets you *feel* what local LLM inference is like on hardware you don't own. Pick a hardware config, a model, a quant and a runtime, pick a real-world scenario, hit play, and watch a simulated session stream at exactly the speed the real thing would. Race two configs side by side to settle "should I buy the Spark or the Strix Halo" arguments with your eyes instead of a spreadsheet.
+An open source, static web playground that lets you _feel_ what local LLM inference is like on hardware you don't own. Pick a hardware config, a model, a quant and a runtime, pick a real-world scenario, hit play, and watch a simulated session stream at exactly the speed the real thing would. Race two configs side by side to settle "should I buy the Spark or the Strix Halo" arguments with your eyes instead of a spreadsheet.
 
 Other working names to consider: `tokfeel`, `feelthetokens`, `inference.gg`, `tokrace`.
 
@@ -8,7 +8,7 @@ Other working names to consider: `tokfeel`, `feelthetokens`, `inference.gg`, `to
 
 ## 1. Problem
 
-Leaderboards like Spark Arena, BridgeBench and the Strix Halo Toolboxes benchmarks publish pp/tg numbers per model and quant. These are accurate but abstract. Nobody can intuit what "pp2048 = 1,850 t/s, tg128 = 21 t/s" feels like in an agentic coding loop where the context is 30k tokens by turn six. Buyers overweight decode speed and get blindsided by prefill on long contexts, or vice versa. The data exists; the *experience* doesn't.
+Leaderboards like Spark Arena, BridgeBench and the Strix Halo Toolboxes benchmarks publish pp/tg numbers per model and quant. These are accurate but abstract. Nobody can intuit what "pp2048 = 1,850 t/s, tg128 = 21 t/s" feels like in an agentic coding loop where the context is 30k tokens by turn six. Buyers overweight decode speed and get blindsided by prefill on long contexts, or vice versa. The data exists; the _experience_ doesn't.
 
 ## 2. Core idea
 
@@ -83,7 +83,7 @@ Event types beyond plain turns: `tool_call` (agent emits N tokens of call, then 
 
 ### Determinism vs. variety
 
-Default: one canonical script per scenario, so any two runs anywhere are comparable and shareable. Each scenario can have alternate scripts ("variant B, C..."), selectable explicitly or via a shuffle button. In race mode, both lanes always run the same script. Variants keep the same *shape* (similar total prefill/decode token budget) so timings stay roughly comparable across variants, but only same-script comparisons are canonical.
+Default: one canonical script per scenario, so any two runs anywhere are comparable and shareable. Each scenario can have alternate scripts ("variant B, C..."), selectable explicitly or via a shuffle button. In race mode, both lanes always run the same script. Variants keep the same _shape_ (similar total prefill/decode token budget) so timings stay roughly comparable across variants, but only same-script comparisons are canonical.
 
 ## 5. Race mode (the killer feature)
 
@@ -126,18 +126,18 @@ Result file:
   "quant": "Q4_K_M",
   "runtime": { "name": "llama.cpp", "version": "b4832", "backend": "CUDA", "flags": "-fa on", "cache": "prefix" },
   "measurements": [
-    { "depth": 0,     "pp": 1842.3, "tg": 24.1 },
-    { "depth": 8192,  "pp": 1610.0, "tg": 19.8 },
+    { "depth": 0, "pp": 1842.3, "tg": 24.1 },
+    { "depth": 8192, "pp": 1610.0, "tg": 19.8 },
     { "depth": 16384, "pp": 1385.2, "tg": 16.4 }
   ],
   "source": {
-    "kind": "llama-bench",              // llama-bench | llama-benchy | writeup | leaderboard
-    "url": "https://...",               // link to raw output, forum post or leaderboard entry
+    "kind": "llama-bench", // llama-bench | llama-benchy | writeup | leaderboard
+    "url": "https://...", // link to raw output, forum post or leaderboard entry
     "raw": "attached in PR"
   },
   "submitter": "github-handle",
   "date": "2026-07-04",
-  "status": "community"                  // community | verified | flagged
+  "status": "community" // community | verified | flagged
 }
 ```
 
@@ -184,7 +184,7 @@ Target for launch: 8-10 hardware configs x 3-4 models each. The Mac variety does
 
 - **v1**: chatbot + agent scenarios, race mode (2 lanes), cache toggle, shareable URLs, PR pipeline, seeded data
 - **v1.1**: reasoning scenario, RAG scenario, scenario variants/shuffle
-- **v1.2**: embeddable widget, "time to complete" summary cards on config pages (so the leaderboard view shows *seconds for the agent scenario* instead of tok/s)
+- **v1.2**: embeddable widget, "time to complete" summary cards on config pages (so the leaderboard view shows _seconds for the agent scenario_ instead of tok/s)
 - **v2**: custom scenario builder (define your own token budget shape), batch/concurrency modeling if the community submits the data for it, energy cost per scenario (watts x time) since people love the tokens-per-joule angle
 
 ## 12. Open questions
@@ -193,4 +193,3 @@ Target for launch: 8-10 hardware configs x 3-4 models each. The Mac variety does
 - Whether verified imports from external leaderboards should sync automatically (scheduled Action that opens PRs) or stay manual
 - License: MIT for code is obvious; data probably CC-BY so leaderboards can reuse it back
 - Whether tool-call latency in the agent scenario should be zero (pure inference comparison) or realistic (~200-800ms), probably a toggle defaulting to zero
-

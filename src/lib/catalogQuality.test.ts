@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import type { BenchmarkResult, Catalog } from "../types";
-import { catalogQualityIssues, pruneCatalogForSimulation } from "./catalogQuality";
+import { baselineMeasurement, catalogQualityIssues, pruneCatalogForSimulation } from "./catalogQuality";
 
 const baseResult = {
   id: "m4__qwen3.5-9b__4bit__omlx-api",
@@ -19,14 +19,30 @@ const baseResult = {
 } satisfies BenchmarkResult;
 
 function result(overrides: Partial<BenchmarkResult>): BenchmarkResult {
-  return { ...baseResult, ...overrides } as BenchmarkResult;
+  return { ...baseResult, ...overrides };
 }
 
 function catalog(results: BenchmarkResult[]): Catalog {
   return {
     hardware: [
-      { id: "m4", name: "M4", shortName: "M4", vendor: "Apple", memory: "64GB", accelerator: "GPU", notes: "Synthetic hardware" },
-      { id: "orphan-hardware", name: "Orphan", shortName: "Orphan", vendor: "Apple", memory: "8GB", accelerator: "GPU", notes: "Unreferenced" }
+      {
+        id: "m4",
+        name: "M4",
+        shortName: "M4",
+        vendor: "Apple",
+        memory: "64GB",
+        accelerator: "GPU",
+        notes: "Synthetic hardware"
+      },
+      {
+        id: "orphan-hardware",
+        name: "Orphan",
+        shortName: "Orphan",
+        vendor: "Apple",
+        memory: "8GB",
+        accelerator: "GPU",
+        notes: "Unreferenced"
+      }
     ],
     models: [
       { id: "qwen3.5-9b", name: "Qwen3.5 9B", family: "Qwen", params: "9B", license: "test", notes: "Synthetic model" },
@@ -42,7 +58,13 @@ function catalog(results: BenchmarkResult[]): Catalog {
     ],
     results,
     scenarios: [
-      { id: "s1", title: "Scenario", type: "chatbot", systemPromptTokens: 100, events: [{ id: "u1", role: "user", text: "Hello", tokens: 10 }] }
+      {
+        id: "s1",
+        title: "Scenario",
+        type: "chatbot",
+        systemPromptTokens: 100,
+        events: [{ id: "u1", role: "user", text: "Hello", tokens: 10 }]
+      }
     ]
   };
 }
@@ -50,12 +72,23 @@ function catalog(results: BenchmarkResult[]): Catalog {
 describe("catalog quality", () => {
   test("flags result rows that are not useful for the public simulation catalog", () => {
     expect(catalogQualityIssues(result({ quant: "unknown" }))).toContain("unknown-quant");
-    expect(catalogQualityIssues(result({ model: "0123456789abcdef0123456789abcdef01234567" }))).toContain("hash-model-id");
-    expect(catalogQualityIssues(result({ measurements: [{ depth: 4096, pp: 1000, tg: 50 }] }))).toContain("low-context-under-8k");
+    expect(catalogQualityIssues(result({ model: "0123456789abcdef0123456789abcdef01234567" }))).toContain(
+      "hash-model-id"
+    );
+    expect(catalogQualityIssues(result({ measurements: [{ depth: 4096, pp: 1000, tg: 50 }] }))).toContain(
+      "low-context-under-8k"
+    );
     expect(
       catalogQualityIssues(
         result({
-          measurements: [{ depth: 4096, pp: 1000, tg: 50, source: { url: "https://example.com/bad", upstreamId: "bad", ttftMs: 100_000 } }]
+          measurements: [
+            {
+              depth: 4096,
+              pp: 1000,
+              tg: 50,
+              source: { url: "https://example.com/bad", upstreamId: "bad", ttftMs: 100_000 }
+            }
+          ]
         })
       )
     ).toContain("ttft-pp-mismatch");
@@ -79,6 +112,42 @@ describe("catalog quality", () => {
     expect(issues).not.toContain("ttft-pp-mismatch");
   });
 
+  test("exempts a first-transition rate spike from severe-rate-spike when a longer curve confirms it's cold-start noise", () => {
+    const coldStart = result({
+      measurements: [
+        { depth: 1024, pp: 1200, tg: 28.9 },
+        { depth: 4096, pp: 1400, tg: 81.6 },
+        { depth: 8192, pp: 1450, tg: 74.9 },
+        { depth: 16384, pp: 1420, tg: 63.3 }
+      ]
+    });
+
+    expect(catalogQualityIssues(coldStart)).not.toContain("severe-rate-spike");
+  });
+
+  test("still flags a first-transition spike as severe-rate-spike on a bare 2-point curve", () => {
+    const bareSpike = result({
+      measurements: [
+        { depth: 1024, pp: 1200, tg: 28.9 },
+        { depth: 4096, pp: 1400, tg: 81.6 }
+      ]
+    });
+
+    expect(catalogQualityIssues(bareSpike)).toContain("severe-rate-spike");
+  });
+
+  test("still flags a severe spike past the first transition", () => {
+    const lateSpike = result({
+      measurements: [
+        { depth: 1024, pp: 1200, tg: 30 },
+        { depth: 4096, pp: 1210, tg: 31 },
+        { depth: 8192, pp: 1220, tg: 70 }
+      ]
+    });
+
+    expect(catalogQualityIssues(lateSpike)).toContain("severe-rate-spike");
+  });
+
   test("prunes bad results and orphaned metadata from the app-facing simulation catalog", () => {
     const good = result({ id: "m4__qwen3.5-9b__4bit__omlx-api" });
     const bad = result({ id: "m4__qwen3.5-9b__unknown__omlx-api", quant: "unknown" });
@@ -87,5 +156,39 @@ describe("catalog quality", () => {
     expect(pruned.results.map((item) => item.id)).toEqual([good.id]);
     expect(pruned.hardware.map((item) => item.id)).toEqual(["m4"]);
     expect(pruned.models.map((item) => item.id)).toEqual(["qwen3.5-9b"]);
+  });
+});
+
+describe("baselineMeasurement", () => {
+  test("returns the lowest-depth measurement when already sorted ascending", () => {
+    expect(baselineMeasurement(result({}))?.depth).toBe(1024);
+  });
+
+  test("re-sorts defensively when measurements are not ascending by depth", () => {
+    const unsorted = result({
+      measurements: [
+        { depth: 8192, pp: 900, tg: 45 },
+        { depth: 1024, pp: 1000, tg: 50 },
+        { depth: 4096, pp: 950, tg: 48 }
+      ]
+    });
+
+    expect(baselineMeasurement(unsorted)?.depth).toBe(1024);
+  });
+
+  test("returns undefined instead of throwing when there are no measurements", () => {
+    expect(baselineMeasurement(result({ measurements: [] }))).toBeUndefined();
+  });
+
+  test("does not mutate the original measurements array", () => {
+    const original = [
+      { depth: 8192, pp: 900, tg: 45 },
+      { depth: 1024, pp: 1000, tg: 50 }
+    ];
+    const unsorted = result({ measurements: [...original] });
+
+    baselineMeasurement(unsorted);
+
+    expect(unsorted.measurements.map((measurement) => measurement.depth)).toEqual([8192, 1024]);
   });
 });

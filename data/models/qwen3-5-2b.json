@@ -1,8 +1,0 @@
-{
-  "id": "qwen3-5-2b",
-  "name": "Qwen3___5-2B",
-  "family": "Qwen",
-  "params": "2B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

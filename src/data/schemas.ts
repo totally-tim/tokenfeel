@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { runtimeKey } from "../lib/configMatrix";
 
 const idSchema = z.string().min(2).regex(/^[a-z0-9][a-z0-9._-]*$/);
 const isoDateTimeSchema = z.string().datetime({ offset: true });
@@ -40,6 +41,8 @@ export const measurementSchema = z.object({
   tg: z.number().positive(),
   ppLabel: z.string().optional(),
   tgLabel: z.string().optional(),
+  ppStddev: z.number().nonnegative().optional(),
+  tgStddev: z.number().nonnegative().optional(),
   source: measurementSourceSchema.optional()
 });
 
@@ -158,19 +161,53 @@ export const researchItemSchema = z.object({
 
 export const researchItemsSchema = z.array(researchItemSchema);
 
-export const scenarioEventSchema = z.object({
-  id: idSchema,
-  role: z.enum(["user", "assistant", "tool_call", "tool_result", "thinking", "cache_bust"]),
-  text: z.string(),
-  tokens: z.number().int().nonnegative(),
-  toolLatencyMs: z.number().nonnegative().optional(),
-  cacheBust: z
-    .object({
-      retainedPrefixTokens: z.number().int().nonnegative(),
-      reason: z.string().optional()
-    })
-    .optional()
-});
+export const scenarioEventSchema = z
+  .object({
+    id: idSchema,
+    role: z.enum(["user", "assistant", "tool_call", "tool_result", "thinking", "cache_bust"]),
+    text: z.string(),
+    tokens: z.number().int().nonnegative(),
+    toolLatencyMs: z.number().nonnegative().optional(),
+    cacheBust: z
+      .object({
+        retainedPrefixTokens: z.number().int().nonnegative(),
+        reason: z.string().optional()
+      })
+      .optional()
+  })
+  .superRefine((event, ctx) => {
+    // A standalone "cache_bust"-role event is a zero-content, zero-duration
+    // marker (see ScenarioRole in types.ts) -- it never prefills, decodes,
+    // or adds tool latency, so nonzero tokens/toolLatencyMs would silently
+    // inflate contextDepth/cachedPrefixTokens or wall-clock time in
+    // buildTimeline for what must be zero timing cost. Its own `cacheBust`
+    // property is also meaningless: buildTimeline never applies it for this
+    // role, since only "user"/"tool_result" events prefill. Model an actual
+    // partial cache invalidation with real content via the `cacheBust`
+    // property on a "user"/"tool_result" event instead.
+    if (event.role !== "cache_bust") return;
+    if (event.tokens !== 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Event "${event.id}" has role "cache_bust" but nonzero tokens (${event.tokens}) -- a standalone cache_bust-role event must be a zero-token marker; use the cacheBust property on a user/tool_result event to model a partial cache invalidation with real content`,
+        path: ["tokens"]
+      });
+    }
+    if (event.toolLatencyMs) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Event "${event.id}" has role "cache_bust" but nonzero toolLatencyMs (${event.toolLatencyMs}) -- a standalone cache_bust-role event must be a zero-duration marker; use toolLatencyMs on a user/tool_result event instead`,
+        path: ["toolLatencyMs"]
+      });
+    }
+    if (event.cacheBust) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Event "${event.id}" has role "cache_bust" and a cacheBust property, which buildTimeline never applies to this role (it only prefills on user/tool_result events) -- set cacheBust on a user/tool_result event instead`,
+        path: ["cacheBust"]
+      });
+    }
+  });
 
 export const scenarioSchema = z.object({
   id: idSchema,
@@ -181,6 +218,151 @@ export const scenarioSchema = z.object({
   events: z.array(scenarioEventSchema).min(1)
 });
 
+type StructuralResult = z.infer<typeof resultSchema>;
+
+interface StructuralCatalogLike {
+  hardware: Array<{ id: string }>;
+  models: Array<{ id: string }>;
+  results: StructuralResult[];
+  scenarios: Array<{ id: string }>;
+}
+
+interface CrossReferenceCheckOptions {
+  // The "verified status requires raw evidence (source.raw or
+  // evidence.rawUrl)" rule is an authoring-time provenance gate. It must stay
+  // off when validating the static/runtime catalog (see staticCatalogSchema
+  // below), whose summary index deliberately strips `source.raw` to keep the
+  // index small -- re-checking it there would spuriously fail every verified
+  // row that relies on source.raw (rather than evidence.rawUrl) even though
+  // this same data already passed the check once, in full, at build time
+  // against the uncompacted source-of-truth (data/*.json via
+  // scripts/validate-data.ts's readCatalogFromDisk).
+  checkVerifiedEvidence?: boolean;
+}
+
+// Cross-row structural invariants shared by `catalogSchema` (the
+// source-of-truth data/*.json shape) and `staticCatalogSchema` (the compacted
+// runtime shape served from public/catalog/). Kept as a single implementation
+// so the two schemas cannot silently drift apart.
+function checkCatalogCrossReferences(
+  catalog: StructuralCatalogLike,
+  ctx: z.RefinementCtx,
+  options: CrossReferenceCheckOptions = {}
+) {
+  const { checkVerifiedEvidence = true } = options;
+
+  function checkUniqueIds(items: Array<{ id: string }>, path: string) {
+    const seen = new Set<string>();
+    for (const item of items) {
+      if (seen.has(item.id)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Duplicate id "${item.id}" in ${path}`,
+          path: [path, item.id]
+        });
+      }
+      seen.add(item.id);
+    }
+  }
+
+  checkUniqueIds(catalog.hardware, "hardware");
+  checkUniqueIds(catalog.models, "models");
+  checkUniqueIds(catalog.results, "results");
+  checkUniqueIds(catalog.scenarios, "scenarios");
+
+  function checkUniqueConfigs(results: typeof catalog.results) {
+    const seenByConfig = new Map<string, string>();
+    for (const result of results) {
+      const configKey = [result.hardware, result.model, result.quant, runtimeKey(result)].join("::");
+      const firstId = seenByConfig.get(configKey);
+      if (firstId) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Result "${result.id}" is a true duplicate (same hardware, model, quant, and runtime config) of "${firstId}" -- resolve by hand, do not auto-pick a winner`,
+          path: ["results", result.id, "runtimeKey"]
+        });
+      } else {
+        seenByConfig.set(configKey, result.id);
+      }
+    }
+  }
+
+  checkUniqueConfigs(catalog.results);
+
+  const hardwareIds = new Set(catalog.hardware.map((hardware) => hardware.id));
+  const modelIds = new Set(catalog.models.map((model) => model.id));
+
+  for (const result of catalog.results) {
+    if (!hardwareIds.has(result.hardware)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Unknown hardware "${result.hardware}" in ${result.id}`,
+        path: ["results", result.id, "hardware"]
+      });
+    }
+
+    if (!modelIds.has(result.model)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Unknown model "${result.model}" in ${result.id}`,
+        path: ["results", result.id, "model"]
+      });
+    }
+
+    const sortedDepths = [...result.measurements].sort((a, b) => a.depth - b.depth);
+    if (sortedDepths.some((point, index) => point.depth !== result.measurements[index].depth)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Measurements must be sorted by depth in ${result.id}`,
+        path: ["results", result.id, "measurements"]
+      });
+    }
+
+    const seenDepths = new Set<number>();
+    for (const measurement of result.measurements) {
+      if (seenDepths.has(measurement.depth)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Duplicate measurement depth ${measurement.depth} in ${result.id}`,
+          path: ["results", result.id, "measurements"]
+        });
+      }
+      seenDepths.add(measurement.depth);
+    }
+
+    const resultIdParts = result.id.split("__");
+    if (
+      resultIdParts.length !== 4 ||
+      resultIdParts.some((part) => part.length === 0) ||
+      resultIdParts[0] !== result.hardware ||
+      resultIdParts[1] !== result.model ||
+      resultIdParts[2] !== result.quant
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Result id "${result.id}" must use hardware__model__quant__runtime-ish shape matching hardware "${result.hardware}", model "${result.model}", and quant "${result.quant}"`,
+        path: ["results", result.id, "id"]
+      });
+    }
+
+    if (result.date > new Date().toISOString().slice(0, 10)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Result ${result.id} has a future date ${result.date}`,
+        path: ["results", result.id, "date"]
+      });
+    }
+
+    if (checkVerifiedEvidence && result.status === "verified" && !result.source.raw && !result.evidence?.rawUrl) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Result ${result.id} is status "verified" but has no raw evidence (source.raw or evidence.rawUrl)`,
+        path: ["results", result.id, "status"]
+      });
+    }
+  }
+}
+
 export const catalogSchema = z
   .object({
     hardware: z.array(hardwareSchema).min(1),
@@ -188,88 +370,40 @@ export const catalogSchema = z
     results: z.array(resultSchema).min(1),
     scenarios: z.array(scenarioSchema).min(1)
   })
+  .superRefine((catalog, ctx) => checkCatalogCrossReferences(catalog, ctx));
+
+export type ParsedCatalog = z.infer<typeof catalogSchema>;
+
+// The compacted per-result shape served from public/catalog/index.json (see
+// StaticBenchmarkResult in src/data/staticCatalog.ts): every resultSchema
+// field except `source.raw` (kept only in per-result detail chunks) plus the
+// `detailChunk` pointer used to fetch that detail.
+export const staticResultSchema = resultSchema.extend({ detailChunk: z.string().min(1) });
+
+// Runtime validation gate for the fetched static catalog (public/catalog/
+// index.json), guarding against a stale/corrupted/hand-edited chunk slipping
+// past the build-time zod gate in scripts/build-static-catalog.ts. Reuses the
+// same entity schemas and the same cross-reference checks as catalogSchema,
+// minus the verified/raw-evidence rule (see checkVerifiedEvidence above).
+export const staticCatalogSchema = z
+  .object({
+    version: z.literal(1),
+    generatedAt: isoDateTimeSchema,
+    resultCount: z.number().int().nonnegative(),
+    hardware: z.array(hardwareSchema).min(1),
+    models: z.array(modelSchema).min(1),
+    results: z.array(staticResultSchema).min(1),
+    scenarios: z.array(scenarioSchema).min(1)
+  })
   .superRefine((catalog, ctx) => {
-    function checkUniqueIds(items: Array<{ id: string }>, path: string) {
-      const seen = new Set<string>();
-      for (const item of items) {
-        if (seen.has(item.id)) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: `Duplicate id "${item.id}" in ${path}`,
-            path: [path, item.id]
-          });
-        }
-        seen.add(item.id);
-      }
-    }
-
-    checkUniqueIds(catalog.hardware, "hardware");
-    checkUniqueIds(catalog.models, "models");
-    checkUniqueIds(catalog.results, "results");
-    checkUniqueIds(catalog.scenarios, "scenarios");
-
-    const hardwareIds = new Set(catalog.hardware.map((hardware) => hardware.id));
-    const modelIds = new Set(catalog.models.map((model) => model.id));
-
-    for (const result of catalog.results) {
-      if (!hardwareIds.has(result.hardware)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `Unknown hardware "${result.hardware}" in ${result.id}`,
-          path: ["results", result.id, "hardware"]
-        });
-      }
-
-      if (!modelIds.has(result.model)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `Unknown model "${result.model}" in ${result.id}`,
-          path: ["results", result.id, "model"]
-        });
-      }
-
-      const sortedDepths = [...result.measurements].sort((a, b) => a.depth - b.depth);
-      if (sortedDepths.some((point, index) => point.depth !== result.measurements[index].depth)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `Measurements must be sorted by depth in ${result.id}`,
-          path: ["results", result.id, "measurements"]
-        });
-      }
-
-      const seenDepths = new Set<number>();
-      for (const measurement of result.measurements) {
-        if (seenDepths.has(measurement.depth)) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: `Duplicate measurement depth ${measurement.depth} in ${result.id}`,
-            path: ["results", result.id, "measurements"]
-          });
-        }
-        seenDepths.add(measurement.depth);
-      }
-
-      const resultIdParts = result.id.split("__");
-      if (
-        resultIdParts.length !== 4 ||
-        resultIdParts.some((part) => part.length === 0) ||
-        resultIdParts[2] !== result.quant
-      ) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `Result id "${result.id}" must use hardware__model__quant__runtime-ish shape with quant "${result.quant}"`,
-          path: ["results", result.id, "id"]
-        });
-      }
-
-      if (result.date > new Date().toISOString().slice(0, 10)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `Result ${result.id} has a future date ${result.date}`,
-          path: ["results", result.id, "date"]
-        });
-      }
+    checkCatalogCrossReferences(catalog, ctx, { checkVerifiedEvidence: false });
+    if (catalog.resultCount !== catalog.results.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `resultCount (${catalog.resultCount}) does not match results.length (${catalog.results.length})`,
+        path: ["resultCount"]
+      });
     }
   });
 
-export type ParsedCatalog = z.infer<typeof catalogSchema>;
+export type ParsedStaticCatalog = z.infer<typeof staticCatalogSchema>;

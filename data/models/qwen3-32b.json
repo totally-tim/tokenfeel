@@ -1,8 +1,0 @@
-{
-  "id": "qwen3-32b",
-  "name": "Qwen3-32B",
-  "family": "Qwen",
-  "params": "32B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

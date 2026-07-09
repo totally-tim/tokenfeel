@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { catalog, results, scenarios, validateCatalog } from "./index";
-import { catalogSchema } from "./schemas";
-import { analyzeCatalogQuality } from "../../scripts/validate-data";
+import { catalogSchema, scenarioEventSchema, staticCatalogSchema } from "./schemas";
+import { analyzeCatalogQuality, readPrunedCatalogFromDisk } from "../../scripts/validate-data";
+
+const catalog = readPrunedCatalogFromDisk();
+const { results, scenarios } = catalog;
 
 describe("seed data", () => {
   it("contains source-grounded benchmark results with usable pp/tg measurements", () => {
-    const parsed = validateCatalog(catalog);
+    const parsed = catalog;
 
     expect(parsed.results.length).toBeGreaterThanOrEqual(19);
     expect(parsed.hardware.length).toBeGreaterThanOrEqual(4);
@@ -27,8 +29,8 @@ describe("seed data", () => {
     expect(ids.has("dgx-spark-dual-qsfp__deepseek-v4-flash__fp4-fp8-mixed__vllm-dspark")).toBe(true);
     expect(ids.has("dgx-spark-dual-qsfp__deepseek-v4-flash__fp8__vllm-mtp")).toBe(true);
     expect(ids.has("dgx-spark-quad-qsfp__gpt-oss-120b__mxfp4__vllm")).toBe(true);
-    expect(ids.has("rtx-4090__qwen3.6-35b-a3b__q4_k_xl__llamacpp-cuda")).toBe(true);
-    expect(ids.has("m4-max__gpt-oss-120b__mxfp4__llamacpp-metal")).toBe(true);
+    expect(ids.has("rtx-4090-24gb__qwen3.6-35b-a3b__q4_k_xl__llamacpp-cuda")).toBe(true);
+    expect(ids.has("m4-max-128gb__gpt-oss-120b__mxfp4__llamacpp-metal")).toBe(true);
   });
 
   it("only exposes scenario/result combinations that can produce timelines", () => {
@@ -166,6 +168,35 @@ describe("catalog schema hardening", () => {
     expect(parsed.results[0].topology?.nodeCount).toBe(2);
   });
 
+  it("accepts optional ppStddev/tgStddev, and validates fine when they're absent", () => {
+    const withStddev = catalogSchema.parse(
+      validCatalogWithResult({
+        measurements: [
+          { depth: 0, pp: 100, tg: 50, ppStddev: 1.2, tgStddev: 0.8 },
+          { depth: 4096, pp: 90, tg: 45 }
+        ]
+      })
+    );
+
+    expect(withStddev.results[0].measurements[0].ppStddev).toBeCloseTo(1.2);
+    expect(withStddev.results[0].measurements[0].tgStddev).toBeCloseTo(0.8);
+    expect(withStddev.results[0].measurements[1].ppStddev).toBeUndefined();
+    expect(withStddev.results[0].measurements[1].tgStddev).toBeUndefined();
+  });
+
+  it("rejects a negative ppStddev/tgStddev", () => {
+    expect(() =>
+      catalogSchema.parse(
+        validCatalogWithResult({
+          measurements: [
+            { depth: 0, pp: 100, tg: 50, ppStddev: -1 },
+            { depth: 4096, pp: 90, tg: 45 }
+          ]
+        })
+      )
+    ).toThrow();
+  });
+
   it("rejects duplicate measurement depths", () => {
     expect(() =>
       catalogSchema.parse(
@@ -199,7 +230,7 @@ describe("catalog schema hardening", () => {
     ).toThrow(/hardware__model__quant__runtime-ish/);
   });
 
-  it("reports suspicious pp and tg increases as quality warnings", () => {
+  it("reports pp/tg increases beyond 10% as hard quality issues", () => {
     const parsed = catalogSchema.parse(
       validCatalogWithResult({
         measurements: [
@@ -209,9 +240,162 @@ describe("catalog schema hardening", () => {
       })
     );
 
-    expect(analyzeCatalogQuality(parsed).warnings).toEqual([
+    const quality = analyzeCatalogQuality(parsed);
+    expect(quality.issues).toEqual([
       'test-hardware__test-model__q4_k_m__llamacpp-cuda pp increases 12.0% from depth 0 to 4096',
       'test-hardware__test-model__q4_k_m__llamacpp-cuda tg increases 16.0% from depth 0 to 4096'
     ]);
+    expect(quality.warnings).toEqual([]);
+  });
+
+  it("reports pp/tg increases of 10% or less as soft quality warnings, not issues", () => {
+    const parsed = catalogSchema.parse(
+      validCatalogWithResult({
+        measurements: [
+          { depth: 0, pp: 100, tg: 50 },
+          { depth: 4096, pp: 108, tg: 50 }
+        ]
+      })
+    );
+
+    const quality = analyzeCatalogQuality(parsed);
+    expect(quality.warnings).toEqual([
+      'test-hardware__test-model__q4_k_m__llamacpp-cuda pp increases 8.0% from depth 0 to 4096'
+    ]);
+    expect(quality.issues).toEqual([]);
+  });
+
+  it("does not flag pp/tg decreases or flat runs", () => {
+    const parsed = catalogSchema.parse(
+      validCatalogWithResult({
+        measurements: [
+          { depth: 0, pp: 100, tg: 50 },
+          { depth: 4096, pp: 90, tg: 50 }
+        ]
+      })
+    );
+
+    const quality = analyzeCatalogQuality(parsed);
+    expect(quality.warnings).toEqual([]);
+    expect(quality.issues).toEqual([]);
+  });
+
+  it("exempts allowlisted result ids from hard issues, demoting them to explained warnings", () => {
+    const parsed = catalogSchema.parse(
+      validCatalogWithResult({
+        measurements: [
+          { depth: 0, pp: 100, tg: 50 },
+          { depth: 4096, pp: 112, tg: 58 }
+        ]
+      })
+    );
+
+    const quality = analyzeCatalogQuality(parsed, [
+      { id: "test-hardware__test-model__q4_k_m__llamacpp-cuda", reason: "known cold-start warm-up artifact" }
+    ]);
+    expect(quality.issues).toEqual([]);
+    expect(quality.warnings).toHaveLength(2);
+    expect(quality.warnings[0]).toContain("known cold-start warm-up artifact");
+  });
+});
+
+function validStaticCatalog(resultOverrides: Record<string, unknown> = {}) {
+  const base = validCatalogWithResult(resultOverrides);
+  return {
+    version: 1 as const,
+    generatedAt: "2026-01-01T00:00:00Z",
+    resultCount: base.results.length,
+    hardware: base.hardware,
+    models: base.models,
+    scenarios: base.scenarios,
+    results: base.results.map((result) => ({ ...result, detailChunk: "chunk-000.json" }))
+  };
+}
+
+describe("staticCatalogSchema (runtime catalog re-validation, A2)", () => {
+  it("accepts a well-formed static catalog payload", () => {
+    const parsed = staticCatalogSchema.parse(validStaticCatalog());
+    expect(parsed.results[0].detailChunk).toBe("chunk-000.json");
+  });
+
+  it("accepts a verified result whose only evidence is source.raw stripped away (the compacted-index shape), unlike full catalogSchema", () => {
+    // build-static-catalog.ts's compactResult intentionally drops source.raw
+    // from the index summary (kept only in the per-result detail chunk).
+    // staticCatalogSchema must not resurrect the "verified needs raw
+    // evidence" rule against data that structurally cannot carry it.
+    const payload = validStaticCatalog({ status: "verified" });
+
+    expect(() => staticCatalogSchema.parse(payload)).not.toThrow();
+    expect(() => catalogSchema.parse(validCatalogWithResult({ status: "verified" }))).toThrow(
+      /no raw evidence/
+    );
+  });
+
+  it("rejects a payload missing the detailChunk pointer", () => {
+    const payload = validStaticCatalog();
+    // @ts-expect-error -- intentionally malformed for the test
+    delete payload.results[0].detailChunk;
+
+    expect(() => staticCatalogSchema.parse(payload)).toThrow();
+  });
+
+  it("rejects duplicate result ids, just like catalogSchema does", () => {
+    const payload = validStaticCatalog();
+    payload.results.push({ ...payload.results[0] });
+
+    expect(() => staticCatalogSchema.parse(payload)).toThrow(/Duplicate id/);
+  });
+
+  it("rejects a result referencing unknown hardware, just like catalogSchema does", () => {
+    const payload = validStaticCatalog();
+    payload.results[0].hardware = "ghost-hardware";
+
+    expect(() => staticCatalogSchema.parse(payload)).toThrow(/Unknown hardware/);
+  });
+
+  it("rejects a non-1 version tag (e.g. a stale/incompatible catalog build)", () => {
+    const payload = validStaticCatalog();
+    // @ts-expect-error -- intentionally malformed for the test
+    payload.version = 2;
+
+    expect(() => staticCatalogSchema.parse(payload)).toThrow();
+  });
+});
+
+describe("scenarioEventSchema cache_bust marker role (T1)", () => {
+  it("rejects a standalone cache_bust-role event with nonzero tokens", () => {
+    expect(() =>
+      scenarioEventSchema.parse({ id: "marker1", role: "cache_bust", text: "invalidate", tokens: 500 })
+    ).toThrow(/cache_bust.*nonzero tokens/);
+  });
+
+  it("accepts a standalone cache_bust-role event with zero tokens as a valid marker", () => {
+    const parsed = scenarioEventSchema.parse({ id: "marker1", role: "cache_bust", text: "invalidate", tokens: 0 });
+    expect(parsed.role).toBe("cache_bust");
+    expect(parsed.tokens).toBe(0);
+  });
+
+  it("rejects a standalone cache_bust-role event with nonzero toolLatencyMs", () => {
+    expect(() =>
+      scenarioEventSchema.parse({
+        id: "marker1",
+        role: "cache_bust",
+        text: "invalidate",
+        tokens: 0,
+        toolLatencyMs: 500
+      })
+    ).toThrow(/cache_bust.*nonzero toolLatencyMs/);
+  });
+
+  it("rejects a standalone cache_bust-role event with a cacheBust property", () => {
+    expect(() =>
+      scenarioEventSchema.parse({
+        id: "marker1",
+        role: "cache_bust",
+        text: "invalidate",
+        tokens: 0,
+        cacheBust: { retainedPrefixTokens: 100 }
+      })
+    ).toThrow(/cache_bust.*cacheBust property/);
   });
 });

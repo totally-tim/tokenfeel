@@ -1,9 +1,53 @@
 import { buildTimeline, summarizeTimeline } from "../sim/timing";
+import { resolveConfigSelection, type ConfigSelection, type ResolvedConfigSelection } from "./configMatrix";
 import type { BenchmarkResult, CacheMode, Catalog, HardwareConfig, ModelMetadata, ScenarioScript } from "../types";
 
 export const DEFAULT_SCENARIO_ID = "repo-wide-refactor";
-export const DEFAULT_LEFT_RESULT_ID = "m4-max-40c-48gb__qwen3.5-9b__4bit__omlx-api";
-export const DEFAULT_RIGHT_RESULT_ID = "m5-max-40c-128gb__qwen3.5-9b__4bit__omlx-api";
+
+// Stable (hardware/model/quant) tuples, not raw result ids -- individual
+// result ids carry a runtime version + OS + content hash suffix that changes
+// as new benchmark submissions come in, so pinning a literal id here goes
+// stale silently. `resolveConfigSelection` picks the best current row for
+// the tuple using the same preference order (verified > community, raw
+// evidence, depth, recency) as every other config picker in the app.
+export const DEFAULT_LEFT_CONFIG: ConfigSelection = {
+  hardwareId: "m4-max-40c-48gb",
+  modelId: "qwen3.5-9b",
+  quant: "4bit"
+};
+export const DEFAULT_RIGHT_CONFIG: ConfigSelection = {
+  hardwareId: "m5-max-40c-128gb",
+  modelId: "qwen3.5-9b",
+  quant: "4bit"
+};
+
+// `resolveConfigSelection` degrades a hardware/model/quant tuple that no
+// longer exists in the catalog to whatever the "first available" fallback
+// resolves to, rather than failing -- which would let both pinned defaults
+// silently collapse onto the same fallback result (comparing a config
+// against itself) once either tuple goes stale. Require the resolved tuple
+// to still match the pin exactly so a stale default fails loudly instead.
+function resolvePinnedConfig(catalog: Catalog, pinned: ConfigSelection): ResolvedConfigSelection {
+  const resolved = resolveConfigSelection(catalog.results, pinned, createCatalogLookups(catalog));
+  if (
+    resolved.hardwareId !== pinned.hardwareId ||
+    resolved.modelId !== pinned.modelId ||
+    resolved.quant !== pinned.quant
+  ) {
+    throw new Error(
+      `Pinned default config (hardware=${pinned.hardwareId}, model=${pinned.modelId}, quant=${pinned.quant}) no longer matches any catalog result -- update DEFAULT_LEFT_CONFIG/DEFAULT_RIGHT_CONFIG in catalog.ts.`
+    );
+  }
+  return resolved;
+}
+
+export function defaultLeftResultId(catalog: Catalog): string {
+  return resolvePinnedConfig(catalog, DEFAULT_LEFT_CONFIG).resultId;
+}
+
+export function defaultRightResultId(catalog: Catalog): string {
+  return resolvePinnedConfig(catalog, DEFAULT_RIGHT_CONFIG).resultId;
+}
 
 export interface CatalogLookups {
   hardwareById: (id: string) => HardwareConfig | undefined;
@@ -42,13 +86,6 @@ export function getScenario(catalog: Catalog, id: string): ScenarioScript {
   return scenario;
 }
 
-export function resultLabel(catalog: Catalog, result: BenchmarkResult): string {
-  const lookups = createCatalogLookups(catalog);
-  const config = lookups.hardwareById(result.hardware);
-  const model = lookups.modelById(result.model);
-  return `${config?.shortName ?? result.hardware} · ${model?.name ?? result.model} · ${result.quant.toUpperCase()} · ${result.runtime.name}/${result.runtime.backend}`;
-}
-
 export function compactResultLabel(catalog: Catalog, result: BenchmarkResult): string {
   const lookups = createCatalogLookups(catalog);
   const config = lookups.hardwareById(result.hardware);
@@ -65,16 +102,12 @@ export function defaultScenario(catalog: Catalog) {
   return getScenario(catalog, DEFAULT_SCENARIO_ID);
 }
 
-export function uniqueCombos(catalog: Catalog) {
-  return new Set(catalog.results.map((result) => `${result.hardware}:${result.model}:${result.quant}`)).size;
-}
-
 export function computeScenarioSeconds(
   result: BenchmarkResult,
   scenario: ScenarioScript,
   cacheMode: CacheMode = "runtime"
 ): number {
-  const timeline = buildTimeline({ result, scenario, cacheMode, speed: 1 });
+  const timeline = buildTimeline({ result, scenario, cacheMode });
   return summarizeTimeline(timeline).wallTimeMs / 1000;
 }
 
@@ -88,19 +121,10 @@ export function rankedResults(catalog: Catalog, scenario: ScenarioScript = defau
         seconds,
         hardware: lookups.hardwareById(result.hardware),
         model: lookups.modelById(result.model),
-        summary: summarizeTimeline(buildTimeline({ result, scenario, cacheMode: "runtime", speed: 1 }))
+        summary: summarizeTimeline(buildTimeline({ result, scenario, cacheMode: "runtime" }))
       };
     })
     .sort((a, b) => a.seconds - b.seconds);
-}
-
-export function resultOptions(catalog: Catalog) {
-  const lookups = createCatalogLookups(catalog);
-  return catalog.results.map((result) => ({
-    value: result.id,
-    label: `${lookups.hardwareById(result.hardware)?.shortName ?? result.hardware} · ${lookups.modelById(result.model)?.name ?? result.model} · ${result.quant.toUpperCase()} · ${result.runtime.name}/${result.runtime.backend}`,
-    sub: `${lookups.hardwareById(result.hardware)?.memory ?? "memory unknown"} · ${result.runtime.backend} · ${result.runtime.cache} cache`
-  }));
 }
 
 export function scenarioOptions(catalog: Catalog) {
@@ -114,8 +138,4 @@ export function scenarioOptions(catalog: Catalog) {
           ? `${scenario.events.filter((event) => event.role === "assistant").length} turns · growing context`
           : `${Math.round(scenario.events.reduce((sum, event) => sum + event.tokens, 0) / 100) / 10}k tokens`
   }));
-}
-
-export function hardwareOptions(catalog: Catalog) {
-  return catalog.hardware.map((item) => ({ value: item.id, label: item.shortName, sub: item.memory }));
 }

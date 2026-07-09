@@ -20,10 +20,6 @@ export function pageFromHashValue(hash: string): PageId {
   return parseHashRoute(hash).page;
 }
 
-export function hashForPage(page: PageId): string {
-  return page === "landing" ? "" : page;
-}
-
 export function buildPageHash(page: PageId, params = new URLSearchParams()): string {
   const query = params.toString();
   if (page === "landing") return "#";

@@ -1,9 +1,0 @@
-{
-  "id": "m1-40c-128gb",
-  "name": "Apple M1 (40c) 128GB",
-  "shortName": "M1 (40c)",
-  "vendor": "Apple",
-  "memory": "128GB unified",
-  "accelerator": "M1 40-core GPU",
-  "notes": "Generated from the oMLX community benchmark API import. Source hardware fields: chip=M1, variant=base, gpu_cores=40."
-}

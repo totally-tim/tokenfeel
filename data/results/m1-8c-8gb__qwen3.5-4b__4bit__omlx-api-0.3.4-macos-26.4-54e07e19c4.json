@@ -1,0 +1,122 @@
+{
+  "id": "m1-8c-8gb__qwen3.5-4b__4bit__omlx-api-0.3.4-macos-26.4-54e07e19c4",
+  "hardware": "m1-8c-8gb",
+  "model": "qwen3.5-4b",
+  "quant": "4bit",
+  "runtime": {
+    "name": "oMLX",
+    "version": "0.3.4",
+    "backend": "MLX",
+    "flags": "oMLX community API; latest linked row per context",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 1024,
+      "pp": 140.4,
+      "tg": 22.7,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/l1xf03ed",
+        "upstreamId": "l1xf03ed",
+        "createdAt": "2026-04-12T13:18:40Z",
+        "ttftMs": 7294.8,
+        "peakMemoryGb": 3.29
+      }
+    },
+    {
+      "depth": 4096,
+      "pp": 143.6,
+      "tg": 21.6,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/rv5377lu",
+        "upstreamId": "rv5377lu",
+        "createdAt": "2026-04-12T13:18:41Z",
+        "ttftMs": 28518.6,
+        "peakMemoryGb": 3.9
+      }
+    },
+    {
+      "depth": 8192,
+      "pp": 141.6,
+      "tg": 20,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/z1mth3bk",
+        "upstreamId": "z1mth3bk",
+        "createdAt": "2026-04-12T13:18:42Z",
+        "ttftMs": 57861.8,
+        "peakMemoryGb": 4.28
+      }
+    },
+    {
+      "depth": 16384,
+      "pp": 135.7,
+      "tg": 17.4,
+      "ppLabel": "4bit PP",
+      "tgLabel": "4bit TG",
+      "source": {
+        "url": "https://omlx.ai/benchmarks/fzhkigjt",
+        "upstreamId": "fzhkigjt",
+        "createdAt": "2026-04-12T13:18:43Z",
+        "ttftMs": 120741.6,
+        "peakMemoryGb": 5.02
+      }
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://omlx.ai/api/benchmarks",
+    "rawFormat": "oMLX API JSONL mirror",
+    "retrievedAt": "2026-07-05T02:54:06.904Z",
+    "upstreamId": "fzhkigjt",
+    "parserVersion": "tokenfeel-omlx-api/1",
+    "rawRows": [
+      "l1xf03ed 2026-04-12T13:18:40Z ctx=1024 pp=140.4 tg=22.7 omlx=0.3.4 os=macOS 26.4 https://omlx.ai/benchmarks/l1xf03ed",
+      "rv5377lu 2026-04-12T13:18:41Z ctx=4096 pp=143.6 tg=21.6 omlx=0.3.4 os=macOS 26.4 https://omlx.ai/benchmarks/rv5377lu",
+      "z1mth3bk 2026-04-12T13:18:42Z ctx=8192 pp=141.6 tg=20 omlx=0.3.4 os=macOS 26.4 https://omlx.ai/benchmarks/z1mth3bk",
+      "fzhkigjt 2026-04-12T13:18:43Z ctx=16384 pp=135.7 tg=17.4 omlx=0.3.4 os=macOS 26.4 https://omlx.ai/benchmarks/fzhkigjt"
+    ],
+    "upstreamUrls": [
+      "https://omlx.ai/benchmarks/l1xf03ed",
+      "https://omlx.ai/benchmarks/rv5377lu",
+      "https://omlx.ai/benchmarks/z1mth3bk",
+      "https://omlx.ai/benchmarks/fzhkigjt"
+    ]
+  },
+  "benchmark": {
+    "tool": "oMLX",
+    "outputFormat": "community API",
+    "latencyMode": "single-user prompt/decode",
+    "metadata": {
+      "upstream_rows_in_group": 4,
+      "selected_depths": 4,
+      "latest_upstream_id": "fzhkigjt",
+      "latest_created_at": "2026-04-12T13:18:43Z",
+      "selected_omlx_versions": "0.3.4",
+      "selected_os_versions": "macOS 26.4"
+    }
+  },
+  "topology": {
+    "acceleratorCount": 1,
+    "os": "macOS 26.4",
+    "runtimeVersions": {
+      "omlx": "0.3.4"
+    }
+  },
+  "source": {
+    "kind": "community-benchmark",
+    "title": "oMLX Qwen3.5-4B on M1 (8c) community benchmark",
+    "url": "https://omlx.ai/benchmarks/fzhkigjt",
+    "raw": "data/upstream/omlx-benchmarks.jsonl",
+    "license": "Apache-2.0 project; submitted benchmark data attribution required",
+    "notes": "Generated from https://omlx.ai/benchmarks. Measurements link to their selected upstream oMLX benchmark rows."
+  },
+  "submitter": "oMLX community",
+  "date": "2026-04-12",
+  "status": "community",
+  "notes": "Generated from the oMLX community benchmark API import. 4 upstream row(s) on oMLX 0.3.4 / macOS 26.4 were scraped for this hardware/model/quant/toolchain group; the latest row at each context depth was selected for simulation. Each measurement links to its exact upstream row."
+}

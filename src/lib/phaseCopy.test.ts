@@ -24,6 +24,11 @@ const baseEvent: TimelineEvent = {
   withoutCachePrefillTokens: 1100,
   ppRate: 1000,
   tgRate: 50,
+  ppConfidence: "measured",
+  tgConfidence: "measured",
+  prefillRangeMs: { min: 100, max: 100 },
+  decodeRangeMs: { min: 1000, max: 1000 },
+  decodeCumulativeMs: [],
   extrapolated: false
 };
 
@@ -49,6 +54,7 @@ describe("phase copy", () => {
   test("does not label projected total as elapsed", () => {
     const keys = statFootItems({
       wallTimeMs: 10_000,
+      wallTimeRangeMs: { min: 10_000, max: 10_000 },
       totalTokens: 2000,
       generatedTokens: 500,
       prefilledWithCache: 1500,
@@ -58,6 +64,7 @@ describe("phase copy", () => {
       decodeMs: 3000,
       toolLatencyMs: 0,
       extrapolatedEvents: 0,
+      nonMeasuredTimeShare: 0,
       avgDecodeTps: 20
     }).map((item) => item.label);
 
@@ -67,15 +74,21 @@ describe("phase copy", () => {
   });
 
   test("does not label non-generating prefill turns as TTFT", () => {
-    expect(turnMetricForEvent({ ...baseEvent, role: "user", prefillMs: 1200, decodeMs: 0, ttftMs: 1200 })).toBe("prompt ingest 1.2s");
-    expect(turnMetricForEvent({ ...baseEvent, role: "tool_result", prefillMs: 5200, decodeMs: 0, ttftMs: 5200 })).toBe("tool-result ingest 5.2s");
-    expect(turnMetricForEvent({
-      ...baseEvent,
-      role: "tool_result",
-      toolLatencyMs: 800,
-      prefillMs: 5200,
-      decodeMs: 0,
-      ttftMs: 6000
-    })).toBe("tool-result ingest 5.2s");
+    expect(turnMetricForEvent({ ...baseEvent, role: "user", prefillMs: 1200, decodeMs: 0, ttftMs: 1200 })).toBe(
+      "prompt ingest 1.2s"
+    );
+    expect(turnMetricForEvent({ ...baseEvent, role: "tool_result", prefillMs: 5200, decodeMs: 0, ttftMs: 5200 })).toBe(
+      "tool-result ingest 5.2s"
+    );
+    expect(
+      turnMetricForEvent({
+        ...baseEvent,
+        role: "tool_result",
+        toolLatencyMs: 800,
+        prefillMs: 5200,
+        decodeMs: 0,
+        ttftMs: 6000
+      })
+    ).toBe("tool-result ingest 5.2s");
   });
 });

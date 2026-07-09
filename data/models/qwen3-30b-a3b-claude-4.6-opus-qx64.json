@@ -1,9 +1,0 @@
-{
-  "id": "qwen3-30b-a3b-claude-4.6-opus-qx64",
-  "name": "Qwen3-30B-A3B-Claude-4.6-Opus-qx64",
-  "family": "Qwen",
-  "params": "30B",
-  "activeParams": "3B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

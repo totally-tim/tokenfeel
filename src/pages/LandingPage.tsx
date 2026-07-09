@@ -1,13 +1,4 @@
-import {
-  Brain,
-  Gauge,
-  GitBranch,
-  Layers3,
-  Link,
-  MessagesSquare,
-  Swords,
-  Terminal
-} from "lucide-react";
+import { Gauge, GitBranch, Layers3, Link, Swords, Terminal } from "lucide-react";
 import { PhaseLegend } from "../components/PhaseLegend";
 import { FLAG_RESULT_ISSUE_URL } from "../lib/projectLinks";
 import type { Catalog } from "../types";
@@ -70,9 +61,8 @@ export function LandingPage({ catalog, onNavigate }: LandingPageProps) {
           in <mark>real time</mark>.
         </h1>
         <p className="hero-copy">
-          Pick hardware, model, quant, runtime, and scenario. Watch prefill, tool wait,
-          thinking, and decode unfold in real time, then compare any two configurations
-          with the same script.
+          Pick hardware, model, quant, runtime, and scenario. Watch prefill, tool wait, thinking, and decode unfold in
+          real time, then compare any two configurations with the same script.
         </p>
         <div className="hero-actions">
           <button type="button" className="primary-button" onClick={() => onNavigate("race")}>
@@ -101,13 +91,25 @@ export function LandingPage({ catalog, onNavigate }: LandingPageProps) {
             <PipelinePanel
               n="01"
               title="RESULT.json"
-              lines={["d 0        pp 3234       tg 73.3", "d 8k       pp 2491       tg 71.5", "d 100k     pp 1153       tg 52.5", "cache: prefix", "vLLM · CUDA"]}
+              lines={[
+                "d 0        pp 3234       tg 73.3",
+                "d 8k       pp 2491       tg 71.5",
+                "d 100k     pp 1153       tg 52.5",
+                "cache: prefix",
+                "vLLM · CUDA"
+              ]}
             />
             <Connector />
             <PipelinePanel
               n="02"
               title="TIMING MODEL"
-              lines={["TTFT = measured", "fallback = prompt ÷ pp(depth)", "t/tok = 1 ÷ tg(depth)", "interp — linear", "extrap — flat ⚠"]}
+              lines={[
+                "TTFT = measured",
+                "fallback = prompt ÷ pp(depth)",
+                "t/tok = 1 ÷ tg(depth)",
+                "interp — linear",
+                "extrap — fitted trend ⚠"
+              ]}
             />
             <Connector />
             <PipelinePanel
@@ -119,7 +121,12 @@ export function LandingPage({ catalog, onNavigate }: LandingPageProps) {
             <PipelinePanel
               n="04"
               title="STREAMED SESSION"
-              lines={["> user (42 tok)", "Sure — here's a three-day route through the", "Dolomites that keeps driving under two", "● generating                 73.3 t/s"]}
+              lines={[
+                "> user (42 tok)",
+                "Sure — here's a three-day route through the",
+                "Dolomites that keeps driving under two",
+                "● generating                 73.3 t/s"
+              ]}
             />
           </div>
         </div>
@@ -188,7 +195,9 @@ export function LandingPage({ catalog, onNavigate }: LandingPageProps) {
           <button onClick={() => onNavigate("method")}>Method</button>
           <button onClick={() => onNavigate("playground")}>Scenarios</button>
           <button onClick={() => onNavigate("contribute")}>Contribute</button>
-          <a href={FLAG_RESULT_ISSUE_URL} target="_blank" rel="noreferrer">Report a result</a>
+          <a href={FLAG_RESULT_ISSUE_URL} target="_blank" rel="noreferrer">
+            Report a result
+          </a>
         </nav>
       </footer>
     </main>

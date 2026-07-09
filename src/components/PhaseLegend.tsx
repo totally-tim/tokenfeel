@@ -4,7 +4,12 @@ import { Check, Clock, Cpu, Gauge, Wrench } from "lucide-react";
 // method pages speak the same visual language as the live simulator.
 const PHASES = [
   { kind: "idle", Icon: Clock, label: "Queued", desc: "Idle — nothing is computing yet." },
-  { kind: "prefill", Icon: Cpu, label: "Prompt prefill", desc: "Processing the prompt before the first visible token." },
+  {
+    kind: "prefill",
+    Icon: Cpu,
+    label: "Prompt prefill",
+    desc: "Processing the prompt before the first visible token."
+  },
   { kind: "tool", Icon: Wrench, label: "Tool wait", desc: "External tool latency pauses the loop." },
   { kind: "decode", Icon: Gauge, label: "Decode", desc: "Generated tokens stream at decode speed." },
   { kind: "complete", Icon: Check, label: "Complete", desc: "The turn has finished." }

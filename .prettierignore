@@ -1,0 +1,7 @@
+dist
+public/catalog
+output
+coverage
+data
+*.tsbuildinfo
+package-lock.json

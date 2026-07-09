@@ -32,6 +32,21 @@ export function maxMeasuredDepth(result: BenchmarkResult): number {
   return Math.max(...result.measurements.map((measurement) => measurement.depth));
 }
 
+/**
+ * The lowest-context-depth ("baseline") measurement for a result -- what
+ * callers actually mean when they reach for a single representative pp/tg
+ * snapshot (summary cards, default sort key, etc). `measurements` is
+ * schema-validated to be non-empty and sorted ascending by depth at catalog
+ * build time, but call sites should not assume raw array index 0 is always
+ * safe/meaningful (hand-built fixtures, future loaders with different
+ * assumptions) -- this re-sorts defensively and returns undefined instead of
+ * throwing/crashing when a result unexpectedly has no measurements.
+ */
+export function baselineMeasurement(result: BenchmarkResult): BenchmarkMeasurement | undefined {
+  if (result.measurements.length === 0) return undefined;
+  return [...result.measurements].sort((a, b) => a.depth - b.depth)[0];
+}
+
 function issueSet(issues: CatalogQualityIssue[]): CatalogQualityIssue[] {
   return [...new Set(issues)];
 }
@@ -54,6 +69,12 @@ function hasSevereRateSpike(result: BenchmarkResult): boolean {
   for (let index = 1; index < result.measurements.length; index += 1) {
     const previous = result.measurements[index - 1];
     const current = result.measurements[index];
+    // Mirrors the cold-start exemption in scripts/validate-data.ts's
+    // analyzeCatalogQuality: the first measured-depth transition is where
+    // benchmark warm-up variance lives, so it gets no unearned pass unless a
+    // longer curve exists beyond it to confirm the anomaly is confined there.
+    const isFirstTransition = index === 1 && result.measurements.length > 2;
+    if (isFirstTransition) continue;
 
     for (const metric of ["pp", "tg"] as const) {
       const increaseRatio = (current[metric] - previous[metric]) / previous[metric];

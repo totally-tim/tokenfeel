@@ -80,14 +80,30 @@
   button {
     cursor: pointer;
   }
+
+  /* One shared focus-visible treatment for every interactive element,
+     using the app's existing accent color, instead of one-off per-component
+     focus rules. Keyboard/assistive-tech focus gets a visible ring; pointer
+     interaction stays quiet since :focus-visible only matches keyboard-driven
+     focus in supporting browsers. */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  summary:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
 }
 
 .app-shell {
   min-height: 100vh;
   background:
     linear-gradient(90deg, rgba(215, 215, 221, 0.54) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(215, 215, 221, 0.4) 1px, transparent 1px),
-    var(--surface-wash);
+    linear-gradient(0deg, rgba(215, 215, 221, 0.4) 1px, transparent 1px), var(--surface-wash);
   background-size: 64px 64px;
 }
 
@@ -99,8 +115,7 @@
   padding: 80px max(24px, 12vw);
   background:
     linear-gradient(90deg, transparent 0 63px, var(--border-subtle) 63px 64px),
-    linear-gradient(0deg, transparent 0 63px, var(--border-subtle) 63px 64px),
-    var(--surface-wash);
+    linear-gradient(0deg, transparent 0 63px, var(--border-subtle) 63px 64px), var(--surface-wash);
   background-size: 64px 64px;
 }
 
@@ -224,7 +239,9 @@
   background: rgba(255, 255, 255, 0.92);
   color: var(--fg-primary);
   font-weight: 600;
-  box-shadow: 0 1px 0 rgba(29, 29, 31, 0.08), 0 4px 14px rgba(29, 29, 31, 0.08);
+  box-shadow:
+    0 1px 0 rgba(29, 29, 31, 0.08),
+    0 4px 14px rgba(29, 29, 31, 0.08);
 }
 
 .nav-actions {
@@ -654,20 +671,6 @@ mark {
   letter-spacing: 0.8px;
 }
 
-.select-shell {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 56px;
-  padding: 0 12px;
-  background: var(--surface-primary);
-  border: 1px solid var(--border-hair);
-  border-radius: var(--radius-sm);
-}
-
-.select-shell strong,
-.cache-toggle strong,
 .cache-control strong,
 .scenario-card strong {
   display: block;
@@ -675,20 +678,12 @@ mark {
   font-weight: 600;
 }
 
-.select-shell small,
-.cache-toggle small,
 .cache-control small,
 .scenario-card small {
   display: block;
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
   font-size: 10.5px;
-}
-
-.select-shell select {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
 }
 
 .search-select {
@@ -729,7 +724,25 @@ mark {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
-.search-select-trigger:hover {
+.search-select.compact .search-select-trigger {
+  min-height: 41px;
+  padding: 0 10px;
+  border-color: var(--border-hair);
+  font-family: "Geist Mono", monospace;
+  font-size: 11.5px;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.search-select.compact .search-select-trigger strong {
+  font-weight: 600;
+}
+
+.search-select-trigger:disabled {
+  cursor: default;
+  opacity: 0.52;
+}
+
+.search-select-trigger:hover:not(:disabled) {
   border-color: var(--accent);
 }
 
@@ -783,9 +796,16 @@ mark {
   padding: 0 10px;
   border: 1px solid var(--border-hair);
   border-radius: var(--radius-sm);
-  outline: 0;
   color: var(--fg-primary);
   background: var(--surface-secondary);
+}
+
+/* Unlayered rules always beat the @layer base focus-visible ring under CSS
+   Cascade Layers precedence -- scope the outline removal to non-keyboard
+   focus only, matching the .search-box input pattern, so Tab navigation
+   still shows a visible ring here. */
+.search-select-panel input:focus:not(:focus-visible) {
+  outline: 0;
 }
 
 .search-select-panel input:focus {
@@ -815,9 +835,14 @@ mark {
 }
 
 .search-select-results button:hover,
-.search-select-results button.active {
+.search-select-results button.active,
+.search-select-results button.focused {
   border-color: var(--border-hair);
   background: var(--surface-secondary);
+}
+
+.search-select-results button.focused {
+  border-color: var(--accent);
 }
 
 .search-select-results button.active strong {
@@ -880,17 +905,6 @@ mark {
   border-top: 1px solid var(--border-hair);
 }
 
-.cache-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 56px;
-  padding: 0 14px;
-  border: 1px solid var(--border-primary);
-  background: var(--surface-primary);
-  text-align: left;
-}
-
 .cache-control {
   display: grid;
   gap: 8px;
@@ -900,31 +914,6 @@ mark {
   border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.8);
   text-align: left;
-}
-
-.switch {
-  position: relative;
-  width: 42px;
-  height: 24px;
-  background: var(--border-hair);
-}
-
-.switch::after {
-  content: "";
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 18px;
-  height: 18px;
-  background: var(--surface-primary);
-}
-
-.switch.on {
-  background: var(--accent);
-}
-
-.switch.on::after {
-  left: 21px;
 }
 
 .play-button {
@@ -1229,6 +1218,7 @@ mark {
 }
 
 .meter-track {
+  position: relative;
   display: flex;
   width: 100%;
   height: 14px;
@@ -1242,6 +1232,31 @@ mark {
 
 .meter-reprefill {
   background: var(--warn);
+}
+
+/* "data ends here" tick: the last measured benchmark depth, so it's visible
+   how much of the context window rests on measured vs. extrapolated rates. */
+.meter-data-horizon {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--fg-primary);
+  pointer-events: none;
+}
+
+.meter-data-horizon-label {
+  position: relative;
+  width: 0;
+  margin-top: -3px;
+  color: var(--fg-muted);
+  font-family: "Geist Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transform: translateX(-50%);
 }
 
 .legend-row {
@@ -1348,7 +1363,6 @@ mark {
 .phase-labels,
 .quality-flags,
 .gap-row,
-.depth-row,
 .evidence-panel a {
   display: flex;
   align-items: center;
@@ -1474,6 +1488,29 @@ mark {
   min-width: 1px;
 }
 
+/* Confidence-tier overlays for prefill/decode segments: "fitted" keeps the
+   phase color but hatches + dims it (a real, if speculative, trend); the
+   dashed white outline is a stronger tell but the pattern must still read
+   distinctly from "unsupported", which drops further in opacity and swaps
+   to a coarser cross-hatch with a dashed outline of its own — no depth
+   data at all, not even a trend. */
+.timeline-strip i.confidence-fitted {
+  opacity: 0.68;
+  background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0) 0 3px, rgba(255, 255, 255, 0.4) 3px 4px);
+}
+
+.timeline-strip i.confidence-unsupported {
+  opacity: 0.42;
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0) 0 2px,
+    rgba(255, 255, 255, 0.6) 2px 3px,
+    rgba(255, 255, 255, 0) 3px 5px
+  );
+  outline: 1px dashed rgba(255, 255, 255, 0.7);
+  outline-offset: -1px;
+}
+
 .cache-ledger {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1491,7 +1528,8 @@ mark {
 }
 
 .cache-ledger span,
-.depth-row span,
+.rate-curve-head span,
+.rate-curve-foot span,
 .evidence-panel dt,
 .gap-row span,
 .result-quality-panel dt {
@@ -1503,7 +1541,7 @@ mark {
 }
 
 .cache-ledger strong,
-.depth-row strong,
+.rate-curve-head strong,
 .gap-row strong,
 .result-quality-panel dd {
   color: var(--fg-primary);
@@ -1521,35 +1559,101 @@ mark {
   font-size: 10px;
 }
 
-.depth-rows {
+.rate-curve-grid {
   display: grid;
-  gap: 6px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
   margin-top: 8px;
 }
 
-.depth-row {
-  display: grid;
-  grid-template-columns: 56px minmax(0, 1fr) 74px;
-  gap: 8px;
+.rate-curve {
+  min-width: 0;
 }
 
-.depth-row div {
-  display: grid;
-  gap: 3px;
-  align-self: center;
+.rate-curve-pp {
+  --curve-color: var(--accent);
 }
 
-.depth-row i {
+.rate-curve-tg {
+  --curve-color: var(--warn);
+}
+
+.rate-curve-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.rate-curve-svg {
   display: block;
-  height: 5px;
+  width: 100%;
+  height: auto;
+  margin-top: 4px;
 }
 
-.curve-pp {
-  background: var(--accent);
+.rate-curve-line-measured {
+  stroke: var(--curve-color);
+  stroke-width: 1.75;
+  stroke-linejoin: round;
+  stroke-linecap: round;
 }
 
-.curve-tg {
-  background: var(--warn);
+.rate-curve-line-fitted {
+  stroke: var(--curve-color);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  stroke-dasharray: 3 3;
+  opacity: 0.55;
+}
+
+.rate-curve-dot {
+  fill: var(--surface-primary);
+  stroke: var(--curve-color);
+  stroke-width: 1.5;
+}
+
+.rate-curve-band {
+  fill: var(--curve-color);
+  opacity: 0.14;
+  stroke: none;
+}
+
+.rate-curve-no-data-fill {
+  opacity: 0.5;
+}
+
+.rate-curve-hatch-line {
+  stroke: var(--fg-muted);
+  stroke-width: 1;
+}
+
+.rate-curve-no-data {
+  stroke: var(--fg-muted);
+  stroke-width: 1.5;
+  stroke-dasharray: 1 3;
+  stroke-linecap: round;
+}
+
+.rate-curve-active line {
+  stroke: var(--fg-primary);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+
+.rate-curve-active circle {
+  fill: var(--fg-primary);
+  stroke: var(--surface-primary);
+  stroke-width: 1.5;
+}
+
+.rate-curve-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 2px;
 }
 
 .depth-curve small {
@@ -1661,6 +1765,25 @@ mark {
 
 .delta-spine .gap-row strong {
   font-size: 17px;
+}
+
+.non-measured-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.non-measured-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border: 1px solid var(--border-hair);
+  border-radius: 999px;
+  background: var(--surface-secondary);
+  color: var(--fg-secondary);
+  font-family: "Geist Mono", monospace;
+  font-size: 11px;
 }
 
 .race-page {
@@ -1910,7 +2033,13 @@ mark {
 }
 
 .setup-field-grid .search-select-panel {
-  width: min(520px, calc(100vw - 48px));
+  /* Span the two-column field grid (own column + gap + sibling column)
+     instead of a flat pixel width, so the popover always matches the
+     actual lane/card width and never clips the viewport or overlaps a
+     neighboring card at laptop widths. Matches the grid's base 10px gap;
+     the max-height:960px breakpoint below narrows the grid gap to 8px and
+     overrides this to match. */
+  width: calc(200% + 10px);
 }
 
 .setup-field-grid .search-select:nth-child(even) .search-select-panel {
@@ -2092,13 +2221,15 @@ mark {
 }
 
 .lane-big {
+  /* Plain sub-section inside the .race-lane card: a divider + spacing,
+     not its own bordered/shadowed card surface (design.md: avoid card
+     stacks inside other cards). */
   justify-content: space-between;
   gap: 16px;
   min-height: 86px;
-  padding: 14px;
-  border: 1px solid var(--border-hair);
-  border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.72);
+  padding: 14px 0;
+  border-top: 1px solid var(--border-hair);
+  border-bottom: 1px solid var(--border-hair);
 }
 
 .lane-big > div {
@@ -2115,7 +2246,7 @@ mark {
 
 .lane-big strong {
   font-family: "Geist Mono", monospace;
-  font-size: clamp(28px, 3.2vw, 42px);
+  font-size: 40px;
   line-height: 1;
   letter-spacing: 0;
 }
@@ -2136,16 +2267,19 @@ mark {
 
 /* ── Shared phase-state block ──────────────────────────────────────────
    The dominant "NOW" indicator. Each simulation state gets its own color
-   (left accent + soft wash + fill) and motion signature. */
+   (left accent + soft wash + fill) and motion signature. It renders inside
+   another card in both Race (.race-lane) and Playground (.bottom-bar), so
+   it stays a plain sub-section here (accent edge + wash, no border/radius/
+   shadow of its own) instead of stacking a second card surface. */
 .phase-state {
   display: grid;
   gap: 9px;
   padding: 13px 14px;
-  border: 1px solid var(--border-hair);
   border-left: 3px solid var(--phase-queued);
-  border-radius: var(--radius-md);
   background: var(--surface-panel);
-  transition: border-color var(--motion-med) var(--ease-standard), background var(--motion-med) var(--ease-standard);
+  transition:
+    border-color var(--motion-med) var(--ease-standard),
+    background var(--motion-med) var(--ease-standard);
 }
 
 .phase-state-prefill {
@@ -2251,8 +2385,7 @@ mark {
 
 .phase-state-decode .phase-fill {
   background:
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.18) 0 2px, transparent 2px 8px),
-    var(--phase-decode);
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.18) 0 2px, transparent 2px 8px), var(--phase-decode);
   animation: phase-decode-cadence var(--cadence-duration) linear infinite;
 }
 
@@ -2312,6 +2445,43 @@ mark {
 
 .phase-state-meta span:last-child {
   color: var(--fg-muted);
+}
+
+.phase-rate-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Inline confidence badge next to the live rate readout — surfaced in the
+   primary reading path rather than buried in QualityFlags. Fitted keeps a
+   warm (still-a-real-trend) tone; unsupported drops to a neutral dashed
+   pill since there's no trend basis at all, only a flat guess. */
+.confidence-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-family: "Geist Mono", monospace;
+  font-size: 9.5px;
+  font-style: normal;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.confidence-badge-extrapolated-fitted {
+  border-color: rgba(192, 109, 19, 0.35);
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.confidence-badge-extrapolated-unsupported {
+  border-color: var(--border-primary);
+  border-style: dashed;
+  background: var(--surface-control);
+  color: var(--fg-secondary);
 }
 
 .phase-state > p {
@@ -2478,13 +2648,13 @@ mark {
 }
 
 .race-output-panel {
+  /* Plain sub-section inside the .race-lane card: a divider + spacing,
+     not its own bordered/shadowed card surface. */
   display: grid;
   grid-template-rows: auto minmax(190px, 1fr) auto;
   gap: 10px;
   min-height: 250px;
-  border: 1px solid var(--border-hair);
-  border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.78);
+  border-top: 1px solid var(--border-hair);
   overflow: hidden;
 }
 
@@ -2653,7 +2823,7 @@ mark {
 .race-clock-card strong {
   color: var(--fg-primary);
   font-family: "Geist Mono", monospace;
-  font-size: clamp(27px, 2.8vw, 38px);
+  font-size: 36px;
   line-height: 1;
 }
 
@@ -2843,7 +3013,6 @@ mark {
 }
 
 .filters button,
-.filter-select,
 .search-box {
   min-height: 41px;
   border: 1px solid var(--border-hair);
@@ -2861,25 +3030,18 @@ mark {
   color: var(--accent);
 }
 
-.filter-select {
-  display: flex;
-  align-items: center;
-  min-width: 128px;
-  padding: 0;
+.filters .search-select {
+  min-width: 118px;
 }
 
-.filter-select.disabled {
-  opacity: 0.52;
+.filters .search-select-panel {
+  width: calc(200% + 10px);
 }
 
-.filter-select select {
-  width: 100%;
-  min-height: 39px;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--fg-secondary);
-  padding: 0 30px 0 12px;
+.filters .search-select:nth-of-type(3) .search-select-panel,
+.filters .search-select:nth-of-type(4) .search-select-panel {
+  left: auto;
+  right: 0;
 }
 
 .search-box {
@@ -2892,8 +3054,11 @@ mark {
 .search-box input {
   width: 100%;
   border: 0;
-  outline: 0;
   color: var(--fg-primary);
+}
+
+.search-box input:focus:not(:focus-visible) {
+  outline: 0;
 }
 
 .configs-controls {
@@ -3675,19 +3840,10 @@ mark {
     font-size: 9.5px;
   }
 
-  .select-shell {
-    min-height: 44px;
-    padding: 0 10px;
-  }
-
-  .select-shell strong,
-  .cache-toggle strong,
   .scenario-card strong {
     font-size: 14px;
   }
 
-  .select-shell small,
-  .cache-toggle small,
   .scenario-card small {
     font-size: 9.5px;
   }
@@ -3705,27 +3861,6 @@ mark {
     gap: 9px;
     min-height: 44px;
     padding: 8px 10px;
-  }
-
-  .cache-toggle {
-    min-height: 44px;
-    padding: 0 12px;
-  }
-
-  .switch {
-    width: 36px;
-    height: 20px;
-  }
-
-  .switch::after {
-    top: 3px;
-    left: 3px;
-    width: 14px;
-    height: 14px;
-  }
-
-  .switch.on::after {
-    left: 19px;
   }
 
   .speed-row {
@@ -3864,6 +3999,10 @@ mark {
     gap: 8px;
   }
 
+  .setup-field-grid .search-select-panel {
+    width: calc(200% + 8px);
+  }
+
   .lanes {
     grid-template-columns: minmax(0, 1fr) minmax(158px, 178px) minmax(0, 1fr);
     gap: 10px;
@@ -3882,10 +4021,6 @@ mark {
   .lane-head p,
   .lane-head small {
     font-size: 10px;
-  }
-
-  .lane-big strong {
-    font-size: 40px;
   }
 
   .lane-big > div:last-child strong {
@@ -4283,6 +4418,10 @@ mark {
 
   .setup-field-grid .search-select-panel {
     width: min(520px, calc(100vw - 42px));
+  }
+
+  .filters .search-select-panel {
+    width: min(320px, calc(100vw - 42px));
   }
 
   .delta-spine {

@@ -1,8 +1,0 @@
-{
-  "id": "qwen3.5-27b-ud-q3-k-xl",
-  "name": "Qwen3.5-27B-UD-Q3_K_XL",
-  "family": "Qwen",
-  "params": "27B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

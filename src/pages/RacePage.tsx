@@ -3,10 +3,10 @@ import { useEffect, useMemo, useState } from "react";
 import { CacheModeSelector, Disclosure, RaceLane, SearchSelect, SpeedSelector } from "../components/SimulatorPieces";
 import { RaceGapBreakdown } from "../components/Visualizations";
 import {
-  DEFAULT_LEFT_RESULT_ID,
-  DEFAULT_RIGHT_RESULT_ID,
   DEFAULT_SCENARIO_ID,
   createCatalogLookups,
+  defaultLeftResultId,
+  defaultRightResultId,
   getResult,
   getScenario,
   scenarioOptions
@@ -17,6 +17,7 @@ import {
   constraintsForFieldChange,
   raceFieldOptions,
   raceSetupOrders,
+  raceVerdict,
   resolveRaceSelection,
   selectionFromResult,
   suggestComparableResults,
@@ -32,6 +33,13 @@ import type { BenchmarkResult, CacheMode, Catalog } from "../types";
 interface RacePageProps {
   catalog: Catalog;
   onNavigate: (page: PageId) => void;
+  /**
+   * Current `window.location.hash`, owned and kept in sync by App's single
+   * `hashchange` listener (see src/App.tsx). RacePage derives its share-link
+   * state from this prop instead of adding a second listener, so there is
+   * one source of truth for hash-based routing state.
+   */
+  hash: string;
 }
 
 const supportedSpeeds = new Set([1, 2, 4, 8]);
@@ -59,15 +67,19 @@ function resolveRaceState(catalog: Catalog, parsed: ReturnType<typeof parseRaceS
   const scenarioIds = new Set(catalog.scenarios.map((scenario) => scenario.id));
 
   return {
-    leftId: parsed.leftId && resultIds.has(parsed.leftId) ? parsed.leftId : DEFAULT_LEFT_RESULT_ID,
-    rightId: parsed.rightId && resultIds.has(parsed.rightId) ? parsed.rightId : DEFAULT_RIGHT_RESULT_ID,
+    leftId: parsed.leftId && resultIds.has(parsed.leftId) ? parsed.leftId : defaultLeftResultId(catalog),
+    rightId: parsed.rightId && resultIds.has(parsed.rightId) ? parsed.rightId : defaultRightResultId(catalog),
     scenarioId: parsed.scenarioId && scenarioIds.has(parsed.scenarioId) ? parsed.scenarioId : DEFAULT_SCENARIO_ID,
     speed: parsed.speed && supportedSpeeds.has(parsed.speed) ? parsed.speed : 1,
     cacheMode: parsed.cacheMode ?? "runtime"
   };
 }
 
-function constraintsBeforeField(selection: ReturnType<typeof selectionFromResult>, order: RaceSetupField[], field: RaceSetupField) {
+function constraintsBeforeField(
+  selection: ReturnType<typeof selectionFromResult>,
+  order: RaceSetupField[],
+  field: RaceSetupField
+) {
   const constraints: Partial<ReturnType<typeof selectionFromResult>> = {};
   for (const priorField of order.slice(0, Math.max(0, order.indexOf(field)))) {
     constraints[priorField] = selection[priorField];
@@ -155,7 +167,7 @@ function RaceSetupCard({
   );
 }
 
-export function RacePage({ catalog, onNavigate }: RacePageProps) {
+export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
   const lookups = useMemo(() => createCatalogLookups(catalog), [catalog]);
   const scenarioOptionItems = useMemo(() => scenarioOptions(catalog), [catalog]);
   const [initialState] = useState(() => initialRaceState(catalog));
@@ -174,8 +186,13 @@ export function RacePage({ catalog, onNavigate }: RacePageProps) {
   const raceStarted = leftPlayback.hasStarted || rightPlayback.hasStarted;
   const raceRunning = leftPlayback.isPlaying || rightPlayback.isPlaying;
   const raceComplete = leftPlayback.isComplete && rightPlayback.isComplete;
-  const leftWins = leftPlayback.summary.wallTimeMs <= rightPlayback.summary.wallTimeMs;
-  const gap = Math.abs(leftPlayback.summary.wallTimeMs - rightPlayback.summary.wallTimeMs);
+  const verdict = raceVerdict(leftPlayback.summary, rightPlayback.summary);
+  const gap = verdict.deltaMs;
+  // "too-close" carries no lane preference of its own; fall back to the
+  // point-estimate comparison so the gap sign stays consistent with RaceGapBreakdown.
+  const leftLeads =
+    verdict.winner === "left" ||
+    (verdict.winner === "too-close" && leftPlayback.summary.wallTimeMs <= rightPlayback.summary.wallTimeMs);
   const comparison = useMemo(() => comparisonSummary(catalog, left, right), [catalog, left, right]);
   const suggestions = useMemo(() => suggestComparableResults(catalog, left, 3), [catalog, left]);
   const scenarioTokens = totalScenarioTokens(scenario);
@@ -197,19 +214,20 @@ export function RacePage({ catalog, onNavigate }: RacePageProps) {
     : `${formatClock(leftPlayback.summary.wallTimeMs)} vs ${formatClock(rightPlayback.summary.wallTimeMs)} projected`;
 
   useEffect(() => {
-    const onHash = () => {
-      const parsed = parseRaceShareHash(window.location.hash);
-      const next = resolveRaceState(catalog, parsed);
-      setLeftId(next.leftId);
-      setRightId(next.rightId);
-      setScenarioId(next.scenarioId);
-      setSpeed(next.speed);
-      setCacheMode(next.cacheMode);
-    };
-
-    window.addEventListener("hashchange", onHash);
-    return () => window.removeEventListener("hashchange", onHash);
-  }, [catalog]);
+    const parsed = parseRaceShareHash(hash);
+    let next: ReturnType<typeof resolveRaceState>;
+    try {
+      next = resolveRaceState(catalog, parsed);
+    } catch (error) {
+      console.error("Failed to resolve race state from hash change", error);
+      return;
+    }
+    setLeftId(next.leftId);
+    setRightId(next.rightId);
+    setScenarioId(next.scenarioId);
+    setSpeed(next.speed);
+    setCacheMode(next.cacheMode);
+  }, [hash, catalog]);
 
   useEffect(() => {
     const next = buildRaceShareUrl({ leftId, rightId, scenarioId, speed, cacheMode });
@@ -278,15 +296,26 @@ export function RacePage({ catalog, onNavigate }: RacePageProps) {
               {comparison.label}
             </span>
             <h1>{comparison.detail}</h1>
-            <p>{raceMeta} · gap {formatClock(gap)} · {formatTokens(scenarioTokens)} context</p>
+            <p>
+              {raceMeta} · gap {formatClock(gap)} · {formatTokens(scenarioTokens)} context
+            </p>
           </div>
 
           <div className="race-control-cluster">
-            <button type="button" className={`run-race-button ${raceRunning ? "stop" : ""}`} onClick={raceRunning ? stopRace : startRace}>
+            <button
+              type="button"
+              className={`run-race-button ${raceRunning ? "stop" : ""}`}
+              onClick={raceRunning ? stopRace : startRace}
+            >
               {raceRunning ? <Square size={15} /> : <Play size={16} />}
               {raceRunning ? "Stop" : "Start"}
             </button>
-            <button type="button" className="secondary-button small quiet-share" onClick={copyRace} title={shareUrl}>
+            <button
+              type="button"
+              className="secondary-button small quiet-share"
+              onClick={() => void copyRace()}
+              title={shareUrl}
+            >
               <Link size={15} /> {copyText}
             </button>
             <SpeedSelector speed={speed} onSpeed={setSpeed} />
@@ -306,7 +335,11 @@ export function RacePage({ catalog, onNavigate }: RacePageProps) {
               value={scenario.title}
               sub={`${scenario.events.length} events · ${formatTokens(scenarioTokens)} context`}
               selectedValue={scenarioId}
-              options={scenarioOptionItems.map((option) => ({ value: option.value, label: option.title, sub: option.sub }))}
+              options={scenarioOptionItems.map((option) => ({
+                value: option.value,
+                label: option.title,
+                sub: option.sub
+              }))}
               onChange={updateScenarioId}
               placeholder="Search scenarios"
             />
@@ -334,7 +367,9 @@ export function RacePage({ catalog, onNavigate }: RacePageProps) {
                     <Copy size={13} />
                     <span>
                       <strong>{hardware?.shortName ?? suggestion.result.hardware}</strong>
-                      <small>{model?.name ?? suggestion.result.model} · {suggestion.reason}</small>
+                      <small>
+                        {model?.name ?? suggestion.result.model} · {suggestion.reason}
+                      </small>
                     </span>
                   </button>
                 );
@@ -356,7 +391,7 @@ export function RacePage({ catalog, onNavigate }: RacePageProps) {
           activeEvent={leftPlayback.activeEvent}
           elapsedMs={leftPlayback.elapsedMs}
           hasStarted={leftPlayback.hasStarted}
-          winner={leftWins}
+          winner={verdict.winner === "left"}
         />
         <aside className="delta-spine">
           <div className={`race-clock-card ${raceRunning ? "running" : raceComplete ? "complete" : ""}`}>
@@ -366,23 +401,40 @@ export function RacePage({ catalog, onNavigate }: RacePageProps) {
           </div>
           <div className="gap-summary">
             <span>GAP</span>
-            <strong>{leftWins ? "+" : "-"}{formatClock(gap)}</strong>
-            <p>{raceComplete ? (leftWins ? "Lane A won" : "Lane B won") : raceStarted ? "projected finish gap" : "projected gap"}</p>
+            <strong>
+              {leftLeads ? "+" : "-"}
+              {formatClock(gap)}
+            </strong>
+            <p>
+              {raceComplete
+                ? verdict.winner === "too-close"
+                  ? "Too close to call from this data"
+                  : verdict.winner === "left"
+                    ? "Lane A won"
+                    : "Lane B won"
+                : raceStarted
+                  ? "projected finish gap"
+                  : "projected gap"}
+            </p>
           </div>
           <div className="spine-progress">
             <div>
               <span>A</span>
-              <i><b className="bar-a" style={{ width: `${Math.max(2, leftPlayback.progress * 100)}%` }} /></i>
+              <i>
+                <b className="bar-a" style={{ width: `${Math.max(2, leftPlayback.progress * 100)}%` }} />
+              </i>
               <strong>{Math.round(leftPlayback.progress * 100)}%</strong>
             </div>
             <div>
               <span>B</span>
-              <i><b className="bar-b" style={{ width: `${Math.max(2, rightPlayback.progress * 100)}%` }} /></i>
+              <i>
+                <b className="bar-b" style={{ width: `${Math.max(2, rightPlayback.progress * 100)}%` }} />
+              </i>
               <strong>{Math.round(rightPlayback.progress * 100)}%</strong>
             </div>
           </div>
           <Disclosure label="Gap breakdown · prefill vs decode vs tool">
-            <RaceGapBreakdown left={leftPlayback.summary} right={rightPlayback.summary} leftWins={leftWins} />
+            <RaceGapBreakdown left={leftPlayback.summary} right={rightPlayback.summary} winner={verdict.winner} />
           </Disclosure>
         </aside>
         <RaceLane
@@ -394,7 +446,7 @@ export function RacePage({ catalog, onNavigate }: RacePageProps) {
           activeEvent={rightPlayback.activeEvent}
           elapsedMs={rightPlayback.elapsedMs}
           hasStarted={rightPlayback.hasStarted}
-          winner={!leftWins}
+          winner={verdict.winner === "right"}
         />
       </section>
     </main>

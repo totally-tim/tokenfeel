@@ -33,8 +33,18 @@ const emptyRefs: ConfigMatrixRefs = {
   modelById: () => undefined
 };
 
+function isOmlxSourced(result: BenchmarkResult): boolean {
+  return result.runtime.name === "oMLX";
+}
+
 export function runtimeKey(result: BenchmarkResult): string {
-  return [result.runtime.name, result.runtime.backend, result.runtime.version, result.runtime.flags].join("::");
+  const base = [result.runtime.name, result.runtime.backend, result.runtime.version, result.runtime.flags].join("::");
+  // oMLX community rows carry their toolchain/OS version in topology, not in
+  // runtime.flags -- fold it in so results that only differ by macOS version
+  // (same oMLX version, same generic flags text) get distinct keys instead of
+  // colliding as if they were the same benchmark config.
+  if (!isOmlxSourced(result)) return base;
+  return [base, result.topology?.os ?? "unknown-os"].join("::");
 }
 
 function uniqueOptions(options: MatrixOption[]): MatrixOption[] {
@@ -130,6 +140,47 @@ function selectedOrFirst(options: MatrixOption[], value: string | undefined, fie
   return firstValue(options, field);
 }
 
+const statusPreferenceRank: Record<BenchmarkResult["status"], number> = {
+  verified: 0,
+  community: 1,
+  flagged: 2,
+  illustrative: 2
+};
+
+function hasRawEvidence(result: BenchmarkResult): boolean {
+  return Boolean(result.source.raw || result.evidence?.rawUrl);
+}
+
+/**
+ * Preference order for picking a default result among legitimately distinct
+ * runtime variants of the same (hardware, model, quant) -- i.e. results that
+ * do NOT share a runtimeKey. This must never be used to silently pick a
+ * winner between true duplicates (same runtimeKey too); those are a hard
+ * catalogSchema validation issue instead. Precedence, most to least
+ * important: verified > community > flagged/illustrative status; raw
+ * evidence (source.raw or evidence.rawUrl) present over absent; more
+ * measurement depth points over fewer; most recent date over older.
+ */
+export function compareResultPreference(a: BenchmarkResult, b: BenchmarkResult): number {
+  const statusDiff = statusPreferenceRank[a.status] - statusPreferenceRank[b.status];
+  if (statusDiff !== 0) return statusDiff;
+
+  const evidenceDiff = Number(hasRawEvidence(b)) - Number(hasRawEvidence(a));
+  if (evidenceDiff !== 0) return evidenceDiff;
+
+  const depthDiff = b.measurements.length - a.measurements.length;
+  if (depthDiff !== 0) return depthDiff;
+
+  return b.date.localeCompare(a.date);
+}
+
+function preferredResult(results: BenchmarkResult[], field: string): BenchmarkResult {
+  if (results.length === 0) {
+    throw new Error(`No benchmark results available for ${field}`);
+  }
+  return [...results].sort(compareResultPreference)[0];
+}
+
 export function resolveConfigSelection(
   results: BenchmarkResult[],
   selection: ConfigSelection = {},
@@ -138,7 +189,11 @@ export function resolveConfigSelection(
   const hardwareId = selectedOrFirst(getHardwareOptions(results, refs), selection.hardwareId, "hardware");
   const modelId = selectedOrFirst(getModelOptions(results, { hardwareId }, refs), selection.modelId, "model");
   const quant = selectedOrFirst(getQuantOptions(results, { hardwareId, modelId }), selection.quant, "quant");
-  const runtimeKeyValue = selectedOrFirst(getRuntimeOptions(results, { hardwareId, modelId, quant }), selection.runtimeKey, "runtime");
+  const runtimeOptions = getRuntimeOptions(results, { hardwareId, modelId, quant });
+  const runtimeKeyValue =
+    selection.runtimeKey && runtimeOptions.some((option) => option.value === selection.runtimeKey)
+      ? selection.runtimeKey
+      : runtimeKey(preferredResult(filterResultsBySelection(results, { hardwareId, modelId, quant }), "runtime"));
   const result = filterResultsBySelection(results, {
     hardwareId,
     modelId,
@@ -187,26 +242,38 @@ export function updateConfigSelection(
   }
 
   if (field === "modelId") {
-    return resolveConfigSelection(results, {
-      hardwareId: current.hardwareId,
-      modelId: value
-    }, refs);
+    return resolveConfigSelection(
+      results,
+      {
+        hardwareId: current.hardwareId,
+        modelId: value
+      },
+      refs
+    );
   }
 
   if (field === "quant") {
-    return resolveConfigSelection(results, {
-      hardwareId: current.hardwareId,
-      modelId: current.modelId,
-      quant: value
-    }, refs);
+    return resolveConfigSelection(
+      results,
+      {
+        hardwareId: current.hardwareId,
+        modelId: current.modelId,
+        quant: value
+      },
+      refs
+    );
   }
 
-  return resolveConfigSelection(results, {
-    hardwareId: current.hardwareId,
-    modelId: current.modelId,
-    quant: current.quant,
-    runtimeKey: value
-  }, refs);
+  return resolveConfigSelection(
+    results,
+    {
+      hardwareId: current.hardwareId,
+      modelId: current.modelId,
+      quant: current.quant,
+      runtimeKey: value
+    },
+    refs
+  );
 }
 
 export function updateConfigFilterSelection(
@@ -219,9 +286,7 @@ export function updateConfigFilterSelection(
   }
 
   if (field === "modelId") {
-    return value
-      ? { hardwareId: current.hardwareId, modelId: value }
-      : { hardwareId: current.hardwareId };
+    return value ? { hardwareId: current.hardwareId, modelId: value } : { hardwareId: current.hardwareId };
   }
 
   if (field === "quant") {
