@@ -1,9 +1,0 @@
-{
-  "id": "nemotron-3-super-120b-a12b-mxfp4",
-  "name": "Nemotron-3-Super-120B-A12B-MXFP4",
-  "family": "Nemotron",
-  "params": "120B",
-  "activeParams": "12B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

@@ -1,8 +1,0 @@
-{
-  "id": "seed-oss-36b-instruct4bit",
-  "name": "Seed-OSS-36B-Instruct4bit_副本",
-  "family": "Seed",
-  "params": "36B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

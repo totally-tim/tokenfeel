@@ -1,8 +1,0 @@
-{
-  "id": "llama-3-elyza-jp-8b",
-  "name": "Llama-3-ELYZA-JP-8B",
-  "family": "Llama",
-  "params": "8B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

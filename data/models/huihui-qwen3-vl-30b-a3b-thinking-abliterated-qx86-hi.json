@@ -1,9 +1,0 @@
-{
-  "id": "huihui-qwen3-vl-30b-a3b-thinking-abliterated-qx86-hi",
-  "name": "Huihui-Qwen3-VL-30B-A3B-Thinking-abliterated-qx86-hi",
-  "family": "Huihui",
-  "params": "30B",
-  "activeParams": "3B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

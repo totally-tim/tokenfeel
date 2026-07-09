@@ -1,9 +1,0 @@
-{
-  "id": "community-qwen3-next-80b-a3b-instruct",
-  "name": "community_Qwen3-Next-80B-A3B-Instruct",
-  "family": "community",
-  "params": "80B",
-  "activeParams": "3B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

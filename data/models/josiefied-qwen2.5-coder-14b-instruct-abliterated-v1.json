@@ -1,8 +1,0 @@
-{
-  "id": "josiefied-qwen2.5-coder-14b-instruct-abliterated-v1",
-  "name": "Josiefied-Qwen2.5-Coder-14B-Instruct-abliterated-v1",
-  "family": "Josiefied",
-  "params": "14B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

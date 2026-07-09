@@ -1,8 +1,0 @@
-{
-  "id": "magistral-small-2509",
-  "name": "Magistral-Small-2509",
-  "family": "Magistral",
-  "params": "unknown",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

@@ -1,8 +1,0 @@
-{
-  "id": "minmax2.5full-oq4",
-  "name": "minmax2.5full-oQ4",
-  "family": "minmax2.5full",
-  "params": "unknown",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

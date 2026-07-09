@@ -1,8 +1,0 @@
-{
-  "id": "claude-4.6-v2",
-  "name": "Claude-4.6-v2",
-  "family": "Claude",
-  "params": "unknown",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

@@ -1,8 +1,0 @@
-{
-  "id": "minimax-m2.7-5bit",
-  "name": "MiniMax-M2.7-5bit",
-  "family": "MiniMax",
-  "params": "5B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

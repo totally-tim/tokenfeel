@@ -1,8 +1,0 @@
-{
-  "id": "l3-8b-lunaris-v1",
-  "name": "L3-8B-Lunaris-v1",
-  "family": "L3",
-  "params": "8B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

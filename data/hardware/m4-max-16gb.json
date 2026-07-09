@@ -1,9 +1,0 @@
-{
-  "id": "m4-max-16gb",
-  "name": "Apple M4 Max 16GB",
-  "shortName": "M4 Max",
-  "vendor": "Apple",
-  "memory": "16GB unified",
-  "accelerator": "M4 Max GPU",
-  "notes": "Generated from the oMLX community benchmark API import. Source hardware fields: chip=M4, variant=Max, gpu_cores=unknown."
-}

@@ -1,8 +1,0 @@
-{
-  "id": "deephat-v1-7b-q8",
-  "name": "DeepHat-V1-7B-Q8",
-  "family": "DeepHat",
-  "params": "7B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

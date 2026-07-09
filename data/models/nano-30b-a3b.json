@@ -1,9 +1,0 @@
-{
-  "id": "nano-30b-a3b",
-  "name": "Nano-30B-A3B",
-  "family": "Nano",
-  "params": "30B",
-  "activeParams": "3B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

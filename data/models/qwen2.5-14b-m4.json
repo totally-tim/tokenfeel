@@ -1,8 +1,0 @@
-{
-  "id": "qwen2.5-14b-m4",
-  "name": "qwen2.5-14b-m4",
-  "family": "Qwen",
-  "params": "14B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

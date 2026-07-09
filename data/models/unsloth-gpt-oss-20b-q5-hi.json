@@ -1,8 +1,0 @@
-{
-  "id": "unsloth-gpt-oss-20b-q5-hi",
-  "name": "unsloth-gpt-oss-20b-q5-hi",
-  "family": "unsloth",
-  "params": "20B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

@@ -1,8 +1,0 @@
-{
-  "id": "dolphin-2.9.1-llama-3-70b",
-  "name": "dolphin-2.9.1-llama-3-70b",
-  "family": "dolphin",
-  "params": "70B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

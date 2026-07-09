@@ -1,8 +1,0 @@
-{
-  "id": "lfm2.5-vl-450m",
-  "name": "LFM2.5-VL-450M",
-  "family": "LFM2.5",
-  "params": "unknown",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

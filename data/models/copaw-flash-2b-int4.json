@@ -1,8 +1,0 @@
-{
-  "id": "copaw-flash-2b-int4",
-  "name": "copaw_flash_2b_int4",
-  "family": "copaw",
-  "params": "2B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

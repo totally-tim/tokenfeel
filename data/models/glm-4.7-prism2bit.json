@@ -1,8 +1,0 @@
-{
-  "id": "glm-4.7-prism2bit",
-  "name": "GLM-4.7-PRISM2Bit_副本",
-  "family": "GLM",
-  "params": "2B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

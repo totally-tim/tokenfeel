@@ -1,8 +1,0 @@
-{
-  "id": "tinyllama-tinyllama-1.1b-chat-v1.0-abliterated",
-  "name": "TinyLlama-TinyLlama-1.1B-Chat-v1.0-abliterated",
-  "family": "TinyLlama",
-  "params": "1.1B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

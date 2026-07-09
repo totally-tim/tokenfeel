@@ -1,8 +1,0 @@
-{
-  "id": "qwopus-27b",
-  "name": "Qwopus-27B",
-  "family": "Qwopus",
-  "params": "27B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

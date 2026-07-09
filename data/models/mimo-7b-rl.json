@@ -1,8 +1,0 @@
-{
-  "id": "mimo-7b-rl",
-  "name": "MiMo-7B-RL",
-  "family": "MiMo",
-  "params": "7B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

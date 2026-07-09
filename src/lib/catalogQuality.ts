@@ -69,6 +69,12 @@ function hasSevereRateSpike(result: BenchmarkResult): boolean {
   for (let index = 1; index < result.measurements.length; index += 1) {
     const previous = result.measurements[index - 1];
     const current = result.measurements[index];
+    // Mirrors the cold-start exemption in scripts/validate-data.ts's
+    // analyzeCatalogQuality: the first measured-depth transition is where
+    // benchmark warm-up variance lives, so it gets no unearned pass unless a
+    // longer curve exists beyond it to confirm the anomaly is confined there.
+    const isFirstTransition = index === 1 && result.measurements.length > 2;
+    if (isFirstTransition) continue;
 
     for (const metric of ["pp", "tg"] as const) {
       const increaseRatio = (current[metric] - previous[metric]) / previous[metric];

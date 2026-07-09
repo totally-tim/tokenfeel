@@ -1,9 +1,0 @@
-{
-  "id": "35b-a3b-9bit",
-  "name": "35B-A3B-9bit",
-  "family": "35B",
-  "params": "35B",
-  "activeParams": "3B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

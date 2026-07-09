@@ -1,8 +1,0 @@
-{
-  "id": "mt-chimera-7b",
-  "name": "MT-Chimera-7B",
-  "family": "MT",
-  "params": "7B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

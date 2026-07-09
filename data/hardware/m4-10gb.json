@@ -1,9 +1,0 @@
-{
-  "id": "m4-10gb",
-  "name": "Apple M4 10GB",
-  "shortName": "M4",
-  "vendor": "Apple",
-  "memory": "10GB unified",
-  "accelerator": "M4 GPU",
-  "notes": "Generated from the oMLX community benchmark API import. Source hardware fields: chip=M4, variant=base, gpu_cores=unknown."
-}

@@ -1,8 +1,0 @@
-{
-  "id": "new-llama3.3-8b-instruct-thinking-heretic-uncensored-cl-f9deeaca",
-  "name": "New-Llama3.3-8B-Instruct-Thinking-Heretic-Uncensored-Claude-4.5-Opus-High-Reasoning",
-  "family": "New",
-  "params": "8B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

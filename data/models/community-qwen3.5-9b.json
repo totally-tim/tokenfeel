@@ -1,8 +1,0 @@
-{
-  "id": "community-qwen3.5-9b",
-  "name": "community-Qwen3.5-9B",
-  "family": "community",
-  "params": "9B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

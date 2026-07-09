@@ -1,8 +1,0 @@
-{
-  "id": "mistralai-ministral-3-14b-instruct-2512",
-  "name": "mistralai_Ministral-3-14B-Instruct-2512",
-  "family": "Mistral",
-  "params": "14B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

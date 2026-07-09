@@ -1,8 +1,0 @@
-{
-  "id": "medgemma-27b-text-it",
-  "name": "medgemma-27b-text-it",
-  "family": "medgemma",
-  "params": "27B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

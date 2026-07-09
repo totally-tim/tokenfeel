@@ -1,9 +1,0 @@
-{
-  "id": "qwen3-30b-a3b-4bit-dwq-053125",
-  "name": "Qwen3-30B-A3B-4bit-DWQ-053125",
-  "family": "Qwen",
-  "params": "30B",
-  "activeParams": "3B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

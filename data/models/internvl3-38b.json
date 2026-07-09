@@ -1,8 +1,0 @@
-{
-  "id": "internvl3-38b",
-  "name": "InternVL3-38B",
-  "family": "InternVL3",
-  "params": "38B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

@@ -1,9 +1,0 @@
-{
-  "id": "thecluster-qwen3.5-35b-a3b-uncensored-hauhaucs-aggressive",
-  "name": "TheCluster:Qwen3.5-35B-A3B-Uncensored-HauhauCS-Aggressive",
-  "family": "TheCluster:Qwen3.5",
-  "params": "35B",
-  "activeParams": "3B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

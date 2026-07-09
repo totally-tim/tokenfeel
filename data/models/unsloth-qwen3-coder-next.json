@@ -1,8 +1,0 @@
-{
-  "id": "unsloth-qwen3-coder-next",
-  "name": "unsloth-Qwen3-Coder-Next",
-  "family": "unsloth",
-  "params": "unknown",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

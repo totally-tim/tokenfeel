@@ -1,8 +1,0 @@
-{
-  "id": "deepseek-r1-distill-qwen-1.5b",
-  "name": "deepseek-r1-distill-qwen-1.5b",
-  "family": "DeepSeek",
-  "params": "1.5B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

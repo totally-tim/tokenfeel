@@ -1,8 +1,0 @@
-{
-  "id": "qwen3-coder-next-hereticoq8",
-  "name": "Qwen3-Coder-Next-hereticoQ8",
-  "family": "Qwen",
-  "params": "unknown",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

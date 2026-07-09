@@ -1,8 +1,0 @@
-{
-  "id": "community-gemma-4-e4b-it",
-  "name": "community_gemma-4-e4b-it",
-  "family": "community",
-  "params": "4B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

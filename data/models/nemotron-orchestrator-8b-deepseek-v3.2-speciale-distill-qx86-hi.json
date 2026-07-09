@@ -1,8 +1,0 @@
-{
-  "id": "nemotron-orchestrator-8b-deepseek-v3.2-speciale-distill-qx86-hi",
-  "name": "Nemotron-Orchestrator-8B-DeepSeek-v3.2-Speciale-Distill-qx86-hi",
-  "family": "Nemotron",
-  "params": "8B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

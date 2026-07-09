@@ -1,9 +1,0 @@
-{
-  "id": "qwen3.5-vl-122b-a10b-6bitcrack",
-  "name": "Qwen3.5-VL-122B-A10B-6bitCRACK",
-  "family": "Qwen",
-  "params": "122B",
-  "activeParams": "10B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

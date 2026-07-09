@@ -1,8 +1,0 @@
-{
-  "id": "qwen3-0.6b-abliteration",
-  "name": "Qwen3-0.6B-Abliteration",
-  "family": "Qwen",
-  "params": "0.6B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

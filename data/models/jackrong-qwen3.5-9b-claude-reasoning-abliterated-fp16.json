@@ -1,8 +1,0 @@
-{
-  "id": "jackrong-qwen3.5-9b-claude-reasoning-abliterated-fp16",
-  "name": "Jackrong-Qwen3.5-9B-Claude-Reasoning-abliterated-fp16",
-  "family": "Jackrong",
-  "params": "9B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

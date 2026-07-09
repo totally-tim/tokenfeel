@@ -112,6 +112,42 @@ describe("catalog quality", () => {
     expect(issues).not.toContain("ttft-pp-mismatch");
   });
 
+  test("exempts a first-transition rate spike from severe-rate-spike when a longer curve confirms it's cold-start noise", () => {
+    const coldStart = result({
+      measurements: [
+        { depth: 1024, pp: 1200, tg: 28.9 },
+        { depth: 4096, pp: 1400, tg: 81.6 },
+        { depth: 8192, pp: 1450, tg: 74.9 },
+        { depth: 16384, pp: 1420, tg: 63.3 }
+      ]
+    });
+
+    expect(catalogQualityIssues(coldStart)).not.toContain("severe-rate-spike");
+  });
+
+  test("still flags a first-transition spike as severe-rate-spike on a bare 2-point curve", () => {
+    const bareSpike = result({
+      measurements: [
+        { depth: 1024, pp: 1200, tg: 28.9 },
+        { depth: 4096, pp: 1400, tg: 81.6 }
+      ]
+    });
+
+    expect(catalogQualityIssues(bareSpike)).toContain("severe-rate-spike");
+  });
+
+  test("still flags a severe spike past the first transition", () => {
+    const lateSpike = result({
+      measurements: [
+        { depth: 1024, pp: 1200, tg: 30 },
+        { depth: 4096, pp: 1210, tg: 31 },
+        { depth: 8192, pp: 1220, tg: 70 }
+      ]
+    });
+
+    expect(catalogQualityIssues(lateSpike)).toContain("severe-rate-spike");
+  });
+
   test("prunes bad results and orphaned metadata from the app-facing simulation catalog", () => {
     const good = result({ id: "m4__qwen3.5-9b__4bit__omlx-api" });
     const bad = result({ id: "m4__qwen3.5-9b__unknown__omlx-api", quant: "unknown" });

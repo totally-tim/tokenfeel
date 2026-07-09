@@ -1,8 +1,0 @@
-{
-  "id": "gemma-4-31b-it-the-deckard-heretic-uncensored-thinking-qx86-hi",
-  "name": "gemma-4-31B-it-The-DECKARD-HERETIC-UNCENSORED-Thinking-qx86-hi",
-  "family": "Gemma",
-  "params": "31B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

@@ -1,8 +1,0 @@
-{
-  "id": "qwen3-esper3-reasoning-coder-instruct-21b-brainstorm20x-c4e843b1",
-  "name": "Qwen3-Esper3-Reasoning-CODER-Instruct-21B-Brainstorm20x-128k-ctx-q6",
-  "family": "Qwen",
-  "params": "21B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

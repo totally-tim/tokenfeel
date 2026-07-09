@@ -1,8 +1,0 @@
-{
-  "id": "deepseek-vl-1.3b-chat",
-  "name": "deepseek-vl-1.3b-chat",
-  "family": "DeepSeek",
-  "params": "1.3B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

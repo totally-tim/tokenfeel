@@ -1,8 +1,0 @@
-{
-  "id": "glm-4-9b-chat-1m",
-  "name": "glm-4-9b-chat-1m",
-  "family": "GLM",
-  "params": "9B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

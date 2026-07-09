@@ -1,8 +1,0 @@
-{
-  "id": "episteme-gptoss-20b-rl-qx86-hi",
-  "name": "Episteme-gptoss-20b-RL-qx86-hi",
-  "family": "Episteme",
-  "params": "20B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

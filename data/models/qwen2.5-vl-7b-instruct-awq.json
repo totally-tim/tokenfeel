@@ -1,8 +1,0 @@
-{
-  "id": "qwen2.5-vl-7b-instruct-awq",
-  "name": "Qwen2.5-VL-7B-Instruct-AWQ",
-  "family": "Qwen",
-  "params": "7B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

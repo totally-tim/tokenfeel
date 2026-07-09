@@ -1,8 +1,0 @@
-{
-  "id": "deeoseek-1.5b",
-  "name": "deeoseek 1.5b",
-  "family": "deeoseek",
-  "params": "1.5B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

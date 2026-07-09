@@ -1,8 +1,0 @@
-{
-  "id": "qwen3.5-27b-4bit-1",
-  "name": "Qwen3.5-27B-4bit-1",
-  "family": "Qwen",
-  "params": "27B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

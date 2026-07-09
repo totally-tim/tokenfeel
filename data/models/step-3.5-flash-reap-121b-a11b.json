@@ -1,9 +1,0 @@
-{
-  "id": "step-3.5-flash-reap-121b-a11b",
-  "name": "Step-3.5-Flash-REAP-121B-A11B",
-  "family": "Step",
-  "params": "121B",
-  "activeParams": "11B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

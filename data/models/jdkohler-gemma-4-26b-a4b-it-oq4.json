@@ -1,9 +1,0 @@
-{
-  "id": "jdkohler-gemma-4-26b-a4b-it-oq4",
-  "name": "jdkohler--gemma-4-26b-a4b-it-oQ4",
-  "family": "jdkohler",
-  "params": "26B",
-  "activeParams": "4B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

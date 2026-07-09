@@ -1,8 +1,0 @@
-{
-  "id": "jackrong-qwen3.5-4b-abliterated-mxfp8",
-  "name": "Jackrong-Qwen3.5-4B-abliterated-mxfp8",
-  "family": "Jackrong",
-  "params": "4B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

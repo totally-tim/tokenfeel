@@ -1,9 +1,0 @@
-{
-  "id": "qwen3-coder-480b-a35b-instruct4bit",
-  "name": "Qwen3-Coder-480B-A35B-Instruct4bit_副本",
-  "family": "Qwen",
-  "params": "480B",
-  "activeParams": "35B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

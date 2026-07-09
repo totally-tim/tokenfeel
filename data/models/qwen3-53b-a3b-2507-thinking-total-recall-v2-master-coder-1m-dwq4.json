@@ -1,9 +1,0 @@
-{
-  "id": "qwen3-53b-a3b-2507-thinking-total-recall-v2-master-coder-1m-dwq4",
-  "name": "Qwen3-53B-A3B-2507-THINKING-TOTAL-RECALL-v2-MASTER-CODER-1m-dwq4",
-  "family": "Qwen",
-  "params": "53B",
-  "activeParams": "3B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

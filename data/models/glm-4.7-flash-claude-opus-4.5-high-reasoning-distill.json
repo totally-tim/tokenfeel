@@ -1,8 +1,0 @@
-{
-  "id": "glm-4.7-flash-claude-opus-4.5-high-reasoning-distill",
-  "name": "GLM-4.7-Flash-Claude-Opus-4.5-High-Reasoning-Distill",
-  "family": "GLM",
-  "params": "unknown",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

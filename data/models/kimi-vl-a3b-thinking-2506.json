@@ -1,9 +1,0 @@
-{
-  "id": "kimi-vl-a3b-thinking-2506",
-  "name": "Kimi-VL-A3B-Thinking-2506",
-  "family": "Kimi",
-  "params": "3B",
-  "activeParams": "3B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

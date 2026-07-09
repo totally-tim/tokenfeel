@@ -1,8 +1,0 @@
-{
-  "id": "qwen3.5-9b-claude-4.6-opus-reasoning-distilled-v2-oq6e",
-  "name": "Qwen3.5-9B-Claude-4.6-Opus-Reasoning-Distilled-v2-oQ6e",
-  "family": "Qwen",
-  "params": "9B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

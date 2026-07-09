@@ -1,9 +1,0 @@
-{
-  "id": "26b-a4b-it-mxfp8",
-  "name": "26B-A4B-it-mxfp8",
-  "family": "26B",
-  "params": "26B",
-  "activeParams": "4B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

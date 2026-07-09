@@ -1,8 +1,0 @@
-{
-  "id": "qwen3-coder-next-abliterated-mxfp4-gs32",
-  "name": "Qwen3-Coder-Next-abliterated-mxfp4-gs32",
-  "family": "Qwen",
-  "params": "unknown",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

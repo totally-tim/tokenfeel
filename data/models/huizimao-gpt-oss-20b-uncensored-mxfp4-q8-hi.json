@@ -1,8 +1,0 @@
-{
-  "id": "huizimao-gpt-oss-20b-uncensored-mxfp4-q8-hi",
-  "name": "huizimao-gpt-oss-20b-uncensored-mxfp4-q8-hi",
-  "family": "huizimao",
-  "params": "20B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

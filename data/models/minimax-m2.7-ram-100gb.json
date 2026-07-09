@@ -1,8 +1,0 @@
-{
-  "id": "minimax-m2.7-ram-100gb",
-  "name": "MiniMax-M2.7-RAM-100GB",
-  "family": "MiniMax",
-  "params": "unknown",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

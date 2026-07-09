@@ -1,8 +1,0 @@
-{
-  "id": "glm-4.6v-flash-heretic",
-  "name": "GLM-4.6V-Flash-Heretic",
-  "family": "GLM",
-  "params": "unknown",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

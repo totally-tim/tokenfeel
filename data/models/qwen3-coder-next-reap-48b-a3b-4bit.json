@@ -1,9 +1,0 @@
-{
-  "id": "qwen3-coder-next-reap-48b-a3b-4bit",
-  "name": "Qwen3-Coder-Next-REAP-48B-A3B-4bit",
-  "family": "Qwen",
-  "params": "48B",
-  "activeParams": "3B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

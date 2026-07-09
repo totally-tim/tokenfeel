@@ -1,8 +1,0 @@
-{
-  "id": "tencent-hy-mt1.5-1.8b",
-  "name": "tencent:HY-MT1.5-1.8B",
-  "family": "tencent:HY",
-  "params": "1.8B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

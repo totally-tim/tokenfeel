@@ -1,8 +1,0 @@
-{
-  "id": "josiefied-qwen3-14b-abliterated-v3",
-  "name": "Josiefied-Qwen3-14B-abliterated-v3",
-  "family": "Josiefied",
-  "params": "14B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

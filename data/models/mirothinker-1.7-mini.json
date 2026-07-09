@@ -1,8 +1,0 @@
-{
-  "id": "mirothinker-1.7-mini",
-  "name": "MiroThinker-1.7-mini",
-  "family": "MiroThinker",
-  "params": "unknown",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

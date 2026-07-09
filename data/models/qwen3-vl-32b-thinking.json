@@ -1,8 +1,0 @@
-{
-  "id": "qwen3-vl-32b-thinking",
-  "name": "Qwen3-VL-32B-Thinking",
-  "family": "Qwen",
-  "params": "32B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}

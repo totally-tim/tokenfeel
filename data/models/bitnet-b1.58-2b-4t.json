@@ -1,8 +1,0 @@
-{
-  "id": "bitnet-b1.58-2b-4t",
-  "name": "bitnet-b1.58-2B-4T",
-  "family": "bitnet",
-  "params": "2B",
-  "license": "See upstream model card",
-  "notes": "Generated from the oMLX community benchmark API import. Model metadata inferred from the upstream oMLX model name."
-}
