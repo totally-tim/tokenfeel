@@ -22,17 +22,17 @@ shorter than the token counts they're attached to.
 
 Measured today (tokens per displayed word):
 
-| scenario / event | role | tokens | text words | tokens/word |
-|---|---|---|---|---|
-| reasoning-math | thinking | 2,400 | 21 | 114.3 |
-| reasoning-math | assistant | 430 | 27 | 15.9 |
-| repo-wide-refactor (turn 4) | thinking | 5,200 | 40 | 130.0 |
-| repo-wide-refactor (turn 4) | assistant | 2,400 | 39 | 61.5 |
-| repo-wide-refactor (turn 8) | thinking | 6,200 | 41 | 151.2 |
-| repo-wide-refactor (turn 10) | assistant | 1,800 | 40 | 45.0 |
-| agent-bugfix | thinking | 318 | 17 | 18.7 |
-| agent-bugfix | assistant (x2) | 148 / 220 | 33 / 47 | ~4.5 |
-| repo-wide-refactor / agent-bugfix | tool_call (x5) | 36–90 | 2–12 | 6.4–20.5 |
+| scenario / event                  | role           | tokens    | text words | tokens/word |
+| --------------------------------- | -------------- | --------- | ---------- | ----------- |
+| reasoning-math                    | thinking       | 2,400     | 21         | 114.3       |
+| reasoning-math                    | assistant      | 430       | 27         | 15.9        |
+| repo-wide-refactor (turn 4)       | thinking       | 5,200     | 40         | 130.0       |
+| repo-wide-refactor (turn 4)       | assistant      | 2,400     | 39         | 61.5        |
+| repo-wide-refactor (turn 8)       | thinking       | 6,200     | 41         | 151.2       |
+| repo-wide-refactor (turn 10)      | assistant      | 1,800     | 40         | 45.0        |
+| agent-bugfix                      | thinking       | 318       | 17         | 18.7        |
+| agent-bugfix                      | assistant (x2) | 148 / 220 | 33 / 47    | ~4.5        |
+| repo-wide-refactor / agent-bugfix | tool_call (x5) | 36–90     | 2–12       | 6.4–20.5    |
 
 Real English prose tokenizes at roughly 1.3 tokens/word. At 45–150
 tokens/word, a new word only appears every 1–2.5 seconds of decode time
@@ -79,6 +79,7 @@ tool_call events. Estimated ~10,000–13,000 words of new prose plus
 proportionally-sized tool-call payloads.
 
 Constraints on the rewrite itself:
+
 - Each event is rewritten with the full scenario file as context (surrounding
   turns, the user's actual ask), so added content reads as coherent,
   in-voice, workload-specific reasoning/answer text — not generic filler.

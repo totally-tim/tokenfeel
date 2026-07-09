@@ -21,9 +21,11 @@
 ## Task 1: Densify `reasoning-math` scenario content
 
 **Files:**
+
 - Modify: `scenarios/reasoning-math/script.json`
 
 **Interfaces:**
+
 - Produces: no code interface — this is a data-only change. Downstream tasks (Task 4's schema guard) will validate this file's density once it lands.
 
 Current file (for reference — only `text` fields on the two listed events change; `id`, `tokens`, and all other fields/events stay exactly as-is):
@@ -60,10 +62,10 @@ Current file (for reference — only `text` fields on the two listed events chan
 
 Rewrite targets:
 
-| event id | role | tokens | current words | target words |
-|---|---|---|---|---|
-| `math-thinking` | thinking | 2400 | 21 | 1200–1600 |
-| `math-a1` | assistant | 430 | 27 | 269–331 |
+| event id        | role      | tokens | current words | target words |
+| --------------- | --------- | ------ | ------------- | ------------ |
+| `math-thinking` | thinking  | 2400   | 21            | 1200–1600    |
+| `math-a1`       | assistant | 430    | 27            | 269–331      |
 
 - [ ] **Step 1: Rewrite `math-thinking`**
 
@@ -112,9 +114,11 @@ git commit -m "Densify reasoning-math thinking/answer text to realistic token de
 ## Task 2: Densify `repo-wide-refactor` scenario content
 
 **Files:**
+
 - Modify: `scenarios/repo-wide-refactor/script.json`
 
 **Interfaces:**
+
 - Produces: no code interface — data-only change.
 
 Current file (only `text` on the seven listed events changes; every other field, including all `tool_result` events' text/tokens/cacheBust, stays exactly as-is):
@@ -145,7 +149,10 @@ Current file (only `text` on the seven listed events changes; every other field,
       "text": "Repository context loaded: RacePage owns URL state and dual playback; SimulatorPieces contains SearchSelect, phase UI and lane rendering; configMatrix has top-down result resolution; styles define command panel, picker strip, lanes and mobile breakpoints. Existing scenarios are short and do not stress context depth.",
       "tokens": 28000,
       "toolLatencyMs": 420,
-      "cacheBust": { "retainedPrefixTokens": 18000, "reason": "Large multi-file read inserted into the working transcript." }
+      "cacheBust": {
+        "retainedPrefixTokens": 18000,
+        "reason": "Large multi-file read inserted into the working transcript."
+      }
     },
     {
       "id": "refactor-thinking-1",
@@ -171,7 +178,10 @@ Current file (only `text` on the seven listed events changes; every other field,
       "text": "Patch applied. New helper tests cover model-first selection and same-model hardware suggestions. RacePage now shows a compact compare header, lane setup cards, suggested matches for Lane B, and a single run control. Status badges were removed from race lanes.",
       "tokens": 42000,
       "toolLatencyMs": 780,
-      "cacheBust": { "retainedPrefixTokens": 25000, "reason": "Patch output and generated catalog changes invalidate part of the previous prefix." }
+      "cacheBust": {
+        "retainedPrefixTokens": 25000,
+        "reason": "Patch output and generated catalog changes invalidate part of the previous prefix."
+      }
     },
     {
       "id": "refactor-thinking-2",
@@ -204,15 +214,15 @@ Current file (only `text` on the seven listed events changes; every other field,
 
 Rewrite targets:
 
-| event id | role | tokens | current | target |
-|---|---|---|---|---|
-| `refactor-tool-call-1` | tool_call | 90 | 175 chars | 315–405 chars |
-| `refactor-thinking-1` | thinking | 5200 | 40 words | 2600–3467 words |
-| `refactor-a1` | assistant | 2400 | 39 words | 1500–1846 words |
-| `refactor-tool-call-2` | tool_call | 80 | 128 chars | 280–360 chars |
-| `refactor-thinking-2` | thinking | 6200 | 41 words | 3100–4133 words |
-| `refactor-tool-call-3` | tool_call | 70 | 57 chars | 245–315 chars |
-| `refactor-a2` | assistant | 1800 | 40 words | 1125–1385 words |
+| event id               | role      | tokens | current   | target          |
+| ---------------------- | --------- | ------ | --------- | --------------- |
+| `refactor-tool-call-1` | tool_call | 90     | 175 chars | 315–405 chars   |
+| `refactor-thinking-1`  | thinking  | 5200   | 40 words  | 2600–3467 words |
+| `refactor-a1`          | assistant | 2400   | 39 words  | 1500–1846 words |
+| `refactor-tool-call-2` | tool_call | 80     | 128 chars | 280–360 chars   |
+| `refactor-thinking-2`  | thinking  | 6200   | 41 words  | 3100–4133 words |
+| `refactor-tool-call-3` | tool_call | 70     | 57 chars  | 245–315 chars   |
+| `refactor-a2`          | assistant | 1800   | 40 words  | 1125–1385 words |
 
 - [ ] **Step 1: Rewrite `refactor-tool-call-1`**
 
@@ -281,9 +291,11 @@ git commit -m "Densify repo-wide-refactor thinking/answer/tool-call text to real
 ## Task 3: Densify `agent-bugfix` scenario content
 
 **Files:**
+
 - Modify: `scenarios/agent-bugfix/script.json`
 
 **Interfaces:**
+
 - Produces: no code interface — data-only change.
 
 Current file (only `text` on the six listed events changes; every other field, including all `tool_result` events, stays exactly as-is):
@@ -367,14 +379,14 @@ Current file (only `text` on the six listed events changes; every other field, i
 
 Rewrite targets:
 
-| event id | role | tokens | current | target |
-|---|---|---|---|---|
-| `agent-tool-call-1` | tool_call | 41 | 46 chars | 144–185 chars |
-| `agent-thinking-1` | thinking | 318 | 17 words | 159–212 words |
-| `agent-a1` | assistant | 148 | 33 words | 93–114 words |
-| `agent-tool-call-2` | tool_call | 64 | 67 chars | 224–288 chars |
-| `agent-tool-call-3` | tool_call | 36 | 34 chars | 126–162 chars |
-| `agent-a2` | assistant | 220 | 47 words | 138–169 words |
+| event id            | role      | tokens | current  | target        |
+| ------------------- | --------- | ------ | -------- | ------------- |
+| `agent-tool-call-1` | tool_call | 41     | 46 chars | 144–185 chars |
+| `agent-thinking-1`  | thinking  | 318    | 17 words | 159–212 words |
+| `agent-a1`          | assistant | 148    | 33 words | 93–114 words  |
+| `agent-tool-call-2` | tool_call | 64     | 67 chars | 224–288 chars |
+| `agent-tool-call-3` | tool_call | 36     | 34 chars | 126–162 chars |
+| `agent-a2`          | assistant | 220    | 47 words | 138–169 words |
 
 This scenario needs modest growth (2–4x), not the 30–100x rewrite of Tasks 1–2 — its existing text was already closer to a reasonable density.
 
@@ -449,9 +461,11 @@ that search. This task closes the gap using the same rigor as Tasks 1–3,
 before Task 4's guard is verified against the full scenario set.
 
 **Files:**
+
 - Modify: `scenarios/chatbot-trip-planning/script.json`
 
 **Interfaces:**
+
 - Produces: no code interface — data-only change.
 
 Current file (only `text` on the six `assistant` events changes; every
@@ -465,32 +479,72 @@ Current file (only `text` on the six `assistant` events changes; every
   "systemPromptTokens": 850,
   "description": "A pleasant six-turn travel planning conversation with steadily growing context.",
   "events": [
-    { "id": "trip-u1", "role": "user", "text": "Plan a three-day route through the Dolomites that keeps driving under two hours per day.", "tokens": 42 },
-    { "id": "trip-a1", "role": "assistant", "text": "Start in Bolzano, sleep near Ortisei, then loop through Val Gardena, Seceda and Lago di Braies with short hikes each afternoon.", "tokens": 390 },
-    { "id": "trip-u2", "role": "user", "text": "Make it friendlier for a parent travelling with a seven-year-old.", "tokens": 30 },
-    { "id": "trip-a2", "role": "assistant", "text": "Swap the longest hut walk for cable-car viewpoints, add playground stops and schedule the lake visit early to avoid crowds.", "tokens": 420 },
+    {
+      "id": "trip-u1",
+      "role": "user",
+      "text": "Plan a three-day route through the Dolomites that keeps driving under two hours per day.",
+      "tokens": 42
+    },
+    {
+      "id": "trip-a1",
+      "role": "assistant",
+      "text": "Start in Bolzano, sleep near Ortisei, then loop through Val Gardena, Seceda and Lago di Braies with short hikes each afternoon.",
+      "tokens": 390
+    },
+    {
+      "id": "trip-u2",
+      "role": "user",
+      "text": "Make it friendlier for a parent travelling with a seven-year-old.",
+      "tokens": 30
+    },
+    {
+      "id": "trip-a2",
+      "role": "assistant",
+      "text": "Swap the longest hut walk for cable-car viewpoints, add playground stops and schedule the lake visit early to avoid crowds.",
+      "tokens": 420
+    },
     { "id": "trip-u3", "role": "user", "text": "Now turn it into a packing and booking checklist.", "tokens": 24 },
-    { "id": "trip-a3", "role": "assistant", "text": "Book two bases, reserve lift tickets, pack layers, rain shells, snacks, offline maps, booster seat details and a compact first-aid kit.", "tokens": 360 },
+    {
+      "id": "trip-a3",
+      "role": "assistant",
+      "text": "Book two bases, reserve lift tickets, pack layers, rain shells, snacks, offline maps, booster seat details and a compact first-aid kit.",
+      "tokens": 360
+    },
     { "id": "trip-u4", "role": "user", "text": "Add restaurant ideas that do not require long dinners.", "tokens": 26 },
-    { "id": "trip-a4", "role": "assistant", "text": "Prioritize refugios and casual pizzerias near the route, keep one picnic dinner in the plan, and book only the final night so tired evenings stay flexible.", "tokens": 410 },
+    {
+      "id": "trip-a4",
+      "role": "assistant",
+      "text": "Prioritize refugios and casual pizzerias near the route, keep one picnic dinner in the plan, and book only the final night so tired evenings stay flexible.",
+      "tokens": 410
+    },
     { "id": "trip-u5", "role": "user", "text": "What if rain closes the cable cars on day two?", "tokens": 28 },
-    { "id": "trip-a5", "role": "assistant", "text": "Move the mountain viewpoint to day three, use the Ortisei pool and wood-carving museum as the rainy-day anchor, and keep the drive short by staying in the same valley.", "tokens": 445 },
+    {
+      "id": "trip-a5",
+      "role": "assistant",
+      "text": "Move the mountain viewpoint to day three, use the Ortisei pool and wood-carving museum as the rainy-day anchor, and keep the drive short by staying in the same valley.",
+      "tokens": 445
+    },
     { "id": "trip-u6", "role": "user", "text": "Finish with a text I can send to my partner.", "tokens": 24 },
-    { "id": "trip-a6", "role": "assistant", "text": "Here is the short version: two easy bases, cable-car views instead of long climbs, early lake visit, flexible dinners, rainy-day backup in Ortisei, and a kid-friendly checklist before we book.", "tokens": 382 }
+    {
+      "id": "trip-a6",
+      "role": "assistant",
+      "text": "Here is the short version: two easy bases, cable-car views instead of long climbs, early lake visit, flexible dinners, rainy-day backup in Ortisei, and a kid-friendly checklist before we book.",
+      "tokens": 382
+    }
   ]
 }
 ```
 
 Rewrite targets (assistant target: 1.3–1.6 tokens/word):
 
-| event id | tokens | current words | target words |
-|---|---|---|---|
-| `trip-a1` | 390 | 21 | 244–300 |
-| `trip-a2` | 420 | 20 | 263–323 |
-| `trip-a3` | 360 | 21 | 225–277 |
-| `trip-a4` | 410 | 26 | 257–315 |
-| `trip-a5` | 445 | 29 | 279–342 |
-| `trip-a6` | 382 | 30 | 239–294 |
+| event id  | tokens | current words | target words |
+| --------- | ------ | ------------- | ------------ |
+| `trip-a1` | 390    | 21            | 244–300      |
+| `trip-a2` | 420    | 20            | 263–323      |
+| `trip-a3` | 360    | 21            | 225–277      |
+| `trip-a4` | 410    | 26            | 257–315      |
+| `trip-a5` | 445    | 29            | 279–342      |
+| `trip-a6` | 382    | 30            | 239–294      |
 
 - [ ] **Step 1: Rewrite `trip-a1` through `trip-a6`**
 
@@ -544,14 +598,16 @@ git commit -m "Densify chatbot-trip-planning assistant text to realistic token d
 ## Task 4: Add content-density floor guard to `scenarioEventSchema`
 
 **Files:**
+
 - Modify: `src/data/schemas.ts:164-210`
 - Test: `src/data/schema.test.ts`
 
 **Interfaces:**
+
 - Consumes: nothing new — extends the existing `scenarioEventSchema` export.
 - Produces: `scenarioEventSchema` now rejects any `assistant`/`thinking`/`tool_call` event whose `text.length < tokens * 1` (below 1 char/token). No new exports.
 
-This task runs *after* Tasks 1–3B so the real scenario data (all four scenario files) already clears the floor by the time the guard is added — `validate:data` never goes red mid-plan.
+This task runs _after_ Tasks 1–3B so the real scenario data (all four scenario files) already clears the floor by the time the guard is added — `validate:data` never goes red mid-plan.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -700,10 +756,12 @@ git commit -m "Add content-density floor guard to scenarioEventSchema"
 ## Task 5: Rate-scaled motion duration helpers
 
 **Files:**
+
 - Modify: `src/lib/phaseProgress.ts`
 - Test: `src/lib/phaseProgress.test.ts`
 
 **Interfaces:**
+
 - Produces: `cadenceDurationMs(tgRate: number): number` and `sweepDurationMs(ppRate: number): number`, both exported from `src/lib/phaseProgress.ts`. Consumed by Task 6.
 
 - [ ] **Step 1: Write the failing tests**
@@ -812,9 +870,11 @@ git commit -m "Add rate-scaled cadence/sweep motion duration helpers"
 ## Task 6: Wire rate-scaled motion durations into `PhaseState`
 
 **Files:**
+
 - Modify: `src/components/SimulatorPieces.tsx:45,117-121`
 
 **Interfaces:**
+
 - Consumes: `cadenceDurationMs`, `sweepDurationMs` from `src/lib/phaseProgress.ts` (Task 5).
 - Produces: no new exports — `PhaseState`'s rendered `.phase-state-track` element now carries `--cadence-duration`/`--sweep-duration` inline custom properties scaled to `event.tgRate`/`event.ppRate`. Both `PhaseState` (Playground) and `RaceLane` (Race, which renders `<PhaseState .../>` directly) pick this up with no further changes.
 
@@ -837,21 +897,21 @@ import { cadenceDurationMs, phaseTrackVisualState, sweepDurationMs } from "../li
 In `src/components/SimulatorPieces.tsx:117-121`, change:
 
 ```ts
-  const trackStyle = {
-    "--phase-fill-width": trackVisual.fillWidth,
-    "--phase-pip-left": trackVisual.pipLeft
-  } as CSSProperties;
+const trackStyle = {
+  "--phase-fill-width": trackVisual.fillWidth,
+  "--phase-pip-left": trackVisual.pipLeft
+} as CSSProperties;
 ```
 
 to:
 
 ```ts
-  const trackStyle = {
-    "--phase-fill-width": trackVisual.fillWidth,
-    "--phase-pip-left": trackVisual.pipLeft,
-    "--cadence-duration": `${cadenceDurationMs(event.tgRate)}ms`,
-    "--sweep-duration": `${sweepDurationMs(event.ppRate)}ms`
-  } as CSSProperties;
+const trackStyle = {
+  "--phase-fill-width": trackVisual.fillWidth,
+  "--phase-pip-left": trackVisual.pipLeft,
+  "--cadence-duration": `${cadenceDurationMs(event.tgRate)}ms`,
+  "--sweep-duration": `${sweepDurationMs(event.ppRate)}ms`
+} as CSSProperties;
 ```
 
 - [ ] **Step 3: Typecheck and build**
@@ -880,10 +940,12 @@ git commit -m "Scale phase-progress cadence/sweep motion to the active event's r
 ## Task 7: Shared collapsible `ThinkingStream` component + auto-scroll-tail for all active generated text
 
 **Files:**
+
 - Modify: `src/components/SimulatorPieces.tsx` (add `ThinkingStream`; update `Transcript` and `RaceLane`)
 - Modify: `src/styles.css` (add `.thinking-row-scroll`)
 
 **Interfaces:**
+
 - Consumes: `Disclosure` (already defined earlier in the same file), `formatClock`/`formatNumber` (already imported), `TimelineEvent` (already imported).
 - Produces: `ThinkingStream({ event, streamedText, streamedTokens, active, showCursor }): JSX.Element`, exported from `src/components/SimulatorPieces.tsx`, used by both `Transcript` and `RaceLane`.
 
@@ -963,20 +1025,20 @@ In `src/styles.css`, immediately after the `.thinking-row p { ... }` rule (after
 In `src/styles.css`, inside the `@media (max-width: 980px)` block (starts at line 4109), immediately after the existing rule:
 
 ```css
-  .race-output-event pre,
-  .race-output-event .tool-result {
-    max-height: none;
-    overflow: visible;
-  }
+.race-output-event pre,
+.race-output-event .tool-result {
+  max-height: none;
+  overflow: visible;
+}
 ```
 
 insert:
 
 ```css
-  .thinking-row-scroll {
-    max-height: none;
-    overflow: visible;
-  }
+.thinking-row-scroll {
+  max-height: none;
+  overflow: visible;
+}
 ```
 
 - [ ] **Step 4: Wire `ThinkingStream` and an auto-scroll-tail ref into `Transcript`**
@@ -1078,84 +1140,88 @@ In `src/components/SimulatorPieces.tsx`, in the `RaceLane` function:
 First, after the existing `const activeOutputRef = useRef<HTMLElement | null>(null);` line, add:
 
 ```tsx
-  const tailRef = useRef<HTMLElement | null>(null);
-  const activeStreamedText = streamFrameForEvent(activeEvent, elapsedMs).text;
+const tailRef = useRef<HTMLElement | null>(null);
+const activeStreamedText = streamFrameForEvent(activeEvent, elapsedMs).text;
 ```
 
 Then, after the existing:
 
 ```tsx
-  useEffect(() => {
-    activeOutputRef.current?.scrollIntoView({ block: "nearest" });
-  }, [activeEvent.index]);
+useEffect(() => {
+  activeOutputRef.current?.scrollIntoView({ block: "nearest" });
+}, [activeEvent.index]);
 ```
 
 add:
 
 ```tsx
-  // Keep the newest streamed text of the active event in view as it grows,
-  // independent of the whole-card scroll above.
-  useEffect(() => {
-    tailRef.current?.scrollIntoView({ block: "end" });
-  }, [activeEvent.index, activeStreamedText]);
+// Keep the newest streamed text of the active event in view as it grows,
+// independent of the whole-card scroll above.
+useEffect(() => {
+  tailRef.current?.scrollIntoView({ block: "end" });
+}, [activeEvent.index, activeStreamedText]);
 ```
 
 Then, inside the `outputEvents.map((event) => { ... })` callback, replace:
 
 ```tsx
-                    {waitingForOutput ? (
-                      <p className="race-output-waiting">{waitingCopy}</p>
-                    ) : event.role === "tool_call" ? (
-                      <pre>
-                        {streamedText}
-                        {showCursor ? <span className="cursor">▍</span> : null}
-                      </pre>
-                    ) : event.role === "tool_result" ? (
-                      <div className="tool-result">{event.text}</div>
-                    ) : event.role === "thinking" ? (
-                      <div className="thinking-row">
-                        <span>
-                          › THINKING · {formatNumber(streamFrame.tokens)} / {formatNumber(event.tokens)} tokens
-                        </span>
-                        <p>
-                          {streamedText}
-                          {showCursor ? <span className="cursor">▍</span> : null}
-                        </p>
-                      </div>
-                    ) : (
-                      <p>
-                        {streamedText}
-                        {showCursor ? <span className="cursor">▍</span> : null}
-                      </p>
-                    )}
+{
+  waitingForOutput ? (
+    <p className="race-output-waiting">{waitingCopy}</p>
+  ) : event.role === "tool_call" ? (
+    <pre>
+      {streamedText}
+      {showCursor ? <span className="cursor">▍</span> : null}
+    </pre>
+  ) : event.role === "tool_result" ? (
+    <div className="tool-result">{event.text}</div>
+  ) : event.role === "thinking" ? (
+    <div className="thinking-row">
+      <span>
+        › THINKING · {formatNumber(streamFrame.tokens)} / {formatNumber(event.tokens)} tokens
+      </span>
+      <p>
+        {streamedText}
+        {showCursor ? <span className="cursor">▍</span> : null}
+      </p>
+    </div>
+  ) : (
+    <p>
+      {streamedText}
+      {showCursor ? <span className="cursor">▍</span> : null}
+    </p>
+  );
+}
 ```
 
 with:
 
 ```tsx
-                    {waitingForOutput ? (
-                      <p className="race-output-waiting">{waitingCopy}</p>
-                    ) : event.role === "tool_call" ? (
-                      <pre ref={eventActive ? tailRef : undefined}>
-                        {streamedText}
-                        {showCursor ? <span className="cursor">▍</span> : null}
-                      </pre>
-                    ) : event.role === "tool_result" ? (
-                      <div className="tool-result">{event.text}</div>
-                    ) : event.role === "thinking" ? (
-                      <ThinkingStream
-                        event={event}
-                        streamedText={streamedText}
-                        streamedTokens={streamFrame.tokens}
-                        active={eventActive}
-                        showCursor={showCursor}
-                      />
-                    ) : (
-                      <p ref={eventActive ? tailRef : undefined}>
-                        {streamedText}
-                        {showCursor ? <span className="cursor">▍</span> : null}
-                      </p>
-                    )}
+{
+  waitingForOutput ? (
+    <p className="race-output-waiting">{waitingCopy}</p>
+  ) : event.role === "tool_call" ? (
+    <pre ref={eventActive ? tailRef : undefined}>
+      {streamedText}
+      {showCursor ? <span className="cursor">▍</span> : null}
+    </pre>
+  ) : event.role === "tool_result" ? (
+    <div className="tool-result">{event.text}</div>
+  ) : event.role === "thinking" ? (
+    <ThinkingStream
+      event={event}
+      streamedText={streamedText}
+      streamedTokens={streamFrame.tokens}
+      active={eventActive}
+      showCursor={showCursor}
+    />
+  ) : (
+    <p ref={eventActive ? tailRef : undefined}>
+      {streamedText}
+      {showCursor ? <span className="cursor">▍</span> : null}
+    </p>
+  );
+}
 ```
 
 - [ ] **Step 6: Typecheck and build**
