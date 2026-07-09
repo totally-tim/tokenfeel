@@ -161,6 +161,9 @@ export const researchItemSchema = z.object({
 
 export const researchItemsSchema = z.array(researchItemSchema);
 
+const GENERATED_SCENARIO_ROLES = new Set(["assistant", "thinking", "tool_call"]);
+const SCENARIO_TEXT_MIN_CHARS_PER_TOKEN = 1;
+
 export const scenarioEventSchema = z
   .object({
     id: idSchema,
@@ -177,34 +180,53 @@ export const scenarioEventSchema = z
   })
   .superRefine((event, ctx) => {
     // A standalone "cache_bust"-role event is a zero-content, zero-duration
-    // marker (see ScenarioRole in types.ts) -- it never prefills, decodes,
-    // or adds tool latency, so nonzero tokens/toolLatencyMs would silently
-    // inflate contextDepth/cachedPrefixTokens or wall-clock time in
-    // buildTimeline for what must be zero timing cost. Its own `cacheBust`
-    // property is also meaningless: buildTimeline never applies it for this
-    // role, since only "user"/"tool_result" events prefill. Model an actual
-    // partial cache invalidation with real content via the `cacheBust`
-    // property on a "user"/"tool_result" event instead.
-    if (event.role !== "cache_bust") return;
-    if (event.tokens !== 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: `Event "${event.id}" has role "cache_bust" but nonzero tokens (${event.tokens}) -- a standalone cache_bust-role event must be a zero-token marker; use the cacheBust property on a user/tool_result event to model a partial cache invalidation with real content`,
-        path: ["tokens"]
-      });
+    // marker (see ScenarioRole in types.ts): a standalone event using it must
+    // never advance context depth or add wall-clock time. The schema rejects
+    // nonzero tokens/toolLatencyMs (and any cacheBust property at all) on
+    // it, but this is enforced again here defensively so a malformed event
+    // can never silently inflate contextDepth/cachedPrefixTokens or add
+    // tool latency for zero timing cost (T1).
+    if (event.role === "cache_bust") {
+      if (event.tokens !== 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Event "${event.id}" has role "cache_bust" but nonzero tokens (${event.tokens}) -- a standalone cache_bust-role event must be a zero-token marker; use the cacheBust property on a user/tool_result event to model a partial cache invalidation with real content`,
+          path: ["tokens"]
+        });
+      }
+      if (event.toolLatencyMs) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Event "${event.id}" has role "cache_bust" but nonzero toolLatencyMs (${event.toolLatencyMs}) -- a standalone cache_bust-role event must be a zero-duration marker; use toolLatencyMs on a user/tool_result event instead`,
+          path: ["toolLatencyMs"]
+        });
+      }
+      if (event.cacheBust) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Event "${event.id}" has role "cache_bust" and a cacheBust property, which buildTimeline never applies to this role (it only prefills on user/tool_result events) -- set cacheBust on a user/tool_result event instead`,
+          path: ["cacheBust"]
+        });
+      }
+      return;
     }
-    if (event.toolLatencyMs) {
+
+    // Generated-role events (assistant/thinking/tool_call) stream at decode
+    // speed in the UI, revealed in proportion to token progress (see
+    // src/lib/streaming.ts). Illustrative text far shorter than the declared
+    // token count makes that reveal look sparse/stalled instead of a
+    // continuous stream at the claimed rate -- see
+    // docs/superpowers/specs/2026-07-09-thinking-token-streaming-design.md.
+    // This is a conservative floor (not the ~1.3-2 tokens/word authoring
+    // target), loose enough that a legitimate short reply never trips it.
+    if (
+      GENERATED_SCENARIO_ROLES.has(event.role) &&
+      event.text.length < event.tokens * SCENARIO_TEXT_MIN_CHARS_PER_TOKEN
+    ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: `Event "${event.id}" has role "cache_bust" but nonzero toolLatencyMs (${event.toolLatencyMs}) -- a standalone cache_bust-role event must be a zero-duration marker; use toolLatencyMs on a user/tool_result event instead`,
-        path: ["toolLatencyMs"]
-      });
-    }
-    if (event.cacheBust) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: `Event "${event.id}" has role "cache_bust" and a cacheBust property, which buildTimeline never applies to this role (it only prefills on user/tool_result events) -- set cacheBust on a user/tool_result event instead`,
-        path: ["cacheBust"]
+        message: `Event "${event.id}" has role "${event.role}" with ${event.tokens} tokens but only ${event.text.length} characters of text -- below the ${SCENARIO_TEXT_MIN_CHARS_PER_TOKEN} char/token content-density floor; streamed playback will look far sparser than the declared token count implies`,
+        path: ["text"]
       });
     }
   });

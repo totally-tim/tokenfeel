@@ -20,7 +20,8 @@ import {
   useState,
   type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
-  type ReactNode
+  type ReactNode,
+  type Ref
 } from "react";
 import { formatClock, formatNumber, formatRate, formatTokens } from "../lib/format";
 import type {
@@ -42,7 +43,7 @@ import { PhaseWaterfall, QualityFlags } from "./Visualizations";
 import { filterPickerOptions } from "../lib/pickerOptions";
 import type { MatrixOption } from "../lib/configMatrix";
 import { phaseCopyForEvent, statFootItems, turnMetricForEvent } from "../lib/phaseCopy";
-import { phaseTrackVisualState } from "../lib/phaseProgress";
+import { cadenceDurationMs, phaseTrackVisualState, sweepDurationMs } from "../lib/phaseProgress";
 import { raceOutputWindow } from "../lib/raceOutput";
 import { activePhaseForEvent, type PhaseKind } from "../lib/activePhase";
 
@@ -117,7 +118,9 @@ export function PhaseState({
   const trackVisual = phaseTrackVisualState(phase.progress, waiting);
   const trackStyle = {
     "--phase-fill-width": trackVisual.fillWidth,
-    "--phase-pip-left": trackVisual.pipLeft
+    "--phase-pip-left": trackVisual.pipLeft,
+    "--cadence-duration": `${cadenceDurationMs(event.tgRate)}ms`,
+    "--sweep-duration": `${sweepDurationMs(event.ppRate)}ms`
   } as CSSProperties;
 
   return (
@@ -183,6 +186,59 @@ export function Disclosure({
         {label}
       </button>
       {open && <div className="disclosure-body">{children}</div>}
+    </div>
+  );
+}
+
+// Live while its event is streaming (expanded, auto-scrolling tail so the
+// newest text stays in view); once that turn completes and playback moves
+// on, collapses to a one-line summary via the shared Disclosure pattern,
+// expandable back open to inspect the full finished trace. Shared between
+// Transcript (Playground) and RaceLane (Race) -- see
+// docs/superpowers/specs/2026-07-09-thinking-token-streaming-design.md.
+export function ThinkingStream({
+  event,
+  streamedText,
+  streamedTokens,
+  active,
+  showCursor
+}: {
+  event: TimelineEvent;
+  streamedText: string;
+  streamedTokens: number;
+  active: boolean;
+  showCursor: boolean;
+}) {
+  const tailRef = useRef<HTMLParagraphElement | null>(null);
+
+  useEffect(() => {
+    if (!active) return;
+    tailRef.current?.scrollIntoView({ block: "end" });
+  }, [active, streamedText]);
+
+  if (!active) {
+    return (
+      <Disclosure label={`Thought for ${formatClock(event.decodeMs)} · ${formatNumber(event.tokens)} tok`}>
+        <div className="thinking-row">
+          <div className="thinking-row-scroll">
+            <p>{streamedText}</p>
+          </div>
+        </div>
+      </Disclosure>
+    );
+  }
+
+  return (
+    <div className="thinking-row">
+      <span>
+        › THINKING · {formatNumber(streamedTokens)} / {formatNumber(event.tokens)} tokens
+      </span>
+      <div className="thinking-row-scroll">
+        <p ref={tailRef}>
+          {streamedText}
+          {showCursor ? <span className="cursor">▍</span> : null}
+        </p>
+      </div>
     </div>
   );
 }
@@ -541,11 +597,21 @@ export function Transcript({
 }) {
   const visibleEvents = events.slice(0, Math.max(1, activeIndex + 1));
   const activeRef = useRef<HTMLElement | null>(null);
+  const tailRef = useRef<HTMLElement | null>(null);
   const cacheEnabled = cacheMode === "on" || (cacheMode === "runtime" && runtimeCache === "prefix");
+  const activeEvent = events[activeIndex];
+  const activeStreamedText = activeEvent ? streamFrameForEvent(activeEvent, elapsedMs).text : "";
 
   useEffect(() => {
     activeRef.current?.scrollIntoView({ block: "nearest" });
   }, [activeIndex]);
+
+  // Keep the newest streamed text of the active event in view as it grows,
+  // independent of the whole-article scroll above -- needed now that
+  // generated text runs far longer than the transcript's visible height.
+  useEffect(() => {
+    tailRef.current?.scrollIntoView({ block: "end" });
+  }, [activeIndex, activeStreamedText]);
 
   return (
     <div className="transcript">
@@ -575,24 +641,22 @@ export function Transcript({
               {event.cacheBust && <span className="warn-text">re-prefilled · cache bust</span>}
             </div>
             {event.role === "tool_call" ? (
-              <pre>
+              <pre ref={active ? (tailRef as Ref<HTMLPreElement>) : undefined}>
                 {streamedText}
                 {showCursor ? <span className="cursor">▍</span> : null}
               </pre>
             ) : event.role === "tool_result" ? (
               <div className="tool-result">{event.text}</div>
             ) : event.role === "thinking" ? (
-              <div className="thinking-row">
-                <span>
-                  › THINKING · {formatNumber(streamedTokens)} / {formatNumber(event.tokens)} tokens
-                </span>
-                <p>
-                  {streamedText}
-                  {showCursor ? <span className="cursor">▍</span> : null}
-                </p>
-              </div>
+              <ThinkingStream
+                event={event}
+                streamedText={streamedText}
+                streamedTokens={streamedTokens}
+                active={active}
+                showCursor={showCursor}
+              />
             ) : (
-              <p>
+              <p ref={active ? (tailRef as Ref<HTMLParagraphElement>) : undefined}>
                 {streamedText}
                 {showCursor ? <span className="cursor">▍</span> : null}
               </p>
@@ -676,6 +740,8 @@ export function RaceLane({
   const phase = activePhaseForEvent(activeEvent, elapsedMs, hasStarted, complete);
   const outputEvents = raceOutputWindow(timeline.events, activeEvent.index, 4, hasStarted);
   const activeOutputRef = useRef<HTMLElement | null>(null);
+  const tailRef = useRef<HTMLElement | null>(null);
+  const activeStreamedText = streamFrameForEvent(activeEvent, elapsedMs).text;
   const laneRate = phase.kind === "prefill" ? activeEvent.ppRate : activeEvent.tgRate;
   const laneRateKind = !hasStarted
     ? "projected"
@@ -697,6 +763,12 @@ export function RaceLane({
   useEffect(() => {
     activeOutputRef.current?.scrollIntoView({ block: "nearest" });
   }, [activeEvent.index]);
+
+  // Keep the newest streamed text of the active event in view as it grows,
+  // independent of the whole-card scroll above.
+  useEffect(() => {
+    tailRef.current?.scrollIntoView({ block: "end" });
+  }, [activeEvent.index, activeStreamedText]);
 
   return (
     <section
@@ -777,24 +849,22 @@ export function RaceLane({
                     {waitingForOutput ? (
                       <p className="race-output-waiting">{waitingCopy}</p>
                     ) : event.role === "tool_call" ? (
-                      <pre>
+                      <pre ref={eventActive ? (tailRef as Ref<HTMLPreElement>) : undefined}>
                         {streamedText}
                         {showCursor ? <span className="cursor">▍</span> : null}
                       </pre>
                     ) : event.role === "tool_result" ? (
                       <div className="tool-result">{event.text}</div>
                     ) : event.role === "thinking" ? (
-                      <div className="thinking-row">
-                        <span>
-                          › THINKING · {formatNumber(streamFrame.tokens)} / {formatNumber(event.tokens)} tokens
-                        </span>
-                        <p>
-                          {streamedText}
-                          {showCursor ? <span className="cursor">▍</span> : null}
-                        </p>
-                      </div>
+                      <ThinkingStream
+                        event={event}
+                        streamedText={streamedText}
+                        streamedTokens={streamFrame.tokens}
+                        active={eventActive}
+                        showCursor={showCursor}
+                      />
                     ) : (
-                      <p>
+                      <p ref={eventActive ? (tailRef as Ref<HTMLParagraphElement>) : undefined}>
                         {streamedText}
                         {showCursor ? <span className="cursor">▍</span> : null}
                       </p>

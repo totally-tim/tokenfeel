@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { phaseTrackVisualState } from "./phaseProgress";
+import { cadenceDurationMs, phaseTrackVisualState, sweepDurationMs } from "./phaseProgress";
 
 describe("phase track visual state", () => {
   test("uses exact proportional fill instead of a minimum-width fake progress", () => {
@@ -29,5 +29,45 @@ describe("phase track visual state", () => {
       fillWidth: "0%",
       pipLeft: "0%"
     });
+  });
+});
+
+describe("rate-scaled motion durations", () => {
+  test("cadenceDurationMs returns the historical 900ms baseline at the reference decode rate", () => {
+    expect(cadenceDurationMs(50)).toBe(900);
+  });
+
+  test("cadenceDurationMs ticks faster (shorter duration) for a faster decode rate", () => {
+    expect(cadenceDurationMs(100)).toBe(450);
+  });
+
+  test("cadenceDurationMs clamps to the minimum for an extremely fast decode rate", () => {
+    expect(cadenceDurationMs(10_000)).toBe(300);
+  });
+
+  test("cadenceDurationMs clamps to the maximum for an extremely slow decode rate", () => {
+    expect(cadenceDurationMs(1)).toBe(2000);
+  });
+
+  test("cadenceDurationMs falls back to the baseline for a non-positive rate", () => {
+    expect(cadenceDurationMs(0)).toBe(900);
+    expect(cadenceDurationMs(-5)).toBe(900);
+  });
+
+  test("sweepDurationMs returns the historical 1150ms baseline at the reference prefill rate", () => {
+    expect(sweepDurationMs(800)).toBe(1150);
+  });
+
+  test("sweepDurationMs ticks faster for a faster prefill rate", () => {
+    expect(sweepDurationMs(1600)).toBe(575);
+  });
+
+  test("sweepDurationMs clamps to the minimum and maximum bounds", () => {
+    expect(sweepDurationMs(100_000)).toBe(300);
+    expect(sweepDurationMs(1)).toBe(2000);
+  });
+
+  test("sweepDurationMs falls back to the baseline for a non-positive rate", () => {
+    expect(sweepDurationMs(0)).toBe(1150);
   });
 });
