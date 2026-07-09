@@ -1,0 +1,9 @@
+{
+  "id": "rtx-5070-ti-16gb",
+  "name": "NVIDIA GeForce RTX 5070 Ti 16GB",
+  "shortName": "RTX 5070 Ti",
+  "vendor": "NVIDIA",
+  "memory": "16GB GDDR7",
+  "accelerator": "Blackwell GB203",
+  "notes": "Single consumer GPU with 16GB VRAM for GGUF llama.cpp CUDA benchmarks."
+}

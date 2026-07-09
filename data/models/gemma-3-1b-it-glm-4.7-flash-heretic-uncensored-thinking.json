@@ -1,0 +1,8 @@
+{
+  "id": "gemma-3-1b-it-glm-4.7-flash-heretic-uncensored-thinking",
+  "name": "Gemma-3-1B-it GLM-4.7-Flash-Heretic-Uncensored-Thinking",
+  "family": "Gemma",
+  "params": "1B",
+  "license": "See upstream model card",
+  "notes": "Community Gemma 3 1B instruct finetune distributed as F16 GGUF."
+}

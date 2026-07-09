@@ -1,0 +1,85 @@
+{
+  "id": "rtx-5070-ti-16gb__gemma-3-1b-it-glm-4.7-flash-heretic-uncensored-thinking__f16__llamacpp-cuda",
+  "hardware": "rtx-5070-ti-16gb",
+  "model": "gemma-3-1b-it-glm-4.7-flash-heretic-uncensored-thinking",
+  "quant": "f16",
+  "runtime": {
+    "name": "llama.cpp",
+    "version": "5452d736f (8131)",
+    "backend": "CUDA",
+    "flags": "-p 512 -n 64 -d 0,4096,8192 -fa 1 -ngl 99 -r 5 --model Gemma-3-1B-it-GLM-4.7-Flash-Heretic-Uncensored-Thinking_F16.gguf",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 0,
+      "pp": 28063.63,
+      "ppLabel": "pp512",
+      "ppStddev": 4855.33,
+      "tg": 257.01,
+      "tgLabel": "tg64",
+      "tgStddev": 2.15
+    },
+    {
+      "depth": 4096,
+      "pp": 25743.18,
+      "ppLabel": "pp512 @ d4096",
+      "ppStddev": 1655.01,
+      "tg": 251.52,
+      "tgLabel": "tg64 @ d4096",
+      "tgStddev": 2.7
+    },
+    {
+      "depth": 8192,
+      "pp": 24502.4,
+      "ppLabel": "pp512 @ d8192",
+      "ppStddev": 1449.98,
+      "tg": 248.96,
+      "tgLabel": "tg64 @ d8192",
+      "tgStddev": 4.69
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://raw.githubusercontent.com/totally-tim/tokenfeel/benchmark/rtx-5070-ti-llamacpp/artifacts/llama-bench-gemma-3-1b-f16.txt",
+    "rawFormat": "llama-bench",
+    "retrievedAt": "2026-07-09T14:31:24.134Z",
+    "parserVersion": "tokenfeel-convert/1",
+    "rawRows": [
+      "| gemma3 1B F16                  |   1.86 GiB |   999.89 M | CUDA       |  99 |  1 |           pp512 |   28063.63 ± 4855.33 |",
+      "| gemma3 1B F16                  |   1.86 GiB |   999.89 M | CUDA       |  99 |  1 |            tg64 |        257.01 ± 2.15 |",
+      "| gemma3 1B F16                  |   1.86 GiB |   999.89 M | CUDA       |  99 |  1 |   pp512 @ d4096 |   25743.18 ± 1655.01 |",
+      "| gemma3 1B F16                  |   1.86 GiB |   999.89 M | CUDA       |  99 |  1 |    tg64 @ d4096 |        251.52 ± 2.70 |",
+      "| gemma3 1B F16                  |   1.86 GiB |   999.89 M | CUDA       |  99 |  1 |   pp512 @ d8192 |   24502.40 ± 1449.98 |",
+      "| gemma3 1B F16                  |   1.86 GiB |   999.89 M | CUDA       |  99 |  1 |    tg64 @ d8192 |        248.96 ± 4.69 |"
+    ]
+  },
+  "benchmark": {
+    "tool": "llama-bench",
+    "command": "llama-bench.exe -m G:/models/Gemma-3-1B-it-GLM-4.7-Flash-Heretic-Uncensored-Thinking_F16.gguf -p 512 -n 64 -d 0,4096,8192 -fa 1 -ngl 99 -r 5 -o md",
+    "outputFormat": "text",
+    "ppTokens": 512,
+    "tgTokens": 64,
+    "runs": 5,
+    "warmup": 1
+  },
+  "topology": {
+    "nodeCount": 1,
+    "acceleratorCount": 1,
+    "os": "Windows 11 Pro 10.0.26200",
+    "driver": "596.49",
+    "cuda": "13",
+    "runtimeVersions": {
+      "cpu": "Intel Core i9-14900K (24c/32t)",
+      "systemMemory": "64GB"
+    }
+  },
+  "source": {
+    "kind": "llama-bench",
+    "title": "RTX 5070 Ti llama-bench: Gemma-3-1B-it F16",
+    "url": "https://raw.githubusercontent.com/totally-tim/tokenfeel/benchmark/rtx-5070-ti-llamacpp/artifacts/llama-bench-gemma-3-1b-f16.txt",
+    "raw": "preserved in evidence.rawRows"
+  },
+  "submitter": "totally-tim",
+  "date": "2026-07-09",
+  "status": "community"
+}
