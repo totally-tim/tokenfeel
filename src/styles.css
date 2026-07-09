@@ -41,7 +41,10 @@
   --phase-complete: #0a84ff;
   --phase-complete-soft: #e8f2ff;
 
-  /* Motion tokens — timings/easings for the phase language. */
+  /* Motion tokens — timings/easings for the phase language. --sweep-duration
+     and --cadence-duration are overridden per-track in PhaseState with
+     values scaled to the active event's real ppRate/tgRate; these stay only
+     as the fallback before a track sets its own. */
   --motion-fast: 180ms;
   --motion-med: 320ms;
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
