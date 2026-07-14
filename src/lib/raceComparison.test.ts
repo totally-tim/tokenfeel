@@ -139,6 +139,24 @@ describe("race comparison helpers", () => {
       level: "related"
     });
   });
+
+  test("downgrades same-model different-hardware races to related when quant and runtime both also differ", () => {
+    const eightBitOnDgx = result({
+      id: "dgx-qwen-8bit",
+      hardware: "dgx",
+      model: "qwen",
+      quant: "8bit",
+      runtime: { name: "vLLM", version: "1", backend: "CUDA", flags: "", cache: "prefix" }
+    });
+
+    // catalog.results[0] is m4-qwen: 4bit quant on the default oMLX runtime,
+    // so hardware, quant, and runtime all differ from eightBitOnDgx.
+    expect(comparisonSummary(catalog, catalog.results[0], eightBitOnDgx)).toMatchObject({
+      label: "Same model comparison",
+      detail: "Same model, different quant or runtime.",
+      level: "related"
+    });
+  });
 });
 
 describe("raceVerdict", () => {

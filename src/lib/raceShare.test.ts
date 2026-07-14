@@ -61,6 +61,25 @@ describe("race share links", () => {
     });
   });
 
+  test("leaves speed undefined instead of 0 when the param is absent", () => {
+    const parsed = parseRaceShareHash(`#race?a=${DEFAULT_LEFT_RESULT_ID}&b=${DEFAULT_RIGHT_RESULT_ID}`);
+
+    expect(parsed.speed).toBeUndefined();
+    expect("speed" in parsed ? parsed.speed !== 0 : true).toBe(true);
+  });
+
+  test("keeps params after a second '?' in the hash instead of dropping them", () => {
+    // A naive split("?") treats both "?" as delimiters and only keeps the
+    // segment right after the first one, silently dropping "speed=2".
+    const parsed = parseRaceShareHash(
+      `#race?a=${DEFAULT_LEFT_RESULT_ID}&b=${DEFAULT_RIGHT_RESULT_ID}&s=${DEFAULT_SCENARIO_ID}?ignored=1&speed=2`
+    );
+
+    expect(parsed.leftId).toBe(DEFAULT_LEFT_RESULT_ID);
+    expect(parsed.rightId).toBe(DEFAULT_RIGHT_RESULT_ID);
+    expect(parsed.speed).toBe(2);
+  });
+
   test("round-trips optional cache override in race share links", () => {
     const url = buildRaceShareUrl(
       {

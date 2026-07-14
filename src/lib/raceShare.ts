@@ -26,9 +26,15 @@ export function buildRaceShareUrl(state: RaceShareState, baseHref = window.locat
 }
 
 export function parseRaceShareHash(hash: string): Partial<RaceShareState> {
-  const [, query = ""] = hash.replace(/^#/, "").split("?");
+  // Only the first "?" starts the query string; a naive split("?") would
+  // silently drop everything after a second "?" if one ever showed up in a
+  // param value.
+  const queryStart = hash.indexOf("?");
+  const query = queryStart === -1 ? "" : hash.substring(queryStart + 1);
   const params = new URLSearchParams(query);
-  const speed = Number(params.get("speed"));
+  // params.has() first: an absent "speed" must resolve to undefined (per
+  // RaceShareState's Partial<> contract), not Number(null) === 0.
+  const speed = params.has("speed") ? Number(params.get("speed")) : undefined;
   const rawCacheMode = params.get("cache");
   const cacheMode =
     rawCacheMode === "on" || rawCacheMode === "off" || rawCacheMode === "runtime" ? rawCacheMode : undefined;
@@ -37,7 +43,7 @@ export function parseRaceShareHash(hash: string): Partial<RaceShareState> {
     leftId: params.get("a") ?? undefined,
     rightId: params.get("b") ?? undefined,
     scenarioId: params.get("s") ?? undefined,
-    speed: Number.isFinite(speed) ? speed : undefined,
+    speed: speed !== undefined && Number.isFinite(speed) ? speed : undefined,
     ...(cacheMode ? { cacheMode } : {})
   };
 }
