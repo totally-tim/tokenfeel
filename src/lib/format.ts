@@ -1,9 +1,19 @@
 export function formatSeconds(seconds: number): string {
   if (!Number.isFinite(seconds)) return "0:00";
-  if (seconds < 60) return `${seconds.toFixed(1)}s`;
-  const minutes = Math.floor(seconds / 60);
-  const remaining = seconds - minutes * 60;
-  return `${minutes}:${remaining.toFixed(seconds < 600 ? 1 : 0).padStart(seconds < 600 ? 4 : 2, "0")}`;
+  // Round to the display precision BEFORE splitting into minutes/seconds.
+  // Flooring first produced artifacts like "1:60.0" for 119.96 (floor gives
+  // 1 minute, then 59.96 rounds up to 60.0) -- rounding the total first makes
+  // it 120.0 -> "2:00.0". One decimal below the 10-minute mark, whole seconds
+  // at/past it. Decide the precision from the value already rounded to a tenth,
+  // so 599.96 -> 600.0 crosses into whole-seconds and renders "10:00", not the
+  // stray "10:00.0" that choosing decimals off the raw 599.96 would produce.
+  const roundedTenths = Number(seconds.toFixed(1));
+  const decimals = roundedTenths < 600 ? 1 : 0;
+  const rounded = decimals === 1 ? roundedTenths : Math.round(roundedTenths);
+  if (rounded < 60) return `${rounded.toFixed(1)}s`;
+  const minutes = Math.floor(rounded / 60);
+  const remaining = rounded - minutes * 60;
+  return `${minutes}:${remaining.toFixed(decimals).padStart(decimals === 1 ? 4 : 2, "0")}`;
 }
 
 export function formatClock(ms: number): string {

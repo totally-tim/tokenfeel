@@ -30,6 +30,21 @@ describe("phase track visual state", () => {
       pipLeft: "0%"
     });
   });
+
+  test("coerces non-finite progress to an empty bar so NaN never reaches ariaValueNow or the width strings (A5)", () => {
+    const state = phaseTrackVisualState(Number.NaN);
+    expect(state).toEqual({ ariaValueNow: 0, fillWidth: "0%", pipLeft: "0%" });
+    expect(Number.isNaN(state.ariaValueNow)).toBe(false);
+    expect(state.fillWidth).not.toContain("NaN");
+    expect(state.pipLeft).not.toContain("NaN");
+
+    // Infinity must not sail through Math.min as a real value either.
+    expect(phaseTrackVisualState(Number.POSITIVE_INFINITY)).toEqual({
+      ariaValueNow: 0,
+      fillWidth: "0%",
+      pipLeft: "0%"
+    });
+  });
 });
 
 describe("rate-scaled motion durations", () => {

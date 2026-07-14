@@ -62,9 +62,11 @@ function decodeCumulativeProgress(event: TimelineEvent, elapsedDecodeMs: number)
  * `decodeCumulativeProgress` (the same curve driving the visible token
  * reveal), which continues from 0 exactly where the flat hold left off, so
  * there is no jump at the tool-latency/decode boundary. Non-generated
- * (prefill-only) events linearly interpolate from `contextBefore` toward
- * `contextAfter` over their whole span, since no comparable per-token
- * prefill curve is exposed here.
+ * (prefill-only) events hold flat at `contextBefore` through their tool-latency
+ * wait (up to `toolDoneMs`, when prefill actually starts) and only then
+ * linearly interpolate toward `contextAfter` across the remaining
+ * `[toolDoneMs, endMs]` prefill span -- mirroring the generated branch's flat
+ * hold rather than smearing the growth across the idle tool wait.
  */
 export function liveDepthForEvent(event: TimelineEvent, elapsedMs: number): number {
   if (elapsedMs <= event.startMs) return event.contextBefore;
@@ -78,9 +80,10 @@ export function liveDepthForEvent(event: TimelineEvent, elapsedMs: number): numb
     return event.contextBefore;
   }
 
-  const span = event.endMs - event.startMs;
+  if (elapsedMs <= event.toolDoneMs) return event.contextBefore;
+  const span = event.endMs - event.toolDoneMs;
   if (span <= 0) return event.contextAfter;
-  const progress = (elapsedMs - event.startMs) / span;
+  const progress = (elapsedMs - event.toolDoneMs) / span;
   return event.contextBefore + progress * (event.contextAfter - event.contextBefore);
 }
 

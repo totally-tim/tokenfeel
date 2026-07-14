@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { activeEventAt, buildTimeline, summarizeTimeline } from "../sim/timing";
+import { playbackProgress } from "../lib/playbackProgress";
 import type { BenchmarkResult, CacheMode, ScenarioScript } from "../types";
 
 interface UsePlaybackInput {
@@ -54,8 +55,7 @@ export function usePlayback({ result, scenario, cacheMode, speed, autoStart = fa
   }, [isPlaying, speed, timeline.totalMs]);
 
   const activeEvent = activeEventAt(timeline, elapsedMs);
-  const progress = timeline.totalMs === 0 ? 1 : Math.min(1, elapsedMs / timeline.totalMs);
-  const isComplete = hasStarted && elapsedMs >= timeline.totalMs;
+  const { progress, isComplete } = playbackProgress(timeline, elapsedMs, hasStarted);
 
   return {
     timeline,
