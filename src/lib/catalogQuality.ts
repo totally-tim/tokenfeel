@@ -27,6 +27,15 @@ const placeholderModelIds = new Set([
   "qwen",
   "qwen3.5"
 ]);
+// Beyond the exact-match set above, any id carrying one of these seed/scratch
+// prefixes (e.g. "test-qwen3-coder-30b-a3b") is a leftover from authoring,
+// not a real catalog entry, even when it doesn't match a known placeholder
+// verbatim.
+const placeholderIdPrefixes = ["test-", "tbd-", "demo-"];
+
+function isPlaceholderId(id: string): boolean {
+  return placeholderModelIds.has(id) || placeholderIdPrefixes.some((prefix) => id.startsWith(prefix));
+}
 
 export function maxMeasuredDepth(result: BenchmarkResult): number {
   return Math.max(...result.measurements.map((measurement) => measurement.depth));
@@ -53,10 +62,20 @@ function issueSet(issues: CatalogQualityIssue[]): CatalogQualityIssue[] {
 
 function ttftMismatchesPromptRate(measurement: BenchmarkMeasurement, ppTokens = 0): boolean {
   const ttftMs = measurement.source?.ttftMs;
-  if (!ttftMs || measurement.depth <= 0) return false;
+  if (!ttftMs) return false;
+  // Only bail when there is no signal at all to check against. A zero/absent
+  // depth with a known ppTokens chunk size still has a real prompt-token
+  // count to derive an expected TTFT from -- skipping it let ttft outliers
+  // at depth 0 pass unchecked.
+  if (measurement.depth <= 0 && ppTokens <= 0) return false;
 
-  const promptTokenCounts = [measurement.depth];
-  if (ppTokens > 0) promptTokenCounts.push(measurement.depth + ppTokens);
+  const promptTokenCounts: number[] = [];
+  if (measurement.depth > 0) {
+    promptTokenCounts.push(measurement.depth);
+    if (ppTokens > 0) promptTokenCounts.push(measurement.depth + ppTokens);
+  } else {
+    promptTokenCounts.push(ppTokens);
+  }
 
   return promptTokenCounts.every((tokens) => {
     const derivedMs = (tokens / measurement.pp) * 1000;
@@ -85,6 +104,22 @@ function hasSevereRateSpike(result: BenchmarkResult): boolean {
   return false;
 }
 
+// Whether a result carries any trace of the raw upstream evidence it was
+// derived from, in any of the shapes different importers/converters use.
+// catalogSchema's cross-reference check already hard-fails a "verified" row
+// with none of these; this is the softer check used to WARN (not fail) on
+// "community" rows with no raw evidence at all -- see analyzeCatalogQuality
+// in scripts/validate-data.ts.
+export function hasAnyRawEvidence(result: BenchmarkResult): boolean {
+  return Boolean(
+    result.source.raw ||
+    result.evidence?.rawUrl ||
+    result.evidence?.rawRows?.length ||
+    result.evidence?.upstreamUrls?.length ||
+    result.evidence?.archiveUrl
+  );
+}
+
 export function catalogQualityIssues(
   result: BenchmarkResult,
   context: { model?: ModelMetadata; hardware?: HardwareConfig } = {}
@@ -94,7 +129,7 @@ export function catalogQualityIssues(
   const modelId = result.model.toLowerCase();
 
   if (hashLikeId.test(modelId)) issues.push("hash-model-id");
-  if (placeholderModelIds.has(modelId)) issues.push("placeholder-model-id");
+  if (isPlaceholderId(modelId)) issues.push("placeholder-model-id");
   if (context.model?.params.toLowerCase() === "unknown") issues.push("unknown-model-params");
   if (result.quant.toLowerCase() === "unknown") issues.push("unknown-quant");
   if (maxDepth < PUBLIC_SIMULATION_MIN_DEPTH) issues.push("low-context-under-8k");

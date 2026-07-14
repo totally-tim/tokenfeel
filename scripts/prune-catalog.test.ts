@@ -138,7 +138,13 @@ describe("catalog pruning", () => {
     const plan = planCatalogPrune(catalog);
 
     const dryRun = await pruneCatalogFiles(plan, dirs, { dryRun: true });
-    expect(dryRun.deletedFiles).toEqual([]);
+    expect(dryRun.deletedFiles.map((file) => path.basename(file)).sort()).toEqual([
+      "bad-model.json",
+      "kept-hardware__bad-model__unknown__omlx-api.json",
+      "orphan-hardware.json",
+      "orphan-model.json"
+    ]);
+    // Dry-run reports what it would delete but must not actually delete it.
     expect(await jsonIds(dirs.results)).toEqual([
       "kept-hardware__bad-model__unknown__omlx-api",
       "kept-hardware__kept-model__4bit__omlx-api"

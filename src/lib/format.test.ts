@@ -16,11 +16,27 @@ describe("formatSeconds", () => {
   test("drops decimal seconds once past the 10-minute boundary", () => {
     expect(formatSeconds(600)).toBe("10:00");
     expect(formatSeconds(3661)).toBe("61:01");
+    // A value just under 600 that rounds up to the 10-minute mark must adopt
+    // whole-second precision too, not render the stray "10:00.0" that choosing
+    // decimals off the pre-rounded 599.96 produced (review regression).
+    expect(formatSeconds(599.96)).toBe("10:00");
   });
 
   test("falls back to 0:00 for non-finite input instead of throwing or rendering NaN", () => {
     expect(formatSeconds(Number.NaN)).toBe("0:00");
     expect(formatSeconds(Number.POSITIVE_INFINITY)).toBe("0:00");
+  });
+
+  test("rounds the total before splitting so a minute-boundary value never renders :60 (A3)", () => {
+    // Flooring minutes before rounding produced "1:60.0" for 119.96; rounding
+    // the total first carries into the minute -> "2:00.0".
+    expect(formatSeconds(119.96)).toBe("2:00.0");
+    // Past the 10-minute mark (whole-second precision), 659.6 rounds to 660 -> "11:00".
+    expect(formatSeconds(659.6)).toBe("11:00");
+    // A sub-minute value that rounds up to 60 crosses into the minute form,
+    // never rendering "60.0s".
+    expect(formatSeconds(59.96)).not.toBe("60.0s");
+    expect(formatSeconds(59.96)).toBe("1:00.0");
   });
 });
 

@@ -115,13 +115,18 @@ export function rankedResults(catalog: Catalog, scenario: ScenarioScript = defau
   const lookups = createCatalogLookups(catalog);
   return catalog.results
     .map((result) => {
-      const seconds = computeScenarioSeconds(result, scenario);
+      // Build the timeline once per result and derive both the sort key and
+      // the summary from it (F2). computeScenarioSeconds builds its own
+      // timeline internally with the same "runtime" cache mode, so pairing it
+      // with a second buildTimeline for the summary priced every row twice.
+      const timeline = buildTimeline({ result, scenario, cacheMode: "runtime" });
+      const summary = summarizeTimeline(timeline);
       return {
         result,
-        seconds,
+        seconds: summary.wallTimeMs / 1000,
         hardware: lookups.hardwareById(result.hardware),
         model: lookups.modelById(result.model),
-        summary: summarizeTimeline(buildTimeline({ result, scenario, cacheMode: "runtime" }))
+        summary
       };
     })
     .sort((a, b) => a.seconds - b.seconds);

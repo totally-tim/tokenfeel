@@ -5,6 +5,10 @@ export interface PhaseTrackVisualState {
 }
 
 function clamp01(value: number): number {
+  // Coerce non-finite input to 0 before clamping (A5): Math.min/Math.max
+  // propagate NaN, which would otherwise reach ariaValueNow and the "NaN%"
+  // width strings on the live DOM/ARIA.
+  if (!Number.isFinite(value)) return 0;
   return Math.max(0, Math.min(1, value));
 }
 

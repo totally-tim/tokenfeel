@@ -288,6 +288,17 @@ function integrateTimeRangeMsPrepared(
   fromDepth: number,
   toDepth: number
 ): { canonicalMs: number; optimisticMs: number; stddevMs: number; confidence: RateConfidence } {
+  // Runtime guard (A2): a non-finite bound would poison every arithmetic
+  // segment below and still be tagged "interpolated". Reject it outright and
+  // never let a broken integral pass as interpolated confidence. Negative
+  // bounds are clamped to 0 -- depth is a token count that can't go below
+  // zero, and a negative bound would otherwise widen the pre-first-depth
+  // segment with phantom width.
+  if (!Number.isFinite(fromDepth) || !Number.isFinite(toDepth)) {
+    return { canonicalMs: 0, optimisticMs: 0, stddevMs: 0, confidence: "extrapolated-unsupported" };
+  }
+  fromDepth = Math.max(0, fromDepth);
+  toDepth = Math.max(0, toDepth);
   if (toDepth <= fromDepth) {
     return { canonicalMs: 0, optimisticMs: 0, stddevMs: 0, confidence: rateConfidenceAt(prepared.points, fromDepth) };
   }
@@ -359,6 +370,13 @@ function integrateTimeRangeMsPrepared(
       canonicalTotal += width * lastMs;
       confidence = worseConfidence(confidence, "extrapolated-unsupported");
     }
+  }
+
+  // Final safety (A2): never surface a NaN/Infinity total under an
+  // "interpolated" (or any measured-ish) confidence tier -- collapse a broken
+  // result to a safe zero tagged extrapolated-unsupported instead.
+  if (!Number.isFinite(canonicalTotal) || !Number.isFinite(optimisticTotal)) {
+    return { canonicalMs: 0, optimisticMs: 0, stddevMs: 0, confidence: "extrapolated-unsupported" };
   }
 
   return { canonicalMs: canonicalTotal, optimisticMs: optimisticTotal, stddevMs: stddevTotal, confidence };
@@ -435,12 +453,24 @@ function buildDecodeCumulativeMs(
  * sorting/interpolating, so the lookup key (`depth`, always expressed as a
  * total-prompt-tokens count by callers) lines up with the measurements
  * regardless of which convention the source used.
+ *
+ * Below the first TTFT-bearing depth the reading flat-clamps to that first
+ * measured TTFT. At or beyond the LAST TTFT-bearing depth the value clamps to
+ * that last measured TTFT AND the returned anchorDepth clamps to that last
+ * measured depth. buildTimeline reconciles the implied launch overhead at
+ * anchorDepth, then adds the pp integral over the real (larger) prompt depth
+ * on top -- so beyond the measured range prefill keeps growing with prompt
+ * size instead of collapsing back to the stale flat TTFT (A1). Anchoring the
+ * depth (rather than returning undefined and falling through to the bare
+ * integral) keeps that growth continuous at the boundary, where the bare
+ * integral would cliff-drop below the last measured TTFT for a one-token-
+ * larger prompt.
  */
-function interpolateTtftMs(
+function resolveTtftAnchor(
   measurements: BenchmarkMeasurement[],
   depth: number,
   ttftDepthOffset: number
-): number | undefined {
+): { ttftMs: number; anchorDepth: number } | undefined {
   const points = measurements
     .filter((measurement) => typeof measurement.source?.ttftMs === "number")
     .map((measurement) => ({
@@ -450,10 +480,11 @@ function interpolateTtftMs(
     .sort((a, b) => a.effectiveDepth - b.effectiveDepth);
 
   if (points.length === 0) return undefined;
-  if (depth <= points[0].effectiveDepth) return points[0].ttftMs;
 
+  const first = points[0];
   const last = points[points.length - 1];
-  if (depth >= last.effectiveDepth) return last.ttftMs;
+  if (depth <= first.effectiveDepth) return { ttftMs: first.ttftMs, anchorDepth: depth };
+  if (depth >= last.effectiveDepth) return { ttftMs: last.ttftMs, anchorDepth: last.effectiveDepth };
 
   for (let index = 0; index < points.length - 1; index += 1) {
     const left = points[index];
@@ -461,15 +492,21 @@ function interpolateTtftMs(
     if (depth >= left.effectiveDepth && depth <= right.effectiveDepth) {
       const span = right.effectiveDepth - left.effectiveDepth;
       const progress = span === 0 ? 0 : (depth - left.effectiveDepth) / span;
-      return left.ttftMs + (right.ttftMs - left.ttftMs) * progress;
+      return { ttftMs: left.ttftMs + (right.ttftMs - left.ttftMs) * progress, anchorDepth: depth };
     }
   }
 
-  return last.ttftMs;
+  return { ttftMs: last.ttftMs, anchorDepth: last.effectiveDepth };
 }
 
 export function buildTimeline(input: TimelineInput): Timeline {
   const { result, scenario } = input;
+  // A2: an empty event list builds a zero-event timeline that activeEventAt
+  // cannot consume (it throws "Timeline has no events" downstream). Fail here
+  // with a clear message instead of producing a structurally broken timeline.
+  if (scenario.events.length === 0) {
+    throw new Error(`Cannot build a timeline for scenario "${scenario.id}" with no events`);
+  }
   const cacheEnabled = input.cacheMode === "on" || (input.cacheMode === "runtime" && result.runtime.cache === "prefix");
   const overheadMs = result.overheadMs ?? DEFAULT_OVERHEAD_MS;
   // Depth-axis normalization for TTFT lookups (T3): oMLX imports set
@@ -498,8 +535,13 @@ export function buildTimeline(input: TimelineInput): Timeline {
     // can never silently inflate contextDepth/cachedPrefixTokens or add
     // tool latency for zero timing cost (T1).
     const isCacheBustMarker = event.role === "cache_bust";
-    const contextTokens = isCacheBustMarker ? 0 : event.tokens;
-    const withoutCachePrefillTokens = shouldPrefill ? contextBefore + event.tokens : 0;
+    // Defensive nonnegative clamp (A2), mirroring the cache_bust re-guard: a
+    // malformed event that slipped a negative token count past schema
+    // validation must never subtract context depth or produce a negative
+    // integration span.
+    const eventTokens = Math.max(0, event.tokens);
+    const contextTokens = isCacheBustMarker ? 0 : eventTokens;
+    const withoutCachePrefillTokens = shouldPrefill ? contextBefore + eventTokens : 0;
     const cacheBustPrefix = isCacheBustMarker ? undefined : event.cacheBust?.retainedPrefixTokens;
     const effectiveCachedPrefix = cacheEnabled ? Math.min(cacheBustPrefix ?? cachedPrefixTokens, contextBefore) : 0;
     const prefillTokens = !shouldPrefill ? 0 : Math.max(0, withoutCachePrefillTokens - effectiveCachedPrefix);
@@ -521,16 +563,28 @@ export function buildTimeline(input: TimelineInput): Timeline {
       prefillStddevMs = prefillRange.stddevMs;
       ppConfidence = prefillRange.confidence;
 
-      const measuredTtftMs = interpolateTtftMs(result.measurements, withoutCachePrefillTokens, ttftDepthOffset);
-      if (measuredTtftMs !== undefined) {
-        const fullPrefillRange = integrateTimeRangeMs(result.measurements, "pp", 0, withoutCachePrefillTokens);
+      const ttftAnchor = resolveTtftAnchor(result.measurements, withoutCachePrefillTokens, ttftDepthOffset);
+      if (ttftAnchor !== undefined) {
         // impliedOverheadMs is the fixed launch cost the model's integral doesn't
-        // capture; adding it back to the (possibly cache-shortened) integral
-        // reproduces measuredTtftMs exactly for a fully cold prefill, since
-        // prefillIntegralMs === fullPrefillRange.canonicalMs in that case.
-        const impliedOverheadMs = measuredTtftMs - fullPrefillRange.canonicalMs;
-        const rawPrefillMs = impliedOverheadMs + prefillRange.canonicalMs;
-        const rawOptimisticMs = impliedOverheadMs + prefillRange.optimisticMs;
+        // capture, measured at the anchor depth (the real prompt depth within the
+        // measured range, or the last measured depth beyond it). Adding it back to
+        // the (possibly cache-shortened) integral over the real prefill range
+        // reproduces measuredTtftMs exactly for a fully cold prefill within range;
+        // beyond the last measured depth the anchor freezes but prefillRange keeps
+        // integrating to the real depth, so prefill grows monotonically (A1).
+        const anchorPrefillRange = integrateTimeRangeMs(result.measurements, "pp", 0, ttftAnchor.anchorDepth);
+        const impliedOverheadMs = ttftAnchor.ttftMs - anchorPrefillRange.canonicalMs;
+        // A fully cold prefill (effectiveCachedPrefix === 0) within the measured
+        // range has prefillRange.canonicalMs === anchorPrefillRange.canonicalMs,
+        // so the raw implied overhead -- even when negative for a fast launch --
+        // reproduces measuredTtftMs exactly and must pass through unclamped. A
+        // cache-shortened prefill instead reuses this overhead on top of a
+        // sub-range integral, where a negative overhead would drag the result
+        // below the real integrated cost of the reprocessed tokens; clamp it to
+        // >= 0 there (A1).
+        const reusableOverheadMs = effectiveCachedPrefix > 0 ? Math.max(0, impliedOverheadMs) : impliedOverheadMs;
+        const rawPrefillMs = reusableOverheadMs + prefillRange.canonicalMs;
+        const rawOptimisticMs = reusableOverheadMs + prefillRange.optimisticMs;
         prefillMs = Number.isFinite(rawPrefillMs) ? Math.max(0, rawPrefillMs) : prefillRange.canonicalMs + overheadMs;
         prefillOptimisticMs = Number.isFinite(rawOptimisticMs)
           ? Math.max(0, rawOptimisticMs)
@@ -545,9 +599,9 @@ export function buildTimeline(input: TimelineInput): Timeline {
     let decodeOptimisticMs = 0;
     let decodeStddevMs = 0;
     let tgConfidence: RateConfidence = "measured";
-    const decodeIsActive = shouldDecode && event.tokens > 0;
+    const decodeIsActive = shouldDecode && eventTokens > 0;
     if (decodeIsActive) {
-      const decodeRange = integrateTimeRangeMs(result.measurements, "tg", contextBefore, contextBefore + event.tokens);
+      const decodeRange = integrateTimeRangeMs(result.measurements, "tg", contextBefore, contextBefore + eventTokens);
       decodeMs = decodeRange.canonicalMs;
       decodeOptimisticMs = decodeRange.optimisticMs;
       decodeStddevMs = decodeRange.stddevMs;
@@ -564,7 +618,7 @@ export function buildTimeline(input: TimelineInput): Timeline {
     const decodeCumulativeMsGetter = (): number[] => {
       if (cachedDecodeCumulativeMs === undefined) {
         cachedDecodeCumulativeMs = decodeIsActive
-          ? buildDecodeCumulativeMs(result.measurements, contextBefore, event.tokens)
+          ? buildDecodeCumulativeMs(result.measurements, contextBefore, eventTokens)
           : [0];
       }
       return cachedDecodeCumulativeMs;
@@ -579,8 +633,8 @@ export function buildTimeline(input: TimelineInput): Timeline {
             return 1000 / fallback.canonicalMs;
           })();
     const tgRate =
-      shouldDecode && event.tokens > 0
-        ? event.tokens / (decodeMs / 1000)
+      shouldDecode && eventTokens > 0
+        ? eventTokens / (decodeMs / 1000)
         : (() => {
             const fallback = msPerTokenRangeAt(result.measurements, "tg", contextBefore);
             tgConfidence = fallback.confidence;
@@ -596,7 +650,7 @@ export function buildTimeline(input: TimelineInput): Timeline {
       max: Math.max(decodeOptimisticMs, decodeMs) + decodeStddevMs
     };
 
-    const toolLatencyMs = isCacheBustMarker ? 0 : (event.toolLatencyMs ?? 0);
+    const toolLatencyMs = isCacheBustMarker ? 0 : Math.max(0, event.toolLatencyMs ?? 0);
     const startMs = cursorMs;
     const toolDoneMs = startMs + toolLatencyMs;
     const prefillDoneMs = toolDoneMs + prefillMs;
@@ -610,6 +664,9 @@ export function buildTimeline(input: TimelineInput): Timeline {
 
     return {
       ...event,
+      // Emit the defensively-clamped token count (A2) so downstream summaries
+      // and streaming never see a negative that slipped past schema validation.
+      tokens: eventTokens,
       index,
       phase: toolLatencyMs > 0 ? "tool_latency" : prefillMs > 0 ? "prefill" : decodeMs > 0 ? "decode" : "instant",
       startMs,
@@ -634,9 +691,14 @@ export function buildTimeline(input: TimelineInput): Timeline {
         return decodeCumulativeMsGetter();
       },
       toolLatencyMs,
+      // Only count a confidence tier toward the extrapolated flag when that
+      // phase actually ran (A2): a zero-token/instant event still resolves
+      // ppConfidence/tgConfidence via the depth fallback, but with no real
+      // prefill or decode work those tiers are irrelevant and must not flag
+      // the event as extrapolated.
       extrapolated:
-        (ppConfidence !== "measured" && ppConfidence !== "interpolated") ||
-        (tgConfidence !== "measured" && tgConfidence !== "interpolated")
+        (prefillTokens > 0 && ppConfidence !== "measured" && ppConfidence !== "interpolated") ||
+        (decodeIsActive && tgConfidence !== "measured" && tgConfidence !== "interpolated")
     };
   });
 

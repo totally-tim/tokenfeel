@@ -4,6 +4,11 @@ import type { BenchmarkResult, Catalog } from "../types";
 
 export interface StaticBenchmarkResult extends BenchmarkResult {
   detailChunk: string;
+  // Whether this result has any raw evidence at all (source.raw or
+  // evidence.rawUrl) -- populated at build time (see compactResult in
+  // scripts/build-static-catalog.ts) so callers can show provenance status
+  // without fetching the detail chunk that carries the actual raw content.
+  hasSourceRaw: boolean;
 }
 
 export interface StaticCatalog extends Omit<Catalog, "results"> {

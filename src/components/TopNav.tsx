@@ -30,6 +30,7 @@ export function TopNav({ page, onNavigate }: TopNavProps) {
             key={item.id}
             href={buildPageHash(item.id)}
             className={page === item.id ? "active" : ""}
+            aria-current={page === item.id ? "page" : undefined}
             onClick={(event) => {
               event.preventDefault();
               onNavigate(item.id);

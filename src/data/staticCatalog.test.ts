@@ -4,7 +4,8 @@ import type { StaticCatalog, StaticBenchmarkResult } from "./staticCatalog";
 
 const summaryResult = {
   id: "hardware__model__quant__runtime",
-  detailChunk: "chunk-000.json"
+  detailChunk: "chunk-000.json",
+  hasSourceRaw: false
 } as StaticBenchmarkResult;
 
 const catalog = {
@@ -40,6 +41,7 @@ function validResult(overrides: Record<string, unknown> = {}) {
     date: "2026-01-01",
     status: "community",
     detailChunk: "chunk-000.json",
+    hasSourceRaw: false,
     ...overrides
   };
 }

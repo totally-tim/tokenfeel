@@ -96,7 +96,7 @@ export function ContributePage() {
       <section className="snippet-panel">
         <h2>Minimum result file</h2>
         <pre>{`{
-  "id": "framework-strix-halo__qwen3-30b-a3b__q4_k_xl__llamacpp-vulkan",
+  "id": "framework-strix-halo-128gb__qwen3-30b-a3b__q4_k_xl__llamacpp-vulkan",
   "hardware": "framework-strix-halo-128gb",
   "model": "qwen3-30b-a3b",
   "quant": "q4_k_xl",
@@ -108,7 +108,8 @@ export function ContributePage() {
     "cache": "prefix"
   },
   "measurements": [
-    { "depth": 0, "pp": 741.6, "tg": 81.79 }
+    { "depth": 0, "pp": 741.6, "tg": 81.79 },
+    { "depth": 8192, "pp": 611.2, "tg": 76.4 }
   ],
   "source": { "kind": "llama-bench", "title": "Raw run", "url": "https://..." },
   "evidence": { "rawUrl": "https://...", "rawFormat": "llama-bench" },
@@ -117,6 +118,10 @@ export function ContributePage() {
   "date": "2026-07-05",
   "status": "community"
 }`}</pre>
+        <p>
+          The simulator ignores measurements below 8192 tokens of depth, so include at least one row at or above that
+          floor.
+        </p>
       </section>
     </main>
   );

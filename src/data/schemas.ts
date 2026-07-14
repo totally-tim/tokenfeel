@@ -5,6 +5,46 @@ const idSchema = z.string().min(2).regex(/^[a-z0-9][a-z0-9._-]*$/);
 const isoDateTimeSchema = z.string().datetime({ offset: true });
 const metadataSchema = z.record(z.union([z.string(), z.number(), z.boolean(), z.null()]));
 
+// Numeric fields parsed straight from imported/community JSON sit at a trust
+// boundary. A bare `.int()` is not enough of a guard: Number.isInteger(1e308)
+// is true (every double past 2^53 has no fractional part), so a pathological
+// value like 1e308 or a >2^53 depth would sail through `.int().nonnegative()`
+// and corrupt downstream timing math. Number.isSafeInteger rejects those
+// while every real measurement stays orders of magnitude under these caps.
+function safeNonnegativeInt(max: number) {
+  return z
+    .number()
+    .nonnegative()
+    .max(max)
+    .refine(Number.isSafeInteger, { message: "must be a safe integer (no huge/non-finite values)" });
+}
+
+// source.ttftMs carries sub-millisecond precision from real benchmark
+// timers (e.g. 989.6ms), so it can't be forced to an integer like the fields
+// above. `.finite()` rejects NaN/Infinity and `.max()` rejects a
+// pathological huge value (e.g. 1e308) while leaving legitimate fractional
+// durations untouched.
+function safeNonnegativeFinite(max: number) {
+  return z.number().finite().nonnegative().max(max);
+}
+
+// A YYYY-MM-DD string can match the shape while naming a date that does not
+// exist (Feb 30, month 00) -- Date normalizes those instead of rejecting
+// them, so a naive regex-only check lets them through. Parsing and
+// confirming the round trip back to the same string catches it.
+const calendarDateSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/)
+  .superRefine((value, ctx) => {
+    const parsed = new Date(`${value}T00:00:00.000Z`);
+    if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `"${value}" is not a real calendar date (expected YYYY-MM-DD)`
+      });
+    }
+  });
+
 export const hardwareSchema = z.object({
   id: idSchema,
   name: z.string().min(2),
@@ -30,13 +70,16 @@ export const measurementSourceSchema = z
     url: z.string().url(),
     upstreamId: z.string().min(1),
     createdAt: isoDateTimeSchema.optional(),
-    ttftMs: z.number().nonnegative().optional(),
+    // Real ttftMs data runs up to ~3,405,000ms (~57min); 10,000,000 leaves
+    // headroom above that without opening the door to pathological values.
+    ttftMs: safeNonnegativeFinite(10_000_000).optional(),
     peakMemoryGb: z.number().positive().optional()
   })
   .strict();
 
 export const measurementSchema = z.object({
-  depth: z.number().int().nonnegative(),
+  // Real depth data runs up to 990,000; 2,000,000 leaves headroom above that.
+  depth: safeNonnegativeInt(2_000_000),
   pp: z.number().positive(),
   tg: z.number().positive(),
   ppLabel: z.string().optional(),
@@ -127,7 +170,7 @@ export const resultSchema = z.object({
     notes: z.string().optional()
   }),
   submitter: z.string().min(2),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  date: calendarDateSchema,
   status: z.enum(["community", "verified", "flagged", "illustrative"]),
   overheadMs: z.number().nonnegative().optional(),
   notes: z.string().optional()
@@ -169,8 +212,13 @@ export const scenarioEventSchema = z
     id: idSchema,
     role: z.enum(["user", "assistant", "tool_call", "tool_result", "thinking", "cache_bust"]),
     text: z.string(),
-    tokens: z.number().int().nonnegative(),
-    toolLatencyMs: z.number().nonnegative().optional(),
+    // Real event token counts run up to 42,000; 100,000 leaves headroom.
+    tokens: safeNonnegativeInt(100_000),
+    // Real toolLatencyMs data runs up to 900ms, but AGENTS.md asks authors to
+    // model realistic long-running tool results (multi-minute CI/build/test
+    // runs), so the ceiling is 1 hour -- generous headroom while still rejecting
+    // the pathological non-finite/overflow values safeNonnegativeInt guards.
+    toolLatencyMs: safeNonnegativeInt(3_600_000).optional(),
     cacheBust: z
       .object({
         retainedPrefixTokens: z.number().int().nonnegative(),
@@ -235,7 +283,8 @@ export const scenarioSchema = z.object({
   id: idSchema,
   title: z.string().min(3),
   type: z.enum(["chatbot", "agent", "reasoning", "rag"]),
-  systemPromptTokens: z.number().int().nonnegative(),
+  // Real systemPromptTokens data runs up to 18,000; 50,000 leaves headroom.
+  systemPromptTokens: safeNonnegativeInt(50_000),
   description: z.string().optional(),
   events: z.array(scenarioEventSchema).min(1)
 });
@@ -399,8 +448,12 @@ export type ParsedCatalog = z.infer<typeof catalogSchema>;
 // The compacted per-result shape served from public/catalog/index.json (see
 // StaticBenchmarkResult in src/data/staticCatalog.ts): every resultSchema
 // field except `source.raw` (kept only in per-result detail chunks) plus the
-// `detailChunk` pointer used to fetch that detail.
-export const staticResultSchema = resultSchema.extend({ detailChunk: z.string().min(1) });
+// `detailChunk` pointer used to fetch that detail, and `hasSourceRaw` so
+// callers can tell whether raw evidence exists without fetching the chunk.
+export const staticResultSchema = resultSchema.extend({
+  detailChunk: z.string().min(1),
+  hasSourceRaw: z.boolean()
+});
 
 // Runtime validation gate for the fetched static catalog (public/catalog/
 // index.json), guarding against a stale/corrupted/hand-edited chunk slipping

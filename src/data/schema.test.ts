@@ -39,7 +39,7 @@ describe("seed data", () => {
 
     const pairKeys = new Set(results.map((result) => `${result.hardware}:${result.model}:${result.quant}`));
 
-    expect(pairKeys.has("dgx-spark:test-qwen3-coder-30b-a3b:q8_0")).toBe(true);
+    expect(pairKeys.has("dgx-spark:qwen3-coder-30b-a3b-instruct:q8_0")).toBe(true);
     expect(scenarios.some((scenario) => scenario.id === "agent-bugfix")).toBe(true);
   });
 });
@@ -220,6 +220,77 @@ describe("catalog schema hardening", () => {
     ).toThrow(/future date/);
   });
 
+  it("rejects a calendar-invalid date even though it matches the YYYY-MM-DD shape (C7)", () => {
+    expect(() =>
+      catalogSchema.parse(validCatalogWithResult({ date: "2026-02-30" }))
+    ).toThrow(/not a real calendar date/);
+    expect(() =>
+      catalogSchema.parse(validCatalogWithResult({ date: "2026-00-15" }))
+    ).toThrow(/not a real calendar date/);
+  });
+
+  it("accepts a real calendar date", () => {
+    expect(() => catalogSchema.parse(validCatalogWithResult({ date: "2026-02-28" }))).not.toThrow();
+  });
+
+  it("rejects a pathologically huge measurement depth instead of silently accepting it as a safe integer (A2)", () => {
+    expect(() =>
+      catalogSchema.parse(
+        validCatalogWithResult({
+          measurements: [{ depth: 1e308, pp: 100, tg: 50 }]
+        })
+      )
+    ).toThrow();
+  });
+
+  it("rejects a pathologically huge/non-finite ttftMs instead of accepting it (A2)", () => {
+    expect(() =>
+      catalogSchema.parse(
+        validCatalogWithResult({
+          measurements: [
+            {
+              depth: 0,
+              pp: 100,
+              tg: 50,
+              source: { url: "https://example.com/x", upstreamId: "x", ttftMs: 1e308 }
+            }
+          ]
+        })
+      )
+    ).toThrow();
+    expect(() =>
+      catalogSchema.parse(
+        validCatalogWithResult({
+          measurements: [
+            {
+              depth: 0,
+              pp: 100,
+              tg: 50,
+              source: { url: "https://example.com/x", upstreamId: "x", ttftMs: Infinity }
+            }
+          ]
+        })
+      )
+    ).toThrow();
+  });
+
+  it("still accepts real fractional ttftMs values (A2 must not force integer-ness on ttftMs)", () => {
+    expect(() =>
+      catalogSchema.parse(
+        validCatalogWithResult({
+          measurements: [
+            {
+              depth: 0,
+              pp: 100,
+              tg: 50,
+              source: { url: "https://example.com/x", upstreamId: "x", ttftMs: 989.6 }
+            }
+          ]
+        })
+      )
+    ).not.toThrow();
+  });
+
   it("rejects result ids that do not follow the four-part benchmark shape", () => {
     expect(() =>
       catalogSchema.parse(
@@ -233,6 +304,7 @@ describe("catalog schema hardening", () => {
   it("reports pp/tg increases beyond 10% as hard quality issues", () => {
     const parsed = catalogSchema.parse(
       validCatalogWithResult({
+        evidence: { rawUrl: "https://example.com/raw-evidence.txt" },
         measurements: [
           { depth: 0, pp: 100, tg: 50 },
           { depth: 4096, pp: 112, tg: 58 }
@@ -251,6 +323,7 @@ describe("catalog schema hardening", () => {
   it("reports pp/tg increases of 10% or less as soft quality warnings, not issues", () => {
     const parsed = catalogSchema.parse(
       validCatalogWithResult({
+        evidence: { rawUrl: "https://example.com/raw-evidence.txt" },
         measurements: [
           { depth: 0, pp: 100, tg: 50 },
           { depth: 4096, pp: 108, tg: 50 }
@@ -268,6 +341,7 @@ describe("catalog schema hardening", () => {
   it("does not flag pp/tg decreases or flat runs", () => {
     const parsed = catalogSchema.parse(
       validCatalogWithResult({
+        evidence: { rawUrl: "https://example.com/raw-evidence.txt" },
         measurements: [
           { depth: 0, pp: 100, tg: 50 },
           { depth: 4096, pp: 90, tg: 50 }
@@ -283,6 +357,7 @@ describe("catalog schema hardening", () => {
   it("exempts allowlisted result ids from hard issues, demoting them to explained warnings", () => {
     const parsed = catalogSchema.parse(
       validCatalogWithResult({
+        evidence: { rawUrl: "https://example.com/raw-evidence.txt" },
         measurements: [
           { depth: 0, pp: 100, tg: 50 },
           { depth: 4096, pp: 112, tg: 58 }
@@ -297,6 +372,32 @@ describe("catalog schema hardening", () => {
     expect(quality.warnings).toHaveLength(2);
     expect(quality.warnings[0]).toContain("known cold-start warm-up artifact");
   });
+
+  it("warns (never fails) when a community row has no raw evidence at all (C1)", () => {
+    const parsed = catalogSchema.parse(validCatalogWithResult());
+
+    const quality = analyzeCatalogQuality(parsed);
+    expect(quality.issues).toEqual([]);
+    expect(quality.warnings).toEqual([
+      'test-hardware__test-model__q4_k_m__llamacpp-cuda is status "community" with no raw evidence (source.raw, evidence.rawUrl, evidence.rawRows, evidence.upstreamUrls, or evidence.archiveUrl)'
+    ]);
+  });
+
+  it("does not warn when a community row has raw evidence in any of the recognized shapes", () => {
+    const parsed = catalogSchema.parse(
+      validCatalogWithResult({ evidence: { rawUrl: "https://example.com/raw-evidence.txt" } })
+    );
+
+    const quality = analyzeCatalogQuality(parsed);
+    expect(quality.warnings).toEqual([]);
+  });
+
+  it("never warns about missing raw evidence for a non-community row without raw evidence (flagged rows aren't held to it)", () => {
+    const parsed = catalogSchema.parse(validCatalogWithResult({ status: "flagged" }));
+
+    const quality = analyzeCatalogQuality(parsed);
+    expect(quality.warnings.some((warning) => warning.includes("no raw evidence"))).toBe(false);
+  });
 });
 
 function validStaticCatalog(resultOverrides: Record<string, unknown> = {}) {
@@ -308,7 +409,7 @@ function validStaticCatalog(resultOverrides: Record<string, unknown> = {}) {
     hardware: base.hardware,
     models: base.models,
     scenarios: base.scenarios,
-    results: base.results.map((result) => ({ ...result, detailChunk: "chunk-000.json" }))
+    results: base.results.map((result) => ({ ...result, detailChunk: "chunk-000.json", hasSourceRaw: false }))
   };
 }
 

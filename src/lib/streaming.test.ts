@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import type { TimelineEvent } from "../types";
-import { isGeneratedEvent, streamFrameForEvent } from "./streaming";
+import { isGeneratedEvent, liveDepthForEvent, streamFrameForEvent } from "./streaming";
 
 /**
  * Flat/uniform per-token cumulative timing — every token costs the same
@@ -261,5 +261,70 @@ describe("streaming output", () => {
     // Equal-length time windows reveal fewer tokens later in decode, since
     // later tokens individually cost more ms — pacing decelerates.
     expect(earlyWindowTokens).toBeGreaterThan(lateWindowTokens);
+  });
+});
+
+describe("liveDepthForEvent", () => {
+  test("holds a generated event flat at contextBefore through tool latency, then curves during decode", () => {
+    const event: TimelineEvent = {
+      ...baseEvent,
+      role: "assistant",
+      tokens: 100,
+      contextBefore: 1000,
+      contextAfter: 1100,
+      toolLatencyMs: 200,
+      startMs: 0,
+      toolDoneMs: 200,
+      // Generated events never prefill their own output, so prefillMs is 0 and
+      // prefillDoneMs === toolDoneMs -- decode begins the instant tool latency ends.
+      prefillMs: 0,
+      prefillDoneMs: 200,
+      decodeMs: 400,
+      endMs: 600,
+      decodeCumulativeMs: linearCumulativeMs(100, 400)
+    };
+
+    // Flat at contextBefore through the whole tool-latency wait and up to the
+    // decode boundary.
+    expect(liveDepthForEvent(event, 0)).toBe(1000);
+    expect(liveDepthForEvent(event, 100)).toBe(1000);
+    expect(liveDepthForEvent(event, 200)).toBe(1000);
+
+    // Mid-decode: halfway through the 400ms decode window is ~50 of 100 tokens.
+    const mid = liveDepthForEvent(event, 400);
+    expect(mid).toBeGreaterThan(1000);
+    expect(mid).toBeLessThan(1100);
+    expect(mid).toBeCloseTo(1050);
+
+    expect(liveDepthForEvent(event, 600)).toBe(1100);
+  });
+
+  test("holds a prefill event flat through tool latency, then interpolates across [toolDoneMs, endMs] (A4)", () => {
+    const event: TimelineEvent = {
+      ...baseEvent,
+      role: "tool_result",
+      tokens: 500,
+      contextBefore: 2000,
+      contextAfter: 2500,
+      toolLatencyMs: 300,
+      startMs: 0,
+      toolDoneMs: 300,
+      prefillMs: 200,
+      prefillDoneMs: 500,
+      decodeMs: 0,
+      endMs: 500
+    };
+
+    // Must NOT interpolate during the tool-latency wait: depth holds at
+    // contextBefore until prefill actually starts at toolDoneMs. The old bug
+    // smeared growth across the whole [startMs, endMs] span, returning 2150
+    // here instead of 2000.
+    expect(liveDepthForEvent(event, 0)).toBe(2000);
+    expect(liveDepthForEvent(event, 150)).toBe(2000);
+    expect(liveDepthForEvent(event, 300)).toBe(2000);
+
+    // Interpolates over the real prefill span [300, 500]: halfway at 400ms.
+    expect(liveDepthForEvent(event, 400)).toBeCloseTo(2250);
+    expect(liveDepthForEvent(event, 500)).toBe(2500);
   });
 });

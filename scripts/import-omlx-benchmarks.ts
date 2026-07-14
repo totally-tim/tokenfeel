@@ -63,6 +63,7 @@ interface Args {
 interface ExistingJson {
   id: string;
   notes?: string;
+  status?: string;
   evidence?: {
     parserVersion?: string;
   };
@@ -619,7 +620,17 @@ function generateCatalog(scrapeSummary?: Awaited<ReturnType<typeof scrapeRawRows
   // Deterministic even under --skip-fetch: reuse the retrieval timestamp
   // already recorded for this cached raw file instead of stamping "now",
   // so re-running against unchanged input produces byte-identical output.
-  const retrievedAt = scrapeSummary?.retrievedAt ?? readExistingRetrievedAt() ?? new Date(0).toISOString();
+  // With no fetch and no recorded timestamp there is no honest value to use,
+  // so fail loudly rather than stamp a fabricated epoch date onto every
+  // imported row's provenance.
+  const retrievedAt = scrapeSummary?.retrievedAt ?? readExistingRetrievedAt();
+  if (!retrievedAt) {
+    throw new Error(
+      `Cannot determine a retrieval timestamp: --skip-fetch was used and ${path.relative(root, rawMetaPath)} ` +
+        `is missing or has no retrievedAt. Re-run without --skip-fetch, or restore the meta file, so ` +
+        `evidence.retrievedAt reflects a real retrieval time instead of a fabricated one.`
+    );
+  }
   const results = [...groups.values()]
     .map((group) => resultFromGroup(group, retrievedAt))
     .sort((left, right) => left.id.localeCompare(right.id));
@@ -649,13 +660,36 @@ function generateCatalog(scrapeSummary?: Awaited<ReturnType<typeof scrapeRawRows
   removeGeneratedJsonFiles(
     resultDir,
     new Set(results.map((result) => result.id)),
-    (value) => value.evidence?.parserVersion === parserVersion
+    // Only sweep still-community rows this parser generated. A row that has
+    // been hand-reviewed to verified/flagged and has since dropped out of the
+    // import set (a partial --max-pages run, upstream churn) must survive the
+    // cleanup -- the per-row guard below only protects rows still in the
+    // current set, so relying on it alone would silently delete reviewed data.
+    (value) => value.evidence?.parserVersion === parserVersion && value.status === "community"
   );
 
   writeMetadataFiles(hardwareDir, hardwareItems, readJsonFiles(hardwareDir));
   writeMetadataFiles(modelDir, modelItems, readJsonFiles(modelDir));
 
+  // Mirror the shouldWrite guard used for hardware/model metadata above: an
+  // existing result row that has moved past "community" (hand-reviewed to
+  // "verified"/"flagged") or was produced by a different generator must
+  // never be silently clobbered by a re-import.
+  const existingResults = readJsonFiles<ExistingJson>(resultDir);
   for (const result of results) {
+    const current = existingResults.get(result.id);
+    if (current && current.value.status !== "community") {
+      console.warn(
+        `skipping ${result.id}: existing row has status "${current.value.status}", not overwriting hand-reviewed data`
+      );
+      continue;
+    }
+    if (current?.value.evidence?.parserVersion && current.value.evidence.parserVersion !== parserVersion) {
+      console.warn(
+        `skipping ${result.id}: existing row's evidence.parserVersion "${current.value.evidence.parserVersion}" does not match the current generator "${parserVersion}", not overwriting`
+      );
+      continue;
+    }
     writeJson(path.join(resultDir, `${result.id}.json`), result);
   }
 

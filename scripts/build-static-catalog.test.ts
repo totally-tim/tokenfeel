@@ -90,9 +90,31 @@ describe("buildStaticCatalogPayload", () => {
     expect(summary.source).not.toHaveProperty("raw");
     expect(summary.benchmark).not.toHaveProperty("metadata");
     expect(summary.detailChunk).toMatch(/^chunk-\d+\.json$/);
+    expect(summary.hasSourceRaw).toBe(true);
 
     expect(detail?.source.raw).toBe("large attached raw benchmark text");
     expect(detail?.evidence?.rawRows).toEqual(["very large raw row that belongs in detail chunks only"]);
     expect(detail?.benchmark?.metadata).toEqual({ host: "lab-a" });
+  });
+
+  test("sets hasSourceRaw false when a result has neither source.raw nor evidence.rawUrl", () => {
+    const catalog = fixtureCatalog();
+    catalog.results[0].source.raw = undefined;
+    catalog.results[0].evidence = undefined;
+
+    const payload = buildStaticCatalogPayload(catalog);
+    expect(payload.index.results[0].hasSourceRaw).toBe(false);
+  });
+
+  test("derives generatedAt from the latest result date/evidence.retrievedAt instead of wall-clock time", () => {
+    const catalog = fixtureCatalog();
+    catalog.results[0].date = "2026-03-15";
+    catalog.results[0].evidence = { retrievedAt: "2026-03-20T10:00:00Z" };
+
+    const payload = buildStaticCatalogPayload(catalog);
+    expect(payload.index.generatedAt).toBe("2026-03-20T10:00:00.000Z");
+
+    // Re-running against the same input produces byte-identical output.
+    expect(buildStaticCatalogPayload(catalog).index.generatedAt).toBe(payload.index.generatedAt);
   });
 });

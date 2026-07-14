@@ -288,6 +288,31 @@ describe("integrateTimeRangeMs", () => {
     expect(range.stddevMs).toBe(0);
   });
 
+  it("rejects non-finite bounds with a safe zero result and never tags it interpolated (A2)", () => {
+    for (const [from, to] of [
+      [Number.NaN, 5000],
+      [0, Number.NaN],
+      [0, Number.POSITIVE_INFINITY],
+      [Number.NEGATIVE_INFINITY, 5000]
+    ] as const) {
+      const range = integrateTimeRangeMs(result.measurements, "tg", from, to);
+      expect(range.canonicalMs).toBe(0);
+      expect(range.optimisticMs).toBe(0);
+      expect(range.stddevMs).toBe(0);
+      expect(range.confidence).not.toBe("interpolated");
+      expect(range.confidence).toBe("extrapolated-unsupported");
+    }
+  });
+
+  it("clamps a negative lower bound to zero rather than inflating the integral with phantom width (A2)", () => {
+    // [-5000, 5000] must integrate the same as [0, 5000]: negative depth is not
+    // physical and must not add a pre-zero rectangle.
+    const clamped = integrateTimeRangeMs(result.measurements, "tg", -5000, 5000);
+    const fromZero = integrateTimeRangeMs(result.measurements, "tg", 0, 5000);
+    expect(clamped.canonicalMs).toBeCloseTo(fromZero.canonicalMs);
+    expect(clamped.optimisticMs).toBeCloseTo(fromZero.optimisticMs);
+  });
+
   it("widens by the trapezoidal integral of the interpolated tgStddev when contributors supply it", () => {
     // tg: 20 tok/s +/- 2 @ depth 0 -> 50 ms/token, stddev = 1000*2/400 = 5ms.
     // tg: 10 tok/s +/- 1 @ depth 10000 -> 100 ms/token, stddev = 1000*1/100 = 10ms.
@@ -464,6 +489,11 @@ describe("buildTimeline", () => {
     });
 
     expect(summarizeTimeline(timeline).generatedTokens).toBe(20);
+  });
+
+  it("throws a clear error for a scenario with no events instead of building a timeline activeEventAt cannot consume (A2)", () => {
+    const emptyScenario: ScenarioScript = { ...scenario, events: [] };
+    expect(() => buildTimeline({ result, scenario: emptyScenario, cacheMode: "runtime" })).toThrow(/no events/);
   });
 
   it("moves to the next event at exact non-final boundaries", () => {
@@ -644,6 +674,109 @@ describe("buildTimeline rate integration (Phase 1)", () => {
     expect(timeline.events[0].ppRate).toBeCloseTo(1000);
     expect(timeline.events[0].tgRate).toBeCloseTo(20);
     expect(timeline.events[1].tgRate).toBeCloseTo(20);
+  });
+
+  it("grows a cold prefill beyond the last measured TTFT depth with prompt size instead of collapsing to the flat TTFT (A1)", () => {
+    const measuredResult: BenchmarkResult = {
+      ...result,
+      measurements: [
+        { depth: 0, pp: 1000, tg: 20, source: { url: "https://example.com/d0", upstreamId: "0", ttftMs: 0 } },
+        {
+          depth: 1000,
+          pp: 1000,
+          tg: 20,
+          source: { url: "https://example.com/d1000", upstreamId: "1000", ttftMs: 1000 }
+        }
+      ],
+      overheadMs: 100
+    };
+    const coldPrefill = (tokens: number): ScenarioScript => ({
+      ...scenario,
+      systemPromptTokens: 0,
+      events: [{ id: "u1", role: "user", text: "hello", tokens }]
+    });
+
+    // Both prompts run well beyond the last TTFT-bearing depth (1000). The old
+    // flat-clamp bug returned the depth-1000 TTFT (1000ms) for every prompt
+    // size; the model integral must instead grow with the prompt.
+    const small = buildTimeline({ result: measuredResult, scenario: coldPrefill(5000), cacheMode: "off" }).events[0];
+    const large = buildTimeline({ result: measuredResult, scenario: coldPrefill(20_000), cacheMode: "off" }).events[0];
+
+    expect(large.prefillMs).toBeGreaterThan(small.prefillMs);
+    expect(small.prefillMs).toBeGreaterThan(1000);
+    // pp is flat at 1ms/token and the depth-1000 TTFT (1000ms) exactly equals
+    // the integral to 1000, so the implied launch overhead is 0. Beyond the
+    // measured range prefill continues that anchor: overhead (0) + integral, so
+    // exactly `tokens` ms -- continuous with the 1000ms measured TTFT.
+    expect(small.prefillMs).toBeCloseTo(5000);
+    expect(large.prefillMs).toBeCloseTo(20_000);
+  });
+
+  it("keeps a cold prefill continuous and monotonic across the last measured TTFT depth when the measured TTFT exceeds the integral (A1 review regression)", () => {
+    // Here the depth-1000 TTFT is 3000ms while the pp integral to 1000 is only
+    // 1000ms -- a real +2000ms launch overhead the integral doesn't capture.
+    // The review found that returning the bare integral past the boundary made a
+    // one-token-larger prompt predict a FASTER prefill (a downward cliff below
+    // the measured TTFT). The anchor must carry that overhead forward instead.
+    const withOverhead: BenchmarkResult = {
+      ...result,
+      measurements: [
+        { depth: 0, pp: 1000, tg: 20, source: { url: "https://example.com/d0", upstreamId: "0", ttftMs: 0 } },
+        {
+          depth: 1000,
+          pp: 1000,
+          tg: 20,
+          source: { url: "https://example.com/d1000", upstreamId: "1000", ttftMs: 3000 }
+        }
+      ],
+      overheadMs: 100
+    };
+    const coldPrefill = (tokens: number): ScenarioScript => ({
+      ...scenario,
+      systemPromptTokens: 0,
+      events: [{ id: "u1", role: "user", text: "hello", tokens }]
+    });
+    const at = buildTimeline({ result: withOverhead, scenario: coldPrefill(1000), cacheMode: "off" }).events[0];
+    const justPast = buildTimeline({ result: withOverhead, scenario: coldPrefill(1001), cacheMode: "off" }).events[0];
+    const wayPast = buildTimeline({ result: withOverhead, scenario: coldPrefill(5000), cacheMode: "off" }).events[0];
+
+    expect(at.prefillMs).toBeCloseTo(3000); // exact measured TTFT at the boundary
+    expect(justPast.prefillMs).toBeGreaterThanOrEqual(at.prefillMs); // no cliff
+    expect(justPast.prefillMs).toBeCloseTo(3001); // overhead 2000 + integral 1001
+    expect(wayPast.prefillMs).toBeCloseTo(7000); // overhead 2000 + integral 5000
+    expect(wayPast.prefillMs).toBeGreaterThan(justPast.prefillMs); // monotonic
+  });
+
+  it("never lets a cache-shortened prefill collapse below its real integrated cost when the implied TTFT overhead is negative (A1)", () => {
+    const measuredResult: BenchmarkResult = {
+      ...result,
+      measurements: [
+        { depth: 0, pp: 1000, tg: 20, source: { url: "https://example.com/d0", upstreamId: "0", ttftMs: 0 } },
+        { depth: 500, pp: 1000, tg: 20, source: { url: "https://example.com/d500", upstreamId: "500", ttftMs: 490 } }
+      ],
+      overheadMs: 100
+    };
+    // withoutCachePrefillTokens lands exactly on the last TTFT depth (500), so
+    // measuredTtftMs is defined (490ms) and the implied overhead is negative
+    // (490 - 500ms integral = -10ms). The cacheBust retains 200 prefix tokens,
+    // so only the [200, 500] sub-range (300ms at flat 1ms/token) is reprocessed.
+    const cacheShortenedScenario: ScenarioScript = {
+      ...scenario,
+      systemPromptTokens: 200,
+      events: [
+        { id: "u1", role: "user", text: "reprocess a sub-range", tokens: 300, cacheBust: { retainedPrefixTokens: 200 } }
+      ]
+    };
+
+    const event = buildTimeline({ result: measuredResult, scenario: cacheShortenedScenario, cacheMode: "on" })
+      .events[0];
+
+    expect(event.cachedPrefixTokens).toBe(200);
+    expect(event.prefillTokens).toBe(300);
+    // The negative implied overhead must be clamped to >= 0 for the shortened
+    // prefill, so prefillMs never dips below the real 300ms integrated cost.
+    expect(event.prefillMs).toBeGreaterThanOrEqual(300);
+    expect(event.prefillMs).toBeCloseTo(300);
   });
 
   it("never produces an infinite ppRate when prefilling well before the first measured depth over a steep trend", () => {

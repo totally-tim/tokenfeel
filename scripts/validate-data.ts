@@ -9,7 +9,7 @@ import {
   defaultLeftResultId,
   defaultRightResultId
 } from "../src/lib/catalog";
-import { pruneCatalogForSimulation } from "../src/lib/catalogQuality";
+import { hasAnyRawEvidence, pruneCatalogForSimulation } from "../src/lib/catalogQuality";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const suspiciousIncreaseRatio = 0.1;
@@ -30,21 +30,29 @@ export function readQualityAllowlist(): QualityAllowlistEntry[] {
   return JSON.parse(fs.readFileSync(qualityAllowlistPath, "utf8")) as QualityAllowlistEntry[];
 }
 
+function parseJsonFile(filePath: string): unknown {
+  const text = fs.readFileSync(filePath, "utf8");
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    throw new Error(`Failed to parse JSON in ${filePath}: ${error instanceof Error ? error.message : String(error)}`, {
+      cause: error
+    });
+  }
+}
+
 function readJsonFiles<T>(dir: string): T[] {
   return fs
     .readdirSync(dir, { withFileTypes: true })
     .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
-    .map((entry) => JSON.parse(fs.readFileSync(path.join(dir, entry.name), "utf8")) as T);
+    .map((entry) => parseJsonFile(path.join(dir, entry.name)) as T);
 }
 
 function readScenarioFiles() {
   return fs
     .readdirSync(path.join(root, "scenarios"), { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
-    .map((entry) => {
-      const scriptPath = path.join(root, "scenarios", entry.name, "script.json");
-      return JSON.parse(fs.readFileSync(scriptPath, "utf8"));
-    });
+    .map((entry) => parseJsonFile(path.join(root, "scenarios", entry.name, "script.json")));
 }
 
 function readResearchItems() {
@@ -69,6 +77,17 @@ export function analyzeCatalogQuality(
   const allowlistReasonById = new Map(allowlist.map((entry) => [entry.id, entry.reason]));
 
   for (const result of catalog.results) {
+    // Raw-evidence provenance is hard-enforced only for "verified" rows (see
+    // checkCatalogCrossReferences in schemas.ts). A "community" row with no
+    // raw evidence at all is not disqualifying -- lots of legitimate
+    // community submissions never attach it -- but it's worth flagging so a
+    // reviewer can go find/attach it, hence a warning rather than an issue.
+    if (result.status === "community" && !hasAnyRawEvidence(result)) {
+      warnings.push(
+        `${result.id} is status "community" with no raw evidence (source.raw, evidence.rawUrl, evidence.rawRows, evidence.upstreamUrls, or evidence.archiveUrl)`
+      );
+    }
+
     for (let index = 1; index < result.measurements.length; index += 1) {
       const previous = result.measurements[index - 1];
       const current = result.measurements[index];

@@ -17,7 +17,7 @@ Rules:
 
 Before running checks:
 - Read CONTRIBUTING.md, src/data/schemas.ts, and one similar data/results/*.json file.
-- If dependencies are not installed, run npm config set min-release-age=2d before npm ci.
+- If dependencies are not installed, run npm config set min-release-age=2 before npm ci (npm's unit is whole days; "2d" is dropped as invalid and the gate runs unset). Verify with npm config get before.
 
 Benchmark capture:
 1. Run the local benchmark with llama-bench, llama-benchy, oMLX, vLLM, or another tool that reports prompt-processing and generation rates.

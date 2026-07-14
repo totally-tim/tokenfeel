@@ -10,7 +10,7 @@ import { maxMeasuredDepth } from "./catalogQuality";
 import type { BenchmarkResult, Catalog, TimelineSummary } from "../types";
 
 export type RaceSetupField = ConfigSelectionField;
-export type RaceSetupMode = "model" | "hardware" | "runtime";
+export type RaceSetupMode = "model" | "hardware" | "runtime" | "quant";
 
 export interface RaceSuggestion {
   result: BenchmarkResult;
@@ -21,7 +21,8 @@ export interface RaceSuggestion {
 export const raceSetupOrders: Record<RaceSetupMode, RaceSetupField[]> = {
   model: ["modelId", "hardwareId", "runtimeKey", "quant"],
   hardware: ["hardwareId", "modelId", "runtimeKey", "quant"],
-  runtime: ["runtimeKey", "modelId", "hardwareId", "quant"]
+  runtime: ["runtimeKey", "modelId", "hardwareId", "quant"],
+  quant: ["quant", "modelId", "hardwareId", "runtimeKey"]
 };
 
 export function selectionFromResult(result: BenchmarkResult): Required<ConfigSelection> {
@@ -239,6 +240,18 @@ export function raceVerdict(leftSummary: TimelineSummary, rightSummary: Timeline
   return { winner: leftSummary.wallTimeMs <= rightSummary.wallTimeMs ? "left" : "right", deltaMs };
 }
 
+/**
+ * True when the two lanes' data confidence differs enough to matter for the
+ * race verdict: one lane has at least one scripted event whose rate is
+ * extrapolated beyond its measured range, the other doesn't. The full
+ * per-tier breakdown already lives in each lane's default-closed
+ * disclosures -- this is just the always-visible signal that it's worth
+ * opening one.
+ */
+export function raceConfidenceMismatch(leftSummary: TimelineSummary, rightSummary: TimelineSummary): boolean {
+  return leftSummary.extrapolatedEvents > 0 !== rightSummary.extrapolatedEvents > 0;
+}
+
 export function comparisonSummary(
   catalog: Catalog,
   left: BenchmarkResult,
@@ -271,15 +284,22 @@ export function comparisonSummary(
   }
 
   if (sameModel && left.hardware !== right.hardware) {
+    const sameRuntimeFamily =
+      left.runtime.name === right.runtime.name && left.runtime.backend === right.runtime.backend;
+    // Quant differing on top of hardware confounds the comparison -- two
+    // variables moved at once, so it's no longer a clean hardware race no
+    // matter what the runtime does. Downgrade whenever quant differs, the
+    // same way the same-hardware branch above downgrades on quant alone; a
+    // pure runtime difference (quant held) stays "strong".
     return {
       label: "Same model comparison",
       detail:
-        sameQuant && left.runtime.name === right.runtime.name && left.runtime.backend === right.runtime.backend
+        sameQuant && sameRuntimeFamily
           ? "Same model and quant on the same runtime family. Hardware is the main variable."
           : sameQuant
             ? "Same model and quant; runtime differences are still visible."
             : "Same model, different quant or runtime.",
-      level: "strong"
+      level: sameQuant ? "strong" : "related"
     };
   }
 

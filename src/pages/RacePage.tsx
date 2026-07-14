@@ -1,4 +1,4 @@
-import { Copy, GitCompare, Link, Play, Square } from "lucide-react";
+import { AlertTriangle, Copy, GitCompare, Link, Play, Square } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { CacheModeSelector, Disclosure, RaceLane, SearchSelect, SpeedSelector } from "../components/SimulatorPieces";
 import { RaceGapBreakdown } from "../components/Visualizations";
@@ -7,14 +7,13 @@ import {
   createCatalogLookups,
   defaultLeftResultId,
   defaultRightResultId,
-  getResult,
-  getScenario,
   scenarioOptions
 } from "../lib/catalog";
 import { formatClock, formatTokens } from "../lib/format";
 import {
   comparisonSummary,
   constraintsForFieldChange,
+  raceConfidenceMismatch,
   raceFieldOptions,
   raceSetupOrders,
   raceVerdict,
@@ -27,7 +26,7 @@ import {
 import { usePlayback } from "../hooks/usePlayback";
 import { buildRaceShareUrl, parseRaceShareHash } from "../lib/raceShare";
 import { raceNeedsSetupReset } from "../lib/raceSession";
-import type { PageId } from "../lib/routing";
+import { pageFromHashValue, type PageId } from "../lib/routing";
 import type { BenchmarkResult, CacheMode, Catalog } from "../types";
 
 interface RacePageProps {
@@ -54,12 +53,30 @@ const fieldLabels: Record<RaceSetupField, string> = {
 const modeLabels: Record<RaceSetupMode, string> = {
   model: "Model",
   hardware: "Machine",
-  runtime: "Runtime"
+  runtime: "Runtime",
+  quant: "Quant"
 };
 
 function initialRaceState(catalog: Catalog) {
   const parsed = parseRaceShareHash(window.location.hash);
-  return resolveRaceState(catalog, parsed);
+  try {
+    return resolveRaceState(catalog, parsed);
+  } catch (error) {
+    // A malformed hash or a stale pinned default (resolveRaceState ->
+    // defaultLeftResultId/defaultRightResultId can throw if
+    // DEFAULT_LEFT_CONFIG/DEFAULT_RIGHT_CONFIG no longer match the catalog)
+    // must not crash initial render into the ErrorBoundary. Fall back to the
+    // first two catalog results directly -- unlike resolveRaceState({}),
+    // this doesn't depend on the pinned defaults still being valid.
+    console.error("Failed to resolve initial race state from hash", error);
+    return {
+      leftId: catalog.results[0]?.id ?? "",
+      rightId: catalog.results[1]?.id ?? catalog.results[0]?.id ?? "",
+      scenarioId: catalog.scenarios[0]?.id ?? DEFAULT_SCENARIO_ID,
+      speed: 1,
+      cacheMode: "runtime" as CacheMode
+    };
+  }
 }
 
 function resolveRaceState(catalog: Catalog, parsed: ReturnType<typeof parseRaceShareHash>) {
@@ -178,9 +195,15 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
   const [cacheMode, setCacheMode] = useState<CacheMode>(initialState.cacheMode);
   const [copyText, setCopyText] = useState("Copy link");
 
-  const scenario = getScenario(catalog, scenarioId);
-  const left = getResult(catalog, leftId);
-  const right = getResult(catalog, rightId);
+  // leftId/rightId/scenarioId are always ids that exist in `catalog`:
+  // resolveRaceState validates share-link/hash ids on mount and on every
+  // hash change, and every setter below resolves ids from catalog.results.
+  // Using the memoized `lookups` instead of getResult/getScenario avoids
+  // rebuilding four full-catalog Maps every render -- usePlayback drives
+  // re-renders at ~60fps while a race is running.
+  const scenario = lookups.scenarioById(scenarioId)!;
+  const left = lookups.resultById(leftId)!;
+  const right = lookups.resultById(rightId)!;
   const leftPlayback = usePlayback({ result: left, scenario, cacheMode, speed, autoStart: false });
   const rightPlayback = usePlayback({ result: right, scenario, cacheMode, speed, autoStart: false });
   const raceStarted = leftPlayback.hasStarted || rightPlayback.hasStarted;
@@ -194,6 +217,7 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
     verdict.winner === "left" ||
     (verdict.winner === "too-close" && leftPlayback.summary.wallTimeMs <= rightPlayback.summary.wallTimeMs);
   const comparison = useMemo(() => comparisonSummary(catalog, left, right), [catalog, left, right]);
+  const confidenceMismatch = raceConfidenceMismatch(leftPlayback.summary, rightPlayback.summary);
   const suggestions = useMemo(() => suggestComparableResults(catalog, left, 3), [catalog, left]);
   const scenarioTokens = totalScenarioTokens(scenario);
   const shareUrl = useMemo(() => {
@@ -213,7 +237,27 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
     ? `${formatClock(leftPlayback.summary.wallTimeMs)} vs ${formatClock(rightPlayback.summary.wallTimeMs)} final`
     : `${formatClock(leftPlayback.summary.wallTimeMs)} vs ${formatClock(rightPlayback.summary.wallTimeMs)} projected`;
 
+  const resetRaceForSetupChange = () => {
+    if (!raceNeedsSetupReset({ leftStarted: leftPlayback.hasStarted, rightStarted: rightPlayback.hasStarted })) return;
+    leftPlayback.reset();
+    rightPlayback.reset();
+  };
+
   useEffect(() => {
+    // RacePage syncs its own selections into window.location.hash via
+    // history.replaceState below, which does not fire "hashchange" -- so
+    // App's tracked `hash` only actually changes here on *external*
+    // navigation (share link, back/forward, a bare `navigate("race")`
+    // click). A param-less race hash from that last case is not a real
+    // reset request: it just means App wrote "#race" over whatever query
+    // RacePage's replaceState had already parked in the URL. Treating it as
+    // "reset to catalog defaults" would silently discard the user's setup,
+    // so ignore it and keep the current in-memory state instead. (Restoring the
+    // stripped URL is handled by the direct hashchange listener below, which --
+    // unlike this App-`hash`-prop-driven effect -- still fires when App's own
+    // tracked hash was already "#race" and so never re-renders us.)
+    if (!hash.includes("?")) return;
+
     const parsed = parseRaceShareHash(hash);
     let next: ReturnType<typeof resolveRaceState>;
     try {
@@ -222,6 +266,11 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
       console.error("Failed to resolve race state from hash change", error);
       return;
     }
+    // Route external navigation through the same reset path manual setup
+    // edits use, so it can't leave one lane running as a ghost while the
+    // other lane's playback resets under it because only that lane's id
+    // actually changed.
+    resetRaceForSetupChange();
     setLeftId(next.leftId);
     setRightId(next.rightId);
     setScenarioId(next.scenarioId);
@@ -236,18 +285,36 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
     }
   }, [leftId, rightId, scenarioId, speed, cacheMode]);
 
+  // A bare "#race" navigation (e.g. clicking the Race nav-link while already on
+  // the page) strips the query RacePage parked in the URL via replaceState.
+  // App's hash state was already "#race" (replaceState never fires hashchange),
+  // so App never re-renders and the effect above can't observe it. Listen to
+  // the real event directly and re-assert the URL from live state, so a reload
+  // or bookmark keeps the user's setup instead of falling back to defaults.
+  useEffect(() => {
+    const restoreStrippedUrl = () => {
+      const currentHash = window.location.hash;
+      if (currentHash.includes("?")) return; // real share/deep-link nav -> handled above
+      // Only a bare hash that still routes to Race is a stripped-Race-URL to
+      // restore. A bare hash for another page (e.g. "#configs", or Back to
+      // landing) is a genuine navigation away -- restoring here would clobber
+      // the route and desync the URL from the page App is about to render.
+      if (pageFromHashValue(currentHash) !== "race") return;
+      const restored = buildRaceShareUrl({ leftId, rightId, scenarioId, speed, cacheMode });
+      if (window.location.href !== restored) {
+        window.history.replaceState(null, "", restored);
+      }
+    };
+    window.addEventListener("hashchange", restoreStrippedUrl);
+    return () => window.removeEventListener("hashchange", restoreStrippedUrl);
+  }, [leftId, rightId, scenarioId, speed, cacheMode]);
+
   const startRace = () => {
     leftPlayback.restart();
     rightPlayback.restart();
   };
 
   const stopRace = () => {
-    leftPlayback.reset();
-    rightPlayback.reset();
-  };
-
-  const resetRaceForSetupChange = () => {
-    if (!raceNeedsSetupReset({ leftStarted: leftPlayback.hasStarted, rightStarted: rightPlayback.hasStarted })) return;
     leftPlayback.reset();
     rightPlayback.reset();
   };
@@ -283,6 +350,7 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
       setTimeout(() => setCopyText("Copy link"), 1200);
     } catch {
       setCopyText("Copy failed");
+      setTimeout(() => setCopyText("Copy link"), 1200);
     }
   };
 
@@ -416,6 +484,14 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
                   ? "projected finish gap"
                   : "projected gap"}
             </p>
+            {confidenceMismatch && (
+              <span
+                className="non-measured-chip"
+                title="One lane's rates extrapolate past its measured range and the other's don't -- see the gap breakdown below."
+              >
+                <AlertTriangle size={11} /> mixed confidence
+              </span>
+            )}
           </div>
           <div className="spine-progress">
             <div>

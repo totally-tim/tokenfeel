@@ -94,6 +94,62 @@ describe("catalog quality", () => {
     ).toContain("ttft-pp-mismatch");
   });
 
+  test("flags model ids carrying a test-/tbd-/demo- seed prefix, not just the exact-match placeholder set (C4)", () => {
+    expect(catalogQualityIssues(result({ model: "test-qwen3-coder-30b-a3b" }))).toContain("placeholder-model-id");
+    expect(catalogQualityIssues(result({ model: "tbd-some-model" }))).toContain("placeholder-model-id");
+    expect(catalogQualityIssues(result({ model: "demo-model" }))).toContain("placeholder-model-id");
+    expect(catalogQualityIssues(result({ model: "qwen3.5-9b" }))).not.toContain("placeholder-model-id");
+  });
+
+  test("still checks TTFT against ppTokens-derived duration at depth 0 instead of skipping entirely (C5)", () => {
+    const outlierAtZeroDepth = catalogQualityIssues(
+      result({
+        benchmark: { ppTokens: 2048 },
+        measurements: [
+          {
+            depth: 0,
+            pp: 2000,
+            tg: 50,
+            // Expected TTFT for 2048 tokens at pp=2000 is ~1024ms; 100,000ms
+            // is a wild outlier that must still be caught at depth 0.
+            source: { url: "https://example.com/zero-depth", upstreamId: "zero-depth", ttftMs: 100_000 }
+          }
+        ]
+      })
+    );
+    expect(outlierAtZeroDepth).toContain("ttft-pp-mismatch");
+
+    const plausibleAtZeroDepth = catalogQualityIssues(
+      result({
+        benchmark: { ppTokens: 2048 },
+        measurements: [
+          {
+            depth: 0,
+            pp: 2000,
+            tg: 50,
+            source: { url: "https://example.com/zero-depth-ok", upstreamId: "zero-depth-ok", ttftMs: 1024 }
+          }
+        ]
+      })
+    );
+    expect(plausibleAtZeroDepth).not.toContain("ttft-pp-mismatch");
+
+    // No depth and no ppTokens signal at all -- nothing to check against.
+    const noSignal = catalogQualityIssues(
+      result({
+        measurements: [
+          {
+            depth: 0,
+            pp: 2000,
+            tg: 50,
+            source: { url: "https://example.com/no-signal", upstreamId: "no-signal", ttftMs: 100_000 }
+          }
+        ]
+      })
+    );
+    expect(noSignal).not.toContain("ttft-pp-mismatch");
+  });
+
   test("accepts llama-benchy TTFT that includes the current prompt chunk", () => {
     const issues = catalogQualityIssues(
       result({
