@@ -47,7 +47,7 @@ describe("configuration matrix", () => {
     expect(options.map((option) => option.value)).toEqual(
       expect.arrayContaining([
         "qwen3-coder-next",
-        "test-qwen3-coder-30b-a3b",
+        "qwen3-coder-30b-a3b-instruct",
         "gpt-oss-120b",
         "gpt-oss-20b",
         "glm-4.7-flash"

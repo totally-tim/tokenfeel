@@ -63,6 +63,7 @@ interface Args {
 interface ExistingJson {
   id: string;
   notes?: string;
+  status?: string;
   evidence?: {
     parserVersion?: string;
   };
@@ -655,7 +656,25 @@ function generateCatalog(scrapeSummary?: Awaited<ReturnType<typeof scrapeRawRows
   writeMetadataFiles(hardwareDir, hardwareItems, readJsonFiles(hardwareDir));
   writeMetadataFiles(modelDir, modelItems, readJsonFiles(modelDir));
 
+  // Mirror the shouldWrite guard used for hardware/model metadata above: an
+  // existing result row that has moved past "community" (hand-reviewed to
+  // "verified"/"flagged") or was produced by a different generator must
+  // never be silently clobbered by a re-import.
+  const existingResults = readJsonFiles<ExistingJson>(resultDir);
   for (const result of results) {
+    const current = existingResults.get(result.id);
+    if (current && current.value.status !== "community") {
+      console.warn(
+        `skipping ${result.id}: existing row has status "${current.value.status}", not overwriting hand-reviewed data`
+      );
+      continue;
+    }
+    if (current?.value.evidence?.parserVersion && current.value.evidence.parserVersion !== parserVersion) {
+      console.warn(
+        `skipping ${result.id}: existing row's evidence.parserVersion "${current.value.evidence.parserVersion}" does not match the current generator "${parserVersion}", not overwriting`
+      );
+      continue;
+    }
     writeJson(path.join(resultDir, `${result.id}.json`), result);
   }
 

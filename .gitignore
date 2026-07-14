@@ -1,6 +1,8 @@
 node_modules/
 dist/
 public/catalog/
+public/catalog.tmp-*/
+public/catalog.old-*/
 tsconfig.tsbuildinfo
 .playwright-cli/
 output/

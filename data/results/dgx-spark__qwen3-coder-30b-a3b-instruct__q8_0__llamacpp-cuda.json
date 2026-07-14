@@ -1,7 +1,7 @@
 {
-  "id": "dgx-spark__test-qwen3-coder-30b-a3b__q8_0__llamacpp-cuda",
+  "id": "dgx-spark__qwen3-coder-30b-a3b-instruct__q8_0__llamacpp-cuda",
   "hardware": "dgx-spark",
-  "model": "test-qwen3-coder-30b-a3b",
+  "model": "qwen3-coder-30b-a3b-instruct",
   "quant": "q8_0",
   "runtime": {
     "name": "llama.cpp",

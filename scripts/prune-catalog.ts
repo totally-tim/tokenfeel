@@ -76,8 +76,8 @@ async function deleteUnusedFiles(dir: string, ids: Set<string>, dryRun: boolean)
     const parsed = JSON.parse(await fs.readFile(filePath, "utf8")) as { id?: string };
     if (!parsed.id || !ids.has(parsed.id)) continue;
 
-    if (dryRun) continue;
     deletedFiles.push(filePath);
+    if (dryRun) continue;
     await fs.rm(filePath);
   }
 

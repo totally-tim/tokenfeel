@@ -3,11 +3,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { resultSchema } from "../src/data/schemas";
 import type { BenchmarkMeasurement, BenchmarkResult } from "../src/types";
 
 interface ParsedArgs {
   inputPath?: string;
   outputPath?: string;
+  force: boolean;
   flags: Record<string, string>;
 }
 
@@ -45,18 +47,21 @@ function usage(): string {
     --source-url https://example.com/raw-log \\
     --source-title "Raw llama-bench run" \\
     --submitter github-handle \\
-    [--flags "..."] [--cache prefix|none] [--output data/results/file.json]
+    [--flags "..."] [--cache prefix|none] [--output data/results/file.json] [--force]
 
-The converter parses pp*/tg* rows into sorted depth measurements and preserves raw rows under evidence.rawRows.`;
+The converter parses pp*/tg* rows into sorted depth measurements and preserves raw rows under evidence.rawRows.
+--force is required to overwrite an existing --output file.`;
 }
 
 function parseArgs(argv: string[]): ParsedArgs {
-  const args: ParsedArgs = { flags: {} };
+  const args: ParsedArgs = { flags: {}, force: false };
   for (let index = 0; index < argv.length; index += 1) {
     const item = argv[index];
     if (item === "--output") {
       args.outputPath = argv[index + 1];
       index += 1;
+    } else if (item === "--force") {
+      args.force = true;
     } else if (item.startsWith("--")) {
       args.flags[item.slice(2)] = argv[index + 1] ?? "";
       index += 1;
@@ -299,9 +304,21 @@ function main() {
   const text = fs.readFileSync(args.inputPath, "utf8");
   const parsed = parseLlamaBenchMeasurements(text);
   const result = buildResult(args, parsed);
+
+  const validated = resultSchema.safeParse(result);
+  if (!validated.success) {
+    const issues = validated.error.issues
+      .map((issue) => `${issue.path.join(".") || "(root)"}: ${issue.message}`)
+      .join("; ");
+    throw new Error(`Built result failed schema validation: ${issues}`);
+  }
+
   const output = `${JSON.stringify(result, null, 2)}\n`;
 
   if (args.outputPath) {
+    if (!args.force && fs.existsSync(args.outputPath)) {
+      throw new Error(`Refusing to overwrite existing file ${args.outputPath} without --force`);
+    }
     fs.mkdirSync(path.dirname(args.outputPath), { recursive: true });
     fs.writeFileSync(args.outputPath, output);
     console.log(`wrote ${args.outputPath}`);
