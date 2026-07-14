@@ -9,42 +9,48 @@ interface LandingPageProps {
   onNavigate: (page: PageId) => void;
 }
 
-const features = [
+const features: Array<{ icon: typeof Gauge; title: string; text: string; link: string; page: PageId }> = [
   {
     icon: Gauge,
     title: "Prefill-aware timing",
     text: "Throughput is interpolated across measured context depths, so long prompts and large tool results slow down like the submitted hardware.",
-    link: "The timing model ↗"
+    link: "The timing model ↗",
+    page: "method"
   },
   {
     icon: Layers3,
     title: "Prompt caching, modeled",
     text: "Prefix hits and cache-bust events show cached vs re-prefilled tokens in two colors.",
-    link: "Why caching matters ↗"
+    link: "Why caching matters ↗",
+    page: "method"
   },
   {
     icon: Swords,
     title: "Race mode",
     text: "Two configs, one script, started together. Prefill, thinking, tool wait, and decode splits make the gap visible.",
-    link: "Open a race ↗"
+    link: "Open a race ↗",
+    page: "race"
   },
   {
     icon: Terminal,
     title: "Real scenarios",
     text: "Chatbot, agentic coding loop, reasoning. Display text is fiction; token counts are the ground truth.",
-    link: "Browse scenarios ↗"
+    link: "Browse scenarios ↗",
+    page: "playground"
   },
   {
     icon: GitBranch,
     title: "The repo is the database",
     text: "Hardware, results and scripts live as JSON. Submit a benchmark via pull request. Zero backend, zero ops.",
-    link: "Contribute data ↗"
+    link: "Contribute data ↗",
+    page: "contribute"
   },
   {
     icon: Link,
     title: "Shareable URLs",
     text: "The full race config encodes into the URL. Every 'which box should I buy' thread ends with a link.",
-    link: "Copy a link ↗"
+    link: "Copy a link ↗",
+    page: "race"
   }
 ];
 
@@ -76,12 +82,12 @@ export function LandingPage({ catalog, onNavigate }: LandingPageProps) {
           <span>SEEDED FROM</span>
           <strong>Spark Arena</strong>
           <strong>Strix Halo toolboxes</strong>
-          <strong>BridgeBench</strong>
-          <strong>mlx-lm</strong>
+          <strong>oMLX</strong>
         </div>
       </section>
 
       <section className="pipeline-zone" aria-label="Simulation pipeline">
+        <h2 className="sr-only">Simulation pipeline</h2>
         <div className="pipeline-frame">
           <div className="pipeline-head">
             <span>FIG 1 — SIMULATION PIPELINE · PURE MATH, ZERO INFERENCE</span>
@@ -163,7 +169,7 @@ export function LandingPage({ catalog, onNavigate }: LandingPageProps) {
               </span>
               <h3>{feature.title}</h3>
               <p>{feature.text}</p>
-              <button type="button" onClick={() => onNavigate(feature.title === "Race mode" ? "race" : "method")}>
+              <button type="button" onClick={() => onNavigate(feature.page)}>
                 {feature.link}
               </button>
             </article>

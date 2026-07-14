@@ -170,7 +170,7 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
     [filtered, baselineByResultId]
   );
   const { rows: coverageRows, maxTotal: maxCoverageTotal } = useMemo(() => topCoverageEntries(coverage, 8), [coverage]);
-  const configCount = countDistinctHardware(sorted);
+  const hardwarePlatformCount = countDistinctHardware(sorted);
 
   return (
     <main className="configs-page">
@@ -180,8 +180,8 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
             <div className="title-row">
               <h1>Configs & results</h1>
               <span>
-                {formatNumber(sorted.length)} {plural(sorted.length, "result")} · {formatNumber(configCount)}{" "}
-                {plural(configCount, "config")}
+                {formatNumber(sorted.length)} {plural(sorted.length, "result")} · {formatNumber(hardwarePlatformCount)}{" "}
+                {plural(hardwarePlatformCount, "hardware platform")}
               </span>
             </div>
             <p>
@@ -202,7 +202,7 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
               options={withAllOption("All hardware", hardwareOptions)}
               onChange={(next) => setSelection((current) => updateConfigFilterSelection(current, "hardwareId", next))}
               placeholder="Search hardware"
-              limit={80}
+              limit={hardwareOptions.length + 1}
             />
             <SearchSelect
               compact

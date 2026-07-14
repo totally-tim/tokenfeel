@@ -59,8 +59,13 @@ math, or comparison semantics become less honest.
 - Before any install/update, enforce the 48-hour package freshness guard:
 
   ```bash
-  npm config set min-release-age=2d
+  npm config set min-release-age=2
   ```
+
+  (npm's unit is whole days, not a duration string — `2d` is silently dropped
+  as an invalid config value and the gate runs unset. Verify with
+  `npm config get before`; `npm config get min-release-age` always reads back
+  `null`.)
 
 - Do not lower or bypass the age gate. If a package is too new, report the
   conflict.
