@@ -3,6 +3,17 @@ import type { TimelineEvent, TimelineSummary } from "../types";
 
 export type PhaseCopyKind = "idle" | "tool" | "prefill" | "decode" | "complete" | "instant";
 
+// Thinking tokens are timed exactly like decode (see activePhase.ts -- there
+// is no separate timing phase for them), but the Playground rule requires
+// prefill/decode/thinking/tool-wait to be visually distinct. This derives
+// the *display* kind (color + icon) from the timing kind + event role,
+// without touching the timing state machine itself.
+export type PhaseVisualKind = PhaseCopyKind | "thinking";
+
+export function phaseVisualKind(event: TimelineEvent, kind: PhaseCopyKind): PhaseVisualKind {
+  return kind === "decode" && event.role === "thinking" ? "thinking" : kind;
+}
+
 interface PhaseCopy {
   label: string;
   detail: string;

@@ -38,6 +38,8 @@
   --phase-tool-soft: #fff4df;
   --phase-decode: #1c1c1e;
   --phase-decode-soft: #ececf1;
+  --phase-thinking: #7c5cff;
+  --phase-thinking-soft: #f1ecff;
   --phase-complete: #0a84ff;
   --phase-complete-soft: #e8f2ff;
 
@@ -133,7 +135,7 @@
   max-width: 640px;
   margin: 0;
   font-family: "Geist", system-ui, sans-serif;
-  font-size: clamp(34px, 5vw, 62px);
+  font-size: 62px;
   line-height: 1;
 }
 
@@ -337,7 +339,7 @@
 }
 
 .hero-section h1 {
-  font-size: clamp(50px, 6vw, 84px);
+  font-size: 84px;
   line-height: 0.98;
   max-width: 820px;
 }
@@ -365,7 +367,6 @@ mark {
 .footer,
 .title-row,
 .filters,
-.same-script,
 .lane-title-row,
 .lane-big,
 .event-head,
@@ -660,12 +661,6 @@ mark {
   letter-spacing: 0;
 }
 
-.field-block {
-  display: grid;
-  gap: 6px;
-}
-
-.field-label,
 .rail-section-title,
 .speed-row > span {
   color: var(--fg-muted);
@@ -894,10 +889,6 @@ mark {
   border-color: var(--accent);
   border-width: 1px;
   color: var(--accent);
-}
-
-.rail-spacer {
-  flex: 1;
 }
 
 .rail-actions {
@@ -1335,6 +1326,32 @@ mark {
   text-decoration: none;
 }
 
+/* Always-visible caveat chips (result/hardware/model notes) -- deliberately
+   outside any Disclosure, since they're provenance-relevant, not diagnostic
+   detail. Truncated with an ellipsis; the full text is on the chip's title
+   attribute so nothing is silently cut off. */
+.caveat-notes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.caveat-chip {
+  max-width: 100%;
+  overflow: hidden;
+  padding: 3px 8px;
+  border: 1px solid var(--border-hair);
+  border-radius: var(--radius-sm);
+  background: var(--surface-secondary);
+  color: var(--fg-secondary);
+  font-family: "Geist Mono", monospace;
+  font-size: 10px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .playback-primary {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
@@ -1395,6 +1412,19 @@ mark {
   min-width: 0;
   border: 1px solid var(--border-hair);
   background: var(--surface-primary);
+}
+
+/* Inside a disclosure card, the disclosure's own border/background already
+   frames the content -- a bordered/backgrounded diagnostic panel nested
+   inside it is a card-in-a-card. Drop the inner chrome, keep the padding. */
+.disclosure-body .phase-waterfall,
+.disclosure-body .cache-ledger,
+.disclosure-body .depth-curve,
+.disclosure-body .evidence-panel,
+.disclosure-body .gap-breakdown,
+.disclosure-body .result-quality-panel {
+  border: none;
+  background: transparent;
 }
 
 .phase-waterfall,
@@ -1710,13 +1740,12 @@ mark {
 .evidence-panel code {
   display: block;
   padding: 8px;
-  overflow: hidden;
   background: var(--surface-ink);
   color: #f5f5f7;
   font-family: "Geist Mono", monospace;
   font-size: 10px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .quality-flags {
@@ -2306,6 +2335,15 @@ mark {
   background: var(--phase-decode-soft);
 }
 
+/* Thinking is decode-timed (see PhaseState/phaseVisualKind) but gets its own
+   color + icon so it reads as distinct from a visible-answer decode, per the
+   Playground rule that prefill/decode/thinking/tool-wait must be visually
+   distinct. */
+.phase-state-thinking {
+  border-left-color: var(--phase-thinking);
+  background: var(--phase-thinking-soft);
+}
+
 .phase-state-complete {
   border-left-color: var(--phase-complete);
   background: var(--phase-complete-soft);
@@ -2348,6 +2386,10 @@ mark {
 
 .phase-state-decode .phase-state-name svg {
   color: var(--phase-decode);
+}
+
+.phase-state-thinking .phase-state-name svg {
+  color: var(--phase-thinking);
 }
 
 .phase-state-complete .phase-state-name svg {
@@ -2395,6 +2437,12 @@ mark {
 .phase-state-decode .phase-fill {
   background:
     repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.18) 0 2px, transparent 2px 8px), var(--phase-decode);
+  animation: phase-decode-cadence var(--cadence-duration) linear infinite;
+}
+
+.phase-state-thinking .phase-fill {
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.18) 0 2px, transparent 2px 8px), var(--phase-thinking);
   animation: phase-decode-cadence var(--cadence-duration) linear infinite;
 }
 
@@ -2619,6 +2667,12 @@ mark {
   border-color: var(--phase-decode);
 }
 
+.phase-legend-thinking .phase-legend-swatch {
+  background: var(--phase-thinking-soft);
+  color: var(--phase-thinking);
+  border-color: var(--phase-thinking);
+}
+
 .phase-legend-complete .phase-legend-swatch {
   background: var(--phase-complete-soft);
   color: var(--phase-complete);
@@ -2737,10 +2791,13 @@ mark {
   overflow: auto;
 }
 
-.race-output-waiting {
-  color: var(--fg-muted) !important;
+/* Scoped under .race-output-event so this naturally outranks the plain
+   ".race-output-event p" color/font-size rules above (same specificity,
+   later in source) instead of needing !important. */
+.race-output-event .race-output-waiting {
+  color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 11px !important;
+  font-size: 11px;
 }
 
 .race-output-empty {
@@ -2759,7 +2816,7 @@ mark {
   display: flex;
   align-items: center;
   gap: 7px;
-  color: var(--accent) !important;
+  color: var(--accent);
   font-family: "Geist Mono", monospace;
   font-size: 11px;
   margin: 0;
@@ -3600,8 +3657,10 @@ mark {
   background: var(--accent-soft);
 }
 
-.accent-strong {
-  color: var(--accent) !important;
+/* Scoped under .table-row so this naturally outranks ".table-row span"
+   above (higher specificity) instead of needing !important. */
+.table-row .accent-strong {
+  color: var(--accent);
   font-weight: 700;
 }
 
@@ -3839,11 +3898,6 @@ mark {
     font-size: 11px;
   }
 
-  .field-block {
-    gap: 4px;
-  }
-
-  .field-label,
   .rail-section-title,
   .speed-row > span {
     font-size: 9.5px;
@@ -4149,8 +4203,9 @@ mark {
 
   .hero-section h1,
   .closing-zone h2,
-  .doc-hero h1 {
-    font-size: clamp(32px, 8.5vw, 40px);
+  .doc-hero h1,
+  .boot-screen h1 {
+    font-size: 40px;
     overflow-wrap: anywhere;
   }
 

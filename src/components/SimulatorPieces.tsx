@@ -28,6 +28,8 @@ import type {
   BenchmarkResult,
   CacheMode,
   Catalog,
+  HardwareConfig,
+  ModelMetadata,
   RateConfidence,
   RuntimeMetadata,
   ScenarioEvent,
@@ -42,13 +44,20 @@ import { isGeneratedEvent, streamFrameForEvent } from "../lib/streaming";
 import { PhaseWaterfall, QualityFlags } from "./Visualizations";
 import { filterPickerOptions } from "../lib/pickerOptions";
 import type { MatrixOption } from "../lib/configMatrix";
-import { phaseCopyForEvent, statFootItems, turnMetricForEvent } from "../lib/phaseCopy";
+import {
+  phaseCopyForEvent,
+  phaseVisualKind,
+  statFootItems,
+  turnMetricForEvent,
+  type PhaseVisualKind
+} from "../lib/phaseCopy";
 import { cadenceDurationMs, phaseTrackVisualState, sweepDurationMs } from "../lib/phaseProgress";
 import { raceOutputWindow } from "../lib/raceOutput";
 import { activePhaseForEvent, type PhaseKind } from "../lib/activePhase";
 
-function PhaseIcon({ kind }: { kind: PhaseKind }) {
+function PhaseIcon({ kind }: { kind: PhaseVisualKind }) {
   if (kind === "prefill") return <Cpu size={15} />;
+  if (kind === "thinking") return <Brain size={15} />;
   if (kind === "decode") return <Gauge size={15} />;
   if (kind === "tool") return <Wrench size={15} />;
   if (kind === "complete") return <Check size={15} />;
@@ -89,6 +98,10 @@ export function PhaseState({
 }) {
   const phase = activePhaseForEvent(event, elapsedMs, hasStarted, complete);
   const copy = phaseCopyForEvent(event, phase.kind);
+  // Thinking is decode-timed (phase.kind stays "decode" for all the progress
+  // math below) but gets its own color/icon via visualKind -- see
+  // phaseVisualKind in lib/phaseCopy.ts.
+  const visualKind = phaseVisualKind(event, phase.kind);
   const streamFrame = streamFrameForEvent(event, elapsedMs);
   const processedPromptTokens = Math.round(event.prefillTokens * phase.progress);
   const waiting = phase.kind === "idle";
@@ -124,10 +137,10 @@ export function PhaseState({
   } as CSSProperties;
 
   return (
-    <div className={`phase-state phase-state-${phase.kind}`}>
+    <div className={`phase-state phase-state-${visualKind}`}>
       <div className="phase-state-head">
         <span className="phase-state-name">
-          <PhaseIcon kind={phase.kind} />
+          <PhaseIcon kind={visualKind} />
           {copy.label}
         </span>
         <strong>
@@ -568,7 +581,11 @@ export function ContextMeter({
         )}
       </div>
       {dataHorizonPct !== undefined && (
-        <div className="meter-data-horizon-label" style={{ left: `${dataHorizonPct}%` }}>
+        // Clamp the label's centerpoint at least half its own width (approximated
+        // in "ch", accurate for this label's monospace font) away from either
+        // track edge, so it can't be clipped by the surrounding overflow:hidden
+        // .race-lane when the data horizon sits near 0% or 100%.
+        <div className="meter-data-horizon-label" style={{ left: `clamp(7ch, ${dataHorizonPct}%, calc(100% - 7ch))` }}>
           data ends here
         </div>
       )}
@@ -688,12 +705,42 @@ export function SessionHeader({ catalog, title, result, activeEvent, hasStarted,
         </p>
       </div>
       <div className="session-header-right">
+        {result.status !== "community" && result.status !== "verified" && <StatusBadge status={result.status} />}
         <StatusBadge status={!hasStarted ? "idle" : isComplete ? "finished" : "generating"} />
         <div className="live-rate">
           <strong>{formatRate(activeEvent.tgRate)}</strong>
           <span>turn {activeEvent.index + 1}</span>
         </div>
       </div>
+    </div>
+  );
+}
+
+// result.notes and hardware/model.notes are carried all the way to the
+// client but were never rendered anywhere -- surface them as small,
+// always-visible caveat chips (not buried inside a collapsed Disclosure)
+// on both Race and Playground. Deduped since hardware/model notes are
+// sometimes identical boilerplate (e.g. shared oMLX-import provenance text).
+export function CaveatNotes({
+  result,
+  hardware,
+  model
+}: {
+  result: BenchmarkResult;
+  hardware?: HardwareConfig;
+  model?: ModelMetadata;
+}) {
+  const notes = Array.from(
+    new Set([result.notes, hardware?.notes, model?.notes].filter((note): note is string => Boolean(note?.trim())))
+  );
+  if (notes.length === 0) return null;
+  return (
+    <div className="caveat-notes">
+      {notes.map((note) => (
+        <span key={note} className="caveat-chip" title={note}>
+          {note}
+        </span>
+      ))}
     </div>
   );
 }
@@ -751,6 +798,8 @@ export function RaceLane({
         ? "tool wait"
         : "decode";
   const labelParts = compactResultLabel(catalog, result).split(" · ");
+  const laneHardware = catalog.hardware.find((item) => item.id === result.hardware);
+  const laneModel = catalog.models.find((item) => item.id === result.model);
   const laneStatus = complete
     ? formatClock(summary.wallTimeMs)
     : active
@@ -781,6 +830,7 @@ export function RaceLane({
             <div className="lane-title-row">
               <span className="lane-tag">LANE {label}</span>
               <h2>{labelParts[0]}</h2>
+              {result.status !== "community" && result.status !== "verified" && <StatusBadge status={result.status} />}
             </div>
             <p>
               {labelParts.slice(1).join(" · ")} · {result.runtime.name}/{result.runtime.backend}
@@ -788,6 +838,7 @@ export function RaceLane({
           </div>
           <span className={`lane-state-text ${active ? "live" : complete ? "done" : ""}`}>{laneStatus}</span>
         </div>
+        <CaveatNotes result={result} hardware={laneHardware} model={laneModel} />
         <div className="lane-big">
           <div>
             <span>{primaryLabel}</span>
@@ -918,8 +969,18 @@ export function PlayButton({
   );
 }
 
-export function SourceNote({ catalog, result }: { catalog: Catalog; result: BenchmarkResult }) {
-  const raw = result.evidence?.rawUrl || result.source.raw ? "raw evidence" : "source citation";
+export function SourceNote({
+  catalog,
+  result
+}: {
+  catalog: Catalog;
+  // See QualityFlags in Visualizations.tsx for why hasSourceRaw is optional
+  // here -- always present on Playground/Race's compact catalog rows, which
+  // is the only place SourceNote renders.
+  result: BenchmarkResult & { hasSourceRaw?: boolean };
+}) {
+  const hasRaw = result.hasSourceRaw ?? Boolean(result.evidence?.rawUrl || result.source.raw);
+  const raw = hasRaw ? "raw evidence" : "source citation";
   return (
     <a className="source-note" href={result.source.url} target="_blank" rel="noreferrer">
       {result.status} · {result.source.kind} · {raw} · {resultMeta(catalog, result)}

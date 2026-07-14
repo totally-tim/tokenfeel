@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import type { TimelineEvent } from "../types";
-import { phaseCopyForEvent, statFootItems, turnMetricForEvent } from "./phaseCopy";
+import { phaseCopyForEvent, phaseVisualKind, statFootItems, turnMetricForEvent } from "./phaseCopy";
 
 const baseEvent: TimelineEvent = {
   id: "e1",
@@ -71,6 +71,16 @@ describe("phase copy", () => {
     expect(keys).toContain("TOTAL SIM");
     expect(keys).not.toContain("ELAPSED");
     expect(keys).not.toContain("TTFT");
+  });
+
+  test("gives thinking its own visual kind distinct from decode", () => {
+    expect(phaseVisualKind({ ...baseEvent, role: "thinking" }, "decode")).toBe("thinking");
+    expect(phaseVisualKind({ ...baseEvent, role: "assistant" }, "decode")).toBe("decode");
+    expect(phaseVisualKind({ ...baseEvent, role: "tool_call" }, "decode")).toBe("decode");
+    // Only decode-timed thinking becomes the "thinking" visual kind -- other
+    // timing phases (prefill/tool/idle/complete/instant) pass through as-is
+    // even if the event happens to carry role "thinking" (e.g. its prefill).
+    expect(phaseVisualKind({ ...baseEvent, role: "thinking" }, "prefill")).toBe("prefill");
   });
 
   test("does not label non-generating prefill turns as TTFT", () => {

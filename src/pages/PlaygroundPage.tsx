@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import {
   CacheModeSelector,
+  CaveatNotes,
   Disclosure,
   PhaseState,
   PlayButton,
@@ -14,14 +15,7 @@ import {
   ContextMeter
 } from "../components/SimulatorPieces";
 import { CacheLedger, DepthRateCurve, QualityFlags, TimelineStrip } from "../components/Visualizations";
-import {
-  createCatalogLookups,
-  scenarioOptions,
-  getResult,
-  getScenario,
-  DEFAULT_LEFT_CONFIG,
-  DEFAULT_SCENARIO_ID
-} from "../lib/catalog";
+import { createCatalogLookups, scenarioOptions, DEFAULT_LEFT_CONFIG, DEFAULT_SCENARIO_ID } from "../lib/catalog";
 import { baselineMeasurement, maxMeasuredDepth } from "../lib/catalogQuality";
 import {
   getHardwareOptions,
@@ -55,8 +49,13 @@ export function PlaygroundPage({ catalog }: { catalog: Catalog }) {
     () => resolveConfigSelection(catalog.results, selection, lookups),
     [catalog.results, selection, lookups]
   );
-  const result = getResult(catalog, resolvedSelection.resultId);
-  const scenario = getScenario(catalog, scenarioId);
+  // Use the page's own `lookups` memo (built once per catalog reference)
+  // instead of getResult/getScenario, which each rebuild four full-catalog
+  // Maps internally via a fresh createCatalogLookups call.
+  const result = lookups.resultById(resolvedSelection.resultId);
+  if (!result) throw new Error(`Unknown result: ${resolvedSelection.resultId}`);
+  const scenario = lookups.scenarioById(scenarioId);
+  if (!scenario) throw new Error(`Unknown scenario: ${scenarioId}`);
   const playback = usePlayback({ result, scenario, cacheMode, speed });
   const activeIndex = playback.activeEvent.index;
   const hardware = lookups.hardwareById(result.hardware);
@@ -91,6 +90,7 @@ export function PlaygroundPage({ catalog }: { catalog: Catalog }) {
           sub={`${hardware?.memory ?? ""} · ${hardware?.accelerator ?? ""}`}
           selectedValue={selection.hardwareId}
           options={hardwareOptions}
+          limit={hardwareOptions.length + 1}
           onChange={(hardwareId) =>
             setSelection((current) =>
               updateConfigSelection(catalog.results, current, "hardwareId", hardwareId, lookups)
@@ -133,6 +133,7 @@ export function PlaygroundPage({ catalog }: { catalog: Catalog }) {
           }
           placeholder="Search runtime"
         />
+        <CaveatNotes result={result} hardware={hardware} model={model} />
 
         <div className="rail-divider" />
         <span className="rail-section-title">SCENARIO</span>
@@ -142,7 +143,7 @@ export function PlaygroundPage({ catalog }: { catalog: Catalog }) {
               key={item.value}
               title={item.title}
               sub={item.sub}
-              type={getScenario(catalog, item.value).type}
+              type={lookups.scenarioById(item.value)?.type ?? "chatbot"}
               active={scenarioId === item.value}
               onClick={() => setScenarioId(item.value)}
             />

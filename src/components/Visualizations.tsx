@@ -375,7 +375,7 @@ export function EvidencePanel({ result }: { result: BenchmarkResult }) {
         <LinkIcon size={13} />
         {result.evidence?.rawUrl ? "Open raw evidence" : "Open source"}
       </a>
-      {result.benchmark?.command && <code>{result.benchmark.command}</code>}
+      {result.benchmark?.command && <code title={result.benchmark.command}>{result.benchmark.command}</code>}
     </div>
   );
 }
@@ -432,12 +432,17 @@ export function QualityFlags({
   result,
   extrapolatedEvents = 0
 }: {
-  result: BenchmarkResult;
+  // `hasSourceRaw` only exists on the compacted static-catalog row (see
+  // StaticBenchmarkResult); a full detail row fetched via loadResultDetail
+  // (ConfigsPage) has real source.raw/evidence.rawUrl instead but no
+  // hasSourceRaw field, so this falls back to that check when absent.
+  result: BenchmarkResult & { hasSourceRaw?: boolean };
   extrapolatedEvents?: number;
 }) {
+  const hasRaw = result.hasSourceRaw ?? Boolean(result.evidence?.rawUrl || result.source.raw);
   const flags = [
     result.measurements.length < 2 ? "single point" : `${result.measurements.length} depths`,
-    result.evidence?.rawUrl || result.source.raw ? "raw linked" : "source only",
+    hasRaw ? "raw linked" : "source only",
     result.benchmark?.runs ? `${result.benchmark.runs} runs` : "runs unknown",
     extrapolatedEvents > 0 ? `${extrapolatedEvents} extrapolated` : "within measured range"
   ];

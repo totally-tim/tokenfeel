@@ -60,7 +60,7 @@ export function MethodPage() {
         </article>
       </section>
       <section className="snippet-panel phase-legend-panel">
-        <h2>The five playback phases</h2>
+        <h2>The six playback phases</h2>
         <p>
           Every simulator surface — Playground and both Race lanes — speaks one visual language. Each phase has its own
           color and motion, so you can read the state at a glance.
@@ -68,8 +68,8 @@ export function MethodPage() {
         <PhaseLegend />
         <p className="phase-legend-caption">
           User and tool-result events add prompt tokens and can require prefill. Assistant, thinking and tool-call
-          events are generated tokens and are decoded. Cache busts reduce the reusable prefix and make the re-prefill
-          cost visible.
+          events are generated tokens and are decoded — thinking gets its own color since it streams before the visible
+          answer. Cache busts reduce the reusable prefix and make the re-prefill cost visible.
         </p>
       </section>
       <section className="not-modeled">
