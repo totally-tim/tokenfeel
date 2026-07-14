@@ -38,7 +38,7 @@ import type {
   TimelineSummary
 } from "../types";
 import { compactResultLabel, resultMeta } from "../lib/catalog";
-import { maxMeasuredDepth } from "../lib/catalogQuality";
+import { hasAnyRawEvidence, maxMeasuredDepth } from "../lib/catalogQuality";
 import { StatusBadge } from "./StatusBadge";
 import { isGeneratedEvent, streamFrameForEvent } from "../lib/streaming";
 import { PhaseWaterfall, QualityFlags } from "./Visualizations";
@@ -979,7 +979,7 @@ export function SourceNote({
   // is the only place SourceNote renders.
   result: BenchmarkResult & { hasSourceRaw?: boolean };
 }) {
-  const hasRaw = result.hasSourceRaw ?? Boolean(result.evidence?.rawUrl || result.source.raw);
+  const hasRaw = result.hasSourceRaw ?? hasAnyRawEvidence(result);
   const raw = hasRaw ? "raw evidence" : "source citation";
   return (
     <a className="source-note" href={result.source.url} target="_blank" rel="noreferrer">

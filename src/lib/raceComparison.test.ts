@@ -157,6 +157,37 @@ describe("race comparison helpers", () => {
       level: "related"
     });
   });
+
+  test("downgrades same-model different-hardware races to related when only quant differs (runtime held)", () => {
+    // Quant confounds the hardware comparison even with the runtime held
+    // constant: two variables moved, so it must not read as a strong
+    // hardware race. catalog.results[0] is m4-qwen (4bit, default oMLX
+    // runtime); this row keeps that runtime but changes hardware and quant.
+    const eightBitOnDgxSameRuntime = result({
+      id: "dgx-qwen-8bit-omlx",
+      hardware: "dgx",
+      model: "qwen",
+      quant: "8bit"
+    });
+
+    expect(comparisonSummary(catalog, catalog.results[0], eightBitOnDgxSameRuntime)).toMatchObject({
+      label: "Same model comparison",
+      detail: "Same model, different quant or runtime.",
+      level: "related"
+    });
+  });
+
+  test("keeps same-model different-hardware races strong when only the runtime differs (quant held)", () => {
+    // Scope guard for the quant downgrade above: a pure runtime difference
+    // with quant held is still a strong hardware comparison and must not be
+    // pulled down. catalog.results[2] is dgx-qwen: 4bit on vLLM vs m4-qwen's
+    // 4bit on oMLX -- same quant, different hardware and runtime.
+    expect(comparisonSummary(catalog, catalog.results[0], catalog.results[2])).toMatchObject({
+      label: "Same model comparison",
+      detail: "Same model and quant; runtime differences are still visible.",
+      level: "strong"
+    });
+  });
 });
 
 describe("raceVerdict", () => {

@@ -286,11 +286,11 @@ export function comparisonSummary(
   if (sameModel && left.hardware !== right.hardware) {
     const sameRuntimeFamily =
       left.runtime.name === right.runtime.name && left.runtime.backend === right.runtime.backend;
-    // Both quant and runtime differing on top of hardware means three
-    // variables moved at once, so this isn't a clean comparison -- downgrade
-    // it the same way the same-hardware branch above downgrades on quant
-    // alone.
-    const bothDiffer = !sameQuant && !sameRuntime;
+    // Quant differing on top of hardware confounds the comparison -- two
+    // variables moved at once, so it's no longer a clean hardware race no
+    // matter what the runtime does. Downgrade whenever quant differs, the
+    // same way the same-hardware branch above downgrades on quant alone; a
+    // pure runtime difference (quant held) stays "strong".
     return {
       label: "Same model comparison",
       detail:
@@ -299,7 +299,7 @@ export function comparisonSummary(
           : sameQuant
             ? "Same model and quant; runtime differences are still visible."
             : "Same model, different quant or runtime.",
-      level: bothDiffer ? "related" : "strong"
+      level: sameQuant ? "strong" : "related"
     };
   }
 

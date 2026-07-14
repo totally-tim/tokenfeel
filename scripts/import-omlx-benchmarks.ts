@@ -620,7 +620,17 @@ function generateCatalog(scrapeSummary?: Awaited<ReturnType<typeof scrapeRawRows
   // Deterministic even under --skip-fetch: reuse the retrieval timestamp
   // already recorded for this cached raw file instead of stamping "now",
   // so re-running against unchanged input produces byte-identical output.
-  const retrievedAt = scrapeSummary?.retrievedAt ?? readExistingRetrievedAt() ?? new Date(0).toISOString();
+  // With no fetch and no recorded timestamp there is no honest value to use,
+  // so fail loudly rather than stamp a fabricated epoch date onto every
+  // imported row's provenance.
+  const retrievedAt = scrapeSummary?.retrievedAt ?? readExistingRetrievedAt();
+  if (!retrievedAt) {
+    throw new Error(
+      `Cannot determine a retrieval timestamp: --skip-fetch was used and ${path.relative(root, rawMetaPath)} ` +
+        `is missing or has no retrievedAt. Re-run without --skip-fetch, or restore the meta file, so ` +
+        `evidence.retrievedAt reflects a real retrieval time instead of a fabricated one.`
+    );
+  }
   const results = [...groups.values()]
     .map((group) => resultFromGroup(group, retrievedAt))
     .sort((left, right) => left.id.localeCompare(right.id));
@@ -650,7 +660,12 @@ function generateCatalog(scrapeSummary?: Awaited<ReturnType<typeof scrapeRawRows
   removeGeneratedJsonFiles(
     resultDir,
     new Set(results.map((result) => result.id)),
-    (value) => value.evidence?.parserVersion === parserVersion
+    // Only sweep still-community rows this parser generated. A row that has
+    // been hand-reviewed to verified/flagged and has since dropped out of the
+    // import set (a partial --max-pages run, upstream churn) must survive the
+    // cleanup -- the per-row guard below only protects rows still in the
+    // current set, so relying on it alone would silently delete reviewed data.
+    (value) => value.evidence?.parserVersion === parserVersion && value.status === "community"
   );
 
   writeMetadataFiles(hardwareDir, hardwareItems, readJsonFiles(hardwareDir));

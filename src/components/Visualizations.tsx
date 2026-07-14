@@ -1,6 +1,7 @@
 import { useId, useMemo } from "react";
 import { AlertTriangle, Database, FileText, Link as LinkIcon, Sigma } from "lucide-react";
 import { formatClock, formatRate, formatTokens, percent } from "../lib/format";
+import { hasAnyRawEvidence } from "../lib/catalogQuality";
 import type { RaceWinner } from "../lib/raceComparison";
 import { fitTimePerTokenLinear, msPerTokenRangeAt, rateToMsPerToken } from "../sim/timing";
 import type {
@@ -439,7 +440,7 @@ export function QualityFlags({
   result: BenchmarkResult & { hasSourceRaw?: boolean };
   extrapolatedEvents?: number;
 }) {
-  const hasRaw = result.hasSourceRaw ?? Boolean(result.evidence?.rawUrl || result.source.raw);
+  const hasRaw = result.hasSourceRaw ?? hasAnyRawEvidence(result);
   const flags = [
     result.measurements.length < 2 ? "single point" : `${result.measurements.length} depths`,
     hasRaw ? "raw linked" : "source only",

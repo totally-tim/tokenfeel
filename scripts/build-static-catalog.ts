@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { readCatalogFromDisk } from "./validate-data";
 import type { ParsedCatalog } from "../src/data/schemas";
-import { pruneCatalogForSimulation } from "../src/lib/catalogQuality";
+import { hasAnyRawEvidence, pruneCatalogForSimulation } from "../src/lib/catalogQuality";
 import type { BenchmarkResult } from "../src/types";
 import type { StaticBenchmarkResult, StaticCatalog } from "../src/data/staticCatalog";
 
@@ -79,7 +79,11 @@ function compactResult(result: BenchmarkResult, detailChunk: string): StaticBenc
     overheadMs: result.overheadMs,
     notes: result.notes,
     detailChunk,
-    hasSourceRaw: Boolean(result.source.raw) || Boolean(result.evidence?.rawUrl)
+    // Mirror hasAnyRawEvidence's full set of raw-provenance shapes: the compact
+    // row strips evidence.rawRows/upstreamUrls, so a row whose only raw evidence
+    // lives there would otherwise be flagged "source only" on Race/Playground
+    // even though validation recognizes its raw evidence.
+    hasSourceRaw: hasAnyRawEvidence(result)
   };
 }
 
