@@ -2648,7 +2648,7 @@ mark {
 }
 
 .phase-state-tool .phase-fill {
-  background: var(--phase-tool);
+  background: var(--phase-tool-fill);
   animation: phase-tool-pulse var(--pulse-duration) ease-in-out infinite;
 }
 
@@ -3248,6 +3248,7 @@ mark {
    border-color, background  .phase-state                         shortened to --motion-instant
    transform                 .disclosure-toggle svg               off (spatial)
    (width -- removed)        .spine-progress b                    n/a, see that rule
+   (none)                    .provenance                          no motion; notes are static
 
    What deliberately survives: determinate fill widths, the race clock counter,
    per-lane elapsed times, phase colors, and the caret glyph itself. Those carry
@@ -3269,9 +3270,8 @@ mark {
     opacity: 1;
   }
 
-  /* Spatial: disclosure and provenance chevrons must not rotate. */
-  .disclosure-toggle svg,
-  .provenance-summary svg {
+  /* Spatial: the disclosure chevron must not rotate. */
+  .disclosure-toggle svg {
     transition: none;
   }
 
