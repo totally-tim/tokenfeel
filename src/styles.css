@@ -4030,7 +4030,7 @@ mark {
   margin: 16px 0;
   font-size: var(--display-m);
   line-height: 1.15;
-  max-width: 22ch;
+  max-width: 26ch;
 }
 
 /* Readable measure inside a now-full-width hero card. */
@@ -4057,8 +4057,11 @@ mark {
   align-items: start;
 }
 
-/* The trailing explanation spans the full width rather than sitting alone. */
-.method-grid article:last-child {
+/* A trailing item that would sit alone on its own row spans the full width
+   instead. `:nth-child(odd)` is the actual condition -- in a two-column grid only
+   an odd-positioned last child is unpaired -- so adding a sixth explanation
+   pairs it normally rather than re-creating the orphan this rule removes. */
+.method-grid article:last-child:nth-child(odd) {
   grid-column: 1 / -1;
 }
 
@@ -4160,6 +4163,14 @@ mark {
 
 .snippet-panel {
   margin-top: 24px;
+}
+
+/* The agent handoff prompt is prose meant to be read on the page, so it wraps
+   rather than scrolling sideways. The JSON snippet below keeps horizontal
+   scrolling, where indentation and line breaks carry meaning. */
+.agent-prompt-panel pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .agent-prompt-panel pre,
