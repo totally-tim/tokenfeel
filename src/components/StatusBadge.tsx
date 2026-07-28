@@ -1,16 +1,15 @@
-export type PlaybackStatus = "idle" | "generating" | "running" | "finished";
+export type PlaybackStatus = "idle" | "generating" | "finished";
 
 const labels: Record<PlaybackStatus, string> = {
   idle: "IDLE",
   generating: "GENERATING",
-  running: "RUNNING",
   finished: "FINISHED"
 };
 
 /**
  * Playback state only. Trust state for a catalog row lives in TrustBadge --
  * keeping the two apart is what stops a `flagged` row from being styled
- * identically to a healthy `running` lane, which is what the shared
+ * identically to a healthy in-progress lane, which is what the shared
  * `.status-flagged, .status-running` rule used to do.
  */
 export function StatusBadge({ status }: { status: PlaybackStatus }) {

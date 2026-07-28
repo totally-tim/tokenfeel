@@ -3,6 +3,9 @@
 :root {
   --accent: #0a84ff;
   --accent-strong: #006edb;
+  /* Text-safe accent. --accent-strong is 4.37:1 on --accent-soft, which fails AA
+     for the 10px badge label. */
+  --accent-ink: #0a5bb8;
   --accent-soft: #e8f2ff;
   --border-hair: #d7d7dd;
   --border-primary: #bfc0c7;
@@ -24,13 +27,14 @@
      anything with a readable glyph uses this darker value. --warn-fill is the
      design.md spec amber, used where contrast-for-text does not apply —
      progress fills, lane stripes, chart marks, strokes. */
-  --warn: #c06d13;
+  --warn: #a35c0f;
   --warn-fill: #ff9f0a;
   --warn-soft: #fff4df;
 
   /* Thinking is a fourth phase hue, deliberately distinct from accent/warn/ink
      because reasoning tokens stream before the visible answer. */
   --think: #7c5cff;
+  --think-ink: #5b3fd1;
   --think-soft: #f1ecff;
 
   --nav-height: 64px;
@@ -44,14 +48,7 @@
   --shadow-panel: 0 18px 42px rgba(29, 29, 31, 0.1);
   --shadow-subtle: 0 1px 0 rgba(29, 29, 31, 0.04), 0 10px 28px rgba(29, 29, 31, 0.06);
 
-  /* Derived tints — named so surfaces stop re-deriving base colors at ad-hoc
-     alpha. Add to this list rather than inlining a new rgba(). */
-  --scrim-ink-soft: rgba(29, 29, 31, 0.06);
-  --scrim-ink: rgba(29, 29, 31, 0.08);
-  --glass-strong: rgba(255, 255, 255, 0.92);
-  --glass-mid: rgba(255, 255, 255, 0.78);
-  --glass-clear: rgba(255, 255, 255, 0);
-  --accent-ring: rgba(10, 132, 255, 0.45);
+  /* Derived tint. Add to this list rather than inlining a new rgba(). */
   --accent-ghost: rgba(10, 132, 255, 0.25);
 
   /* Type scale. Replaces twelve arbitrary steps between 9px and 14.5px with
@@ -103,8 +100,6 @@
   --motion-fast: 180ms;
   --motion-med: 320ms;
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
   --sweep-duration: 1.15s;
   --pulse-duration: 1.6s;
   --cadence-duration: 0.9s;
@@ -1153,8 +1148,7 @@ mark {
   color: var(--fg-secondary);
 }
 
-.status-generating,
-.status-running {
+.status-generating {
   border-color: var(--accent-ghost);
   background: var(--accent-soft);
   color: var(--accent);
@@ -1200,7 +1194,7 @@ mark {
 .trust-verified {
   border-color: var(--accent-ghost);
   background: var(--accent-soft);
-  color: var(--accent-strong);
+  color: var(--accent-ink);
 }
 
 /* Community: the neutral default. Deliberately quiet -- it is the common case. */
@@ -1224,9 +1218,9 @@ mark {
    either the accent (verified) or the amber (flagged). */
 .trust-illustrative {
   border-style: dashed;
-  border-color: var(--think);
+  border-color: var(--think-ink);
   background: var(--think-soft);
-  color: var(--think);
+  color: var(--think-ink);
 }
 
 .trust-compact {
@@ -1235,75 +1229,46 @@ mark {
   letter-spacing: 0.3px;
 }
 
-/* ---- Provenance control ------------------------------------------------ */
+/* ---- Provenance ------------------------------------------------------- */
+/* Notes render in full at zero clicks -- wrapped, never ellipsized, no fixed
+   height. Illegible provenance is worse than absent provenance, and hiding a
+   caveat behind a disclosure is worse than either. */
 .provenance {
   display: grid;
   gap: 6px;
   min-width: 0;
 }
 
-.provenance-summary {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  width: 100%;
-  min-height: 28px;
-  padding: 0 9px;
-  border: 1px solid var(--border-hair);
-  border-radius: var(--radius-sm);
-  background: var(--surface-secondary);
-  color: var(--fg-secondary);
-  font-family: "Geist Mono", monospace;
-  font-size: var(--text-xs);
-  text-align: left;
-  cursor: pointer;
-}
-
-.provenance-summary:hover {
-  border-color: var(--border-primary);
-  color: var(--fg-primary);
-}
-
-.provenance-count {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.provenance-summary svg {
-  flex: 0 0 auto;
-  width: 13px;
-  height: 13px;
-  transition: transform var(--motion-fast) var(--ease-standard);
-}
-
-.provenance.open .provenance-summary svg {
-  transform: rotate(180deg);
-}
-
-/* Notes render in full -- no ellipsis, no fixed height. Illegible provenance is
-   worse than absent provenance. */
-.provenance-body {
+.provenance-notes {
   display: grid;
-  gap: 7px;
-  padding: 10px 11px;
+  gap: 5px;
+  margin: 0;
+  padding: 8px 10px;
+  list-style: none;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  background: var(--surface-primary);
+  background: var(--surface-secondary);
 }
 
-.provenance-body p {
-  margin: 0;
+.provenance-notes li {
   color: var(--fg-secondary);
-  font-size: var(--text-sm);
+  font-size: var(--text-xs);
   line-height: 1.45;
   overflow-wrap: anywhere;
 }
 
-.provenance-body a {
-  color: var(--accent);
-  font-family: "Geist Mono", monospace;
-  font-size: var(--text-xs);
+.provenance-notes li + li {
+  padding-top: 5px;
+  border-top: 1px solid var(--border-subtle);
 }
+
+.provenance-source {
+  width: fit-content;
+  color: var(--accent-ink);
+  font-family: "Geist Mono", monospace;
+  font-size: var(--text-2xs);
+}
+
 
 .transcript {
   display: flex;
@@ -1476,7 +1441,7 @@ mark {
 }
 
 .meter-reprefill {
-  background: var(--warn);
+  background: var(--warn-fill);
 }
 
 /* "data ends here" tick: the last measured benchmark depth, so it's visible
@@ -1526,7 +1491,7 @@ mark {
 }
 
 .legend.reprefill {
-  background: var(--warn);
+  background: var(--warn-fill);
 }
 
 .legend.headroom {
@@ -1834,7 +1799,7 @@ mark {
 }
 
 .rate-curve-tg {
-  --curve-color: var(--warn);
+  --curve-color: var(--warn-fill);
 }
 
 .rate-curve-head {
@@ -2406,7 +2371,7 @@ mark {
 }
 
 .lane-b .lane-stripe {
-  background: var(--warn);
+  background: var(--warn-fill);
 }
 
 .lane-stripe {
@@ -3053,18 +3018,6 @@ mark {
   font-size: var(--text-xs);
 }
 
-.race-output-empty {
-  min-height: 150px;
-  display: grid;
-  place-items: center;
-  border: 1px dashed var(--border-primary);
-  border-radius: var(--radius-sm);
-  color: var(--fg-muted);
-  font-family: "Geist Mono", monospace;
-  font-size: var(--text-sm);
-  text-align: center;
-}
-
 .done-line {
   display: flex;
   align-items: center;
@@ -3202,7 +3155,7 @@ mark {
 }
 
 .spine-progress .bar-b {
-  background: var(--warn);
+  background: var(--warn-fill);
 }
 
 .spine-progress strong {
@@ -3358,8 +3311,7 @@ mark {
   gap: 12px;
 }
 
-.title-row h1,
-.doc-hero h1 {
+.title-row h1 {
   margin: 0;
   font-family: "Geist", system-ui, sans-serif;
   font-size: var(--text-4xl);
@@ -3623,7 +3575,7 @@ mark {
 
 .summary-card strong {
   font-family: "Geist Mono", monospace;
-  font-size: var(--text-5xl);
+  font-size: var(--text-4xl);
   letter-spacing: 0;
 }
 
@@ -3712,7 +3664,7 @@ mark {
 }
 
 .chart-legend i.raw {
-  background: var(--warn);
+  background: var(--warn-fill);
 }
 
 .frontier-bar-row,
@@ -4057,6 +4009,12 @@ mark {
   align-items: start;
 }
 
+/* The spanning article is two columns wide, so its prose needs an explicit
+   measure -- without one it ran to roughly 162ch at 1440px. */
+.method-grid article:last-child:nth-child(odd) p {
+  max-width: 74ch;
+}
+
 /* A trailing item that would sit alone on its own row spans the full width
    instead. `:nth-child(odd)` is the actual condition -- in a two-column grid only
    an odd-positioned last child is unpaired -- so adding a sixth explanation
@@ -4237,17 +4195,8 @@ mark {
     font-size: var(--text-xs);
   }
 
-  .rail-section-title,
-  .speed-row > span {
-    font-size: var(--text-2xs);
-  }
-
   .scenario-card strong {
     font-size: var(--text-base);
-  }
-
-  .scenario-card small {
-    font-size: var(--text-2xs);
   }
 
   .rail-divider {

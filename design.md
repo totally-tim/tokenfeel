@@ -35,10 +35,12 @@ transcripts, and evidence close to every result.
 - Primary border: `#BFC0C7`
 - Accent: `#0A84FF`
 - Accent soft: `#E8F2FF`
-- Warning ink (`--warn`): `#C06D13`
+- Warning ink (`--warn`): `#A35C0F`
 - Warning fill (`--warn-fill`): `#FF9F0A`
 - Warning soft: `#FFF4DF`
-- Thinking: `#7C5CFF`
+- Accent ink (`--accent-ink`): `#0A5BB8`
+- Thinking (`--think`): `#7C5CFF`
+- Thinking ink (`--think-ink`): `#5B3FD1`
 - Thinking soft: `#F1ECFF`
 
 Accent is for selected controls, focus, primary commands, progress, links, and
@@ -46,9 +48,15 @@ Lane A. Warning is reserved for tool wait, flagged state, and Lane B contrast.
 
 Amber carries two roles and therefore two values. `#FF9F0A` on white is about
 2.0:1 and fails AA for text, so anything with a readable glyph — labels, badge
-text, icons — uses the darker `--warn`. `--warn-fill` is the brighter value and
-is used only where contrast-for-text does not apply: progress fills, lane
-stripes, chart marks, strokes. Do not use `--warn-fill` for text.
+text, icons — uses the darker `--warn`, which clears 4.5:1 on white, canvas,
+secondary surface and warn-soft. `--warn-fill` is the brighter value and is used
+only where contrast-for-text does not apply: the re-prefill meter, the Lane B
+stripe and progress bar, the tg rate curve, and chart legend marks. Do not use
+`--warn-fill` for text, and do not use `--warn` for a fill that has no glyph on
+it — the split only earns its keep if both halves are actually consumed.
+
+Every token declared here must have a consumer. A palette entry that nothing
+references is a claim the code does not honour.
 
 Thinking is a fourth phase hue, deliberately distinct from accent, warning and
 ink, because reasoning tokens stream before the visible answer and need to be
@@ -176,19 +184,27 @@ greyscale and color-blindness:
 
 | State | Icon | Color | Border |
 | --- | --- | --- | --- |
-| `verified` | shield-check | accent | 1px solid |
-| `community` | users | neutral | 1px solid |
-| `flagged` | triangle-alert | warning ink | 2px solid, weight 700 |
-| `illustrative` | flask-conical | thinking | 1px dashed |
+| `verified` | shield-check | `--accent-ink` | 1px solid |
+| `community` | users | `--fg-secondary` | 1px solid |
+| `flagged` | triangle-alert | `--warn` | 2px solid, weight 700 |
+| `illustrative` | flask-conical | `--think-ink` | 1px dashed |
+
+Badge text is 10px, which is small text, so every foreground must clear 4.5:1
+against its own background. That is why `--accent-ink` and `--think-ink` exist:
+`--accent-strong` is 4.37:1 on `--accent-soft` and the base `--think` is 3.76:1
+on `--think-soft`, and both fail. Check the ratio when changing any of these.
 
 Do not harmonize these. A restyle that makes the four consistent is how `flagged`
 quietly stops looking flagged.
 
-Provenance sits in one control per config, carrying the note count and expanding
-to the full notes plus the source link. Notes render in full — no ellipsis, no
-fixed height. Illegible provenance is worse than absent provenance: three chips
-truncated inside a shared boilerplate prefix rendered the same visible string and
-told the reader nothing.
+Provenance notes render at **zero clicks**, wrapped, in full — no ellipsis, no
+fixed height, no disclosure. They are not boilerplate: they carry
+action-critical caveats such as a comparison that is "not perfectly isolated" or
+measurements clamped after an implausible jump, and a reader needs to know such a
+caveat exists *before* acting on the number. Illegible provenance is worse than
+absent provenance, and provenance hidden behind a click is worse than either — a
+note count does not tell you a caveat is there. Costing vertical space is the
+right trade. The source link sits directly beneath.
 
 A projected figure never carries more visual weight than a measured one. The race
 clock is measured and gets display type; the projected gap stays visibly

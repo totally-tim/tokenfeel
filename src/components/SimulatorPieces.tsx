@@ -91,13 +91,13 @@ export function PhaseState({
   elapsedMs,
   hasStarted,
   complete,
-  speed = 1
+  speed
 }: {
   event: TimelineEvent;
   elapsedMs: number;
   hasStarted: boolean;
   complete: boolean;
-  speed?: number;
+  speed: number;
 }) {
   const phase = activePhaseForEvent(event, elapsedMs, hasStarted, complete);
   const copy = phaseCopyForEvent(event, phase.kind);
@@ -727,10 +727,17 @@ export function SessionHeader({ catalog, title, result, activeEvent, hasStarted,
  * and the ellipsis landed inside that shared prefix, so three chips rendered the
  * same visible string while occupying the lane's prime real estate.
  *
+ * The notes stay at ZERO clicks and simply wrap instead of being clipped. An
+ * earlier revision collapsed them behind a "3 source notes" button, which
+ * external review correctly rejected: these are not boilerplate, they carry
+ * action-critical caveats such as a comparison that is "not perfectly isolated"
+ * or measurements clamped after an implausible jump, and a count does not tell
+ * the reader such a caveat exists. Costing vertical space is the right trade;
+ * hiding a caveat behind a click is not.
+ *
  * Division of labour: TrustBadge sits next to the config identity and answers
- * "how much should I trust this number"; this control answers "show me why", and
- * expands to the notes in full with no truncation plus the source link. Evidence
- * is one click away instead of zero-clicks-but-illegible.
+ * "how much should I trust this number"; this block answers "why", and links out
+ * to the source.
  */
 export function SourceProvenance({
   result,
@@ -741,35 +748,21 @@ export function SourceProvenance({
   hardware?: HardwareConfig;
   model?: ModelMetadata;
 }) {
-  const [open, setOpen] = useState(false);
   const notes = Array.from(
     new Set([result.notes, hardware?.notes, model?.notes].filter((note): note is string => Boolean(note?.trim())))
   );
   return (
-    <div className={`provenance ${open ? "open" : ""}`}>
-      <button
-        type="button"
-        className="provenance-summary"
-        onClick={() => setOpen((value) => !value)}
-        aria-expanded={open}
-      >
-        <span className="provenance-count">
-          {notes.length === 0
-            ? "Source citation"
-            : `${notes.length} source note${notes.length === 1 ? "" : "s"}`}
-        </span>
-        <ChevronDown aria-hidden="true" />
-      </button>
-      {open && (
-        <div className="provenance-body">
+    <div className="provenance">
+      {notes.length > 0 && (
+        <ul className="provenance-notes">
           {notes.map((note) => (
-            <p key={note}>{note}</p>
+            <li key={note}>{note}</li>
           ))}
-          <a href={result.source.url} target="_blank" rel="noreferrer">
-            Open source · {result.source.kind}
-          </a>
-        </div>
+        </ul>
       )}
+      <a className="provenance-source" href={result.source.url} target="_blank" rel="noreferrer">
+        Source · {result.source.kind}
+      </a>
     </div>
   );
 }
@@ -798,7 +791,7 @@ interface LaneProps {
   elapsedMs: number;
   hasStarted: boolean;
   winner?: boolean;
-  speed?: number;
+  speed: number;
 }
 
 export function RaceLane({
@@ -811,7 +804,7 @@ export function RaceLane({
   elapsedMs,
   hasStarted,
   winner = false,
-  speed = 1
+  speed
 }: LaneProps) {
   const complete = hasStarted && elapsedMs >= timeline.totalMs;
   const active = hasStarted && !complete;
