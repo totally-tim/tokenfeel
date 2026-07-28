@@ -1,21 +1,19 @@
-import type { ResultStatus } from "../types";
+export type PlaybackStatus = "idle" | "generating" | "running" | "finished";
 
-interface StatusBadgeProps {
-  status: ResultStatus | "idle" | "generating" | "running" | "finished";
-}
-
-const labels: Record<StatusBadgeProps["status"], string> = {
-  verified: "VERIFIED",
-  community: "COMMUNITY",
-  flagged: "FLAGGED",
-  illustrative: "DEMO",
+const labels: Record<PlaybackStatus, string> = {
   idle: "IDLE",
   generating: "GENERATING",
   running: "RUNNING",
   finished: "FINISHED"
 };
 
-export function StatusBadge({ status }: StatusBadgeProps) {
+/**
+ * Playback state only. Trust state for a catalog row lives in TrustBadge --
+ * keeping the two apart is what stops a `flagged` row from being styled
+ * identically to a healthy `running` lane, which is what the shared
+ * `.status-flagged, .status-running` rule used to do.
+ */
+export function StatusBadge({ status }: { status: PlaybackStatus }) {
   return (
     <span className={`status-badge status-${status}`}>
       <span className="status-dot" />

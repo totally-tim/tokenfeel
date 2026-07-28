@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import {
   CacheModeSelector,
-  CaveatNotes,
+  SourceProvenance,
   Disclosure,
   PhaseState,
   PlayButton,
@@ -15,6 +15,7 @@ import {
   ContextMeter
 } from "../components/SimulatorPieces";
 import { CacheLedger, DepthRateCurve, QualityFlags, TimelineStrip } from "../components/Visualizations";
+import { cadenceDurationMs } from "../lib/phaseProgress";
 import { createCatalogLookups, scenarioOptions, DEFAULT_LEFT_CONFIG, DEFAULT_SCENARIO_ID } from "../lib/catalog";
 import { baselineMeasurement, maxMeasuredDepth } from "../lib/catalogQuality";
 import {
@@ -78,7 +79,7 @@ export function PlaygroundPage({ catalog }: { catalog: Catalog }) {
   const selectedRuntime = runtimeOptions.find((option) => option.value === selection.runtimeKey);
 
   return (
-    <main className="playground-page full-height-page">
+    <main className={`playground-page full-height-page ${playback.hasStarted ? "session-live" : ""}`}>
       <aside className="config-rail">
         <div className="rail-head">
           <span>CONFIGURATION</span>
@@ -133,7 +134,7 @@ export function PlaygroundPage({ catalog }: { catalog: Catalog }) {
           }
           placeholder="Search runtime"
         />
-        <CaveatNotes result={result} hardware={hardware} model={model} />
+        <SourceProvenance result={result} hardware={hardware} model={model} />
 
         <div className="rail-divider" />
         <span className="rail-section-title">SCENARIO</span>
@@ -179,7 +180,16 @@ export function PlaygroundPage({ catalog }: { catalog: Catalog }) {
         </div>
       </aside>
 
-      <section className="session-main">
+      {/* The decode caret pulses at the simulated decode cadence, so the rate
+          variable is scoped to the whole session, not just the phase track. */}
+      <section
+        className="session-main"
+        style={
+          {
+            "--cadence-duration": `${cadenceDurationMs(playback.activeEvent.tgRate, speed)}ms`
+          } as CSSProperties
+        }
+      >
         <SessionHeader
           catalog={catalog}
           title={scenario.title}
@@ -202,6 +212,7 @@ export function PlaygroundPage({ catalog }: { catalog: Catalog }) {
               elapsedMs={playback.elapsedMs}
               hasStarted={playback.hasStarted}
               complete={playback.isComplete}
+              speed={speed}
             />
             <div className="playback-side">
               <StatFoot summary={playback.summary} />

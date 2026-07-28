@@ -43,12 +43,22 @@ function clampMotionMs(ms: number): number {
   return Math.max(MIN_MOTION_MS, Math.min(MAX_MOTION_MS, ms));
 }
 
-export function cadenceDurationMs(tgRate: number): number {
-  if (!(tgRate > 0)) return BASE_CADENCE_MS;
-  return clampMotionMs(BASE_CADENCE_MS * (REFERENCE_TG_RATE / tgRate));
+// The playback speed multiplier scales wall-clock in usePlayback, so tokens at
+// 8x land eight times faster. The cadence/sweep textures have to divide by the
+// same multiplier or the animation contradicts the schedule it is describing.
+// Note the [300ms, 2000ms] clamp still applies afterwards: past the floor the
+// texture stops tracking the rate, because below ~3 ticks/sec it reads as
+// flicker rather than as cadence.
+function effectiveSpeed(speed: number): number {
+  return speed > 0 && Number.isFinite(speed) ? speed : 1;
 }
 
-export function sweepDurationMs(ppRate: number): number {
-  if (!(ppRate > 0)) return BASE_SWEEP_MS;
-  return clampMotionMs(BASE_SWEEP_MS * (REFERENCE_PP_RATE / ppRate));
+export function cadenceDurationMs(tgRate: number, speed = 1): number {
+  const base = tgRate > 0 ? BASE_CADENCE_MS * (REFERENCE_TG_RATE / tgRate) : BASE_CADENCE_MS;
+  return clampMotionMs(base / effectiveSpeed(speed));
+}
+
+export function sweepDurationMs(ppRate: number, speed = 1): number {
+  const base = ppRate > 0 ? BASE_SWEEP_MS * (REFERENCE_PP_RATE / ppRate) : BASE_SWEEP_MS;
+  return clampMotionMs(base / effectiveSpeed(speed));
 }

@@ -1,6 +1,6 @@
 import { ArrowRight, ExternalLink, Flag, Search, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { StatusBadge } from "../components/StatusBadge";
+import { TrustBadge } from "../components/TrustBadge";
 import { SearchSelect } from "../components/SimulatorPieces";
 import { DepthRateCurve, EvidencePanel, QualityFlags } from "../components/Visualizations";
 import { createCatalogLookups, rankedResults, DEFAULT_SCENARIO_ID } from "../lib/catalog";
@@ -491,7 +491,7 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
                     <span>{baselineMetric(baselineByResultId, result.id, "tg").toFixed(1)}</span>
                     <span className="accent-strong">{formatSeconds(seconds)}</span>
                     <span>
-                      <StatusBadge status={result.status} />
+                      <TrustBadge status={result.status} />
                     </span>
                     <span className="table-actions">
                       <button
