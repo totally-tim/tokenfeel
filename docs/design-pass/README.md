@@ -10,17 +10,17 @@ pinned via share URL, so the two sides differ only by the restyle:
      &s=repo-wide-refactor&speed=1
 ```
 
-| File | What it shows |
-| --- | --- |
-| `race.jpg` | Race at rest — aligned centre columns, trust badges, readable provenance |
-| `race-running.jpg` | Race mid-playback — phase hierarchy, subordinate projected gap |
-| `playground.jpg` | Playground — idle rows sized to content instead of stretched |
-| `method.jpg` | Data & method — no orphaned fifth card, no dead space |
-| `landing.jpg` | Landing — hero descenders no longer clipped |
-| `contribute.jpg` | Contribute — hero aligned to the grid, prompt wraps |
-| `configs.jpg` | Configs — trust badges in the table |
-| `m-race.jpg` | Race at 390px |
-| `trust-four-states.jpg` | The four trust states in colour and greyscale, with contrast ratios |
+| File                    | What it shows                                                            |
+| ----------------------- | ------------------------------------------------------------------------ |
+| `race.jpg`              | Race at rest — aligned centre columns, trust badges, readable provenance |
+| `race-running.jpg`      | Race mid-playback — phase hierarchy, subordinate projected gap           |
+| `playground.jpg`        | Playground — idle rows sized to content instead of stretched             |
+| `method.jpg`            | Data & method — no orphaned fifth card, no dead space                    |
+| `landing.jpg`           | Landing — hero descenders no longer clipped                              |
+| `contribute.jpg`        | Contribute — hero aligned to the grid, prompt wraps                      |
+| `configs.jpg`           | Configs — trust badges in the table                                      |
+| `m-race.jpg`            | Race at 390px                                                            |
+| `trust-four-states.jpg` | The four trust states in colour and greyscale, with contrast ratios      |
 
 `flagged` and `illustrative` are composed in the proof image rather than captured
 from the app: the catalog contains 791 `community` and 5 `verified` rows and zero

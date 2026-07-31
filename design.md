@@ -79,25 +79,25 @@ re-deriving a base color at ad-hoc alpha.
 Sizes come from one scale, declared as tokens. Do not introduce a raw `px`
 font-size; add a rung if a genuinely new size is needed.
 
-| Token | Size | Role |
-| --- | --- | --- |
-| `--text-2xs` | 10px | mono micro-labels, badge text |
-| `--text-xs` | 11px | dense workbench labels |
-| `--text-sm` | 12px | secondary data, note prose |
-| `--text-md` | 13px | control labels |
-| `--text-base` | 14px | body |
-| `--text-lg` | 15px | emphasized body |
-| `--text-body` | 16px | doc-page body |
-| `--text-xl` | 18px | panel titles |
-| `--text-2xl` | 21px | sub-headings, subordinate figures |
-| `--text-3xl` | 24px | lane titles, live throughput |
-| `--text-4xl` | 30px | phase name, section headings |
-| `--text-5xl` | 36px | race clock |
-| `--display-xs` | 40px | final elapsed time |
-| `--display-s` | 44px | landing stats |
-| `--display-m` | 48px | doc-page hero |
-| `--display-l` | 62px | boot screen |
-| `--display-xl` | 84px | landing hero |
+| Token          | Size | Role                              |
+| -------------- | ---- | --------------------------------- |
+| `--text-2xs`   | 10px | mono micro-labels, badge text     |
+| `--text-xs`    | 11px | dense workbench labels            |
+| `--text-sm`    | 12px | secondary data, note prose        |
+| `--text-md`    | 13px | control labels                    |
+| `--text-base`  | 14px | body                              |
+| `--text-lg`    | 15px | emphasized body                   |
+| `--text-body`  | 16px | doc-page body                     |
+| `--text-xl`    | 18px | panel titles                      |
+| `--text-2xl`   | 21px | sub-headings, subordinate figures |
+| `--text-3xl`   | 24px | lane titles, live throughput      |
+| `--text-4xl`   | 30px | phase name, section headings      |
+| `--text-5xl`   | 36px | race clock                        |
+| `--display-xs` | 40px | final elapsed time                |
+| `--display-s`  | 44px | landing stats                     |
+| `--display-m`  | 48px | doc-page hero                     |
+| `--display-l`  | 62px | boot screen                       |
+| `--display-xl` | 84px | landing hero                      |
 
 ## Structure
 
@@ -182,12 +182,12 @@ separation prevents.
 The four states differ on hue **and** on two non-color signals, so they survive
 greyscale and color-blindness:
 
-| State | Icon | Color | Border |
-| --- | --- | --- | --- |
-| `verified` | shield-check | `--accent-ink` | 1px solid |
-| `community` | users | `--fg-secondary` | 1px solid |
-| `flagged` | triangle-alert | `--warn` | 2px solid, weight 700 |
-| `illustrative` | flask-conical | `--think-ink` | 1px dashed |
+| State          | Icon           | Color            | Border                |
+| -------------- | -------------- | ---------------- | --------------------- |
+| `verified`     | shield-check   | `--accent-ink`   | 1px solid             |
+| `community`    | users          | `--fg-secondary` | 1px solid             |
+| `flagged`      | triangle-alert | `--warn`         | 2px solid, weight 700 |
+| `illustrative` | flask-conical  | `--think-ink`    | 1px dashed            |
 
 Badge text is 10px, which is small text, so every foreground must clear 4.5:1
 against its own background. That is why `--accent-ink` and `--think-ink` exist:
@@ -201,7 +201,7 @@ Provenance notes render at **zero clicks**, wrapped, in full — no ellipsis, no
 fixed height, no disclosure. They are not boilerplate: they carry
 action-critical caveats such as a comparison that is "not perfectly isolated" or
 measurements clamped after an implausible jump, and a reader needs to know such a
-caveat exists *before* acting on the number. Illegible provenance is worse than
+caveat exists _before_ acting on the number. Illegible provenance is worse than
 absent provenance, and provenance hidden behind a click is worse than either — a
 note count does not tell you a caveat is there. Costing vertical space is the
 right trade. The source link sits directly beneath.

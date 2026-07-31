@@ -1269,7 +1269,6 @@ mark {
   font-size: var(--text-2xs);
 }
 
-
 .transcript {
   display: flex;
   flex-direction: column;
@@ -1535,7 +1534,6 @@ mark {
   font-size: var(--text-2xs);
   text-decoration: none;
 }
-
 
 .playback-primary {
   display: grid;

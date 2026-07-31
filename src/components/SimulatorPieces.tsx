@@ -895,66 +895,66 @@ export function RaceLane({
             {outputEvents.length === 0
               ? null
               : outputEvents.map((event) => {
-                const eventActive = event.index === activeEvent.index;
-                const eventElapsedMs = eventActive ? elapsedMs : event.endMs;
-                const streamFrame = streamFrameForEvent(event, eventElapsedMs);
-                const streamedText = streamFrame.text;
-                const waitingForOutput =
-                  eventActive &&
-                  isGeneratedEvent(event) &&
-                  streamedText.length === 0 &&
-                  streamFrame.tokens === 0 &&
-                  elapsedMs < event.endMs;
-                const waitingCopy =
-                  event.toolLatencyMs > 0 && elapsedMs < event.toolDoneMs
-                    ? "Waiting on tool latency before output can stream."
-                    : "Decode will stream here as soon as the first token arrives.";
-                const showCursor = eventActive && isGeneratedEvent(event) && streamFrame.progress < 1;
-                const eventMetric =
-                  eventActive && isGeneratedEvent(event)
-                    ? `${formatNumber(streamFrame.tokens)} / ${formatNumber(event.tokens)} tok`
-                    : eventActive
-                      ? turnMetricForEvent(event)
-                      : `${formatNumber(event.tokens)} tok`;
+                  const eventActive = event.index === activeEvent.index;
+                  const eventElapsedMs = eventActive ? elapsedMs : event.endMs;
+                  const streamFrame = streamFrameForEvent(event, eventElapsedMs);
+                  const streamedText = streamFrame.text;
+                  const waitingForOutput =
+                    eventActive &&
+                    isGeneratedEvent(event) &&
+                    streamedText.length === 0 &&
+                    streamFrame.tokens === 0 &&
+                    elapsedMs < event.endMs;
+                  const waitingCopy =
+                    event.toolLatencyMs > 0 && elapsedMs < event.toolDoneMs
+                      ? "Waiting on tool latency before output can stream."
+                      : "Decode will stream here as soon as the first token arrives.";
+                  const showCursor = eventActive && isGeneratedEvent(event) && streamFrame.progress < 1;
+                  const eventMetric =
+                    eventActive && isGeneratedEvent(event)
+                      ? `${formatNumber(streamFrame.tokens)} / ${formatNumber(event.tokens)} tok`
+                      : eventActive
+                        ? turnMetricForEvent(event)
+                        : `${formatNumber(event.tokens)} tok`;
 
-                return (
-                  <article
-                    key={event.id}
-                    ref={eventActive ? activeOutputRef : undefined}
-                    className={`race-output-event event-${event.role} ${eventActive ? "current" : ""}`}
-                  >
-                    <div className="event-head">
-                      <span>
-                        turn {event.index + 1} · {eventLabel(event)}
-                      </span>
-                      <span>{eventMetric}</span>
-                    </div>
-                    {waitingForOutput ? (
-                      <p className="race-output-waiting">{waitingCopy}</p>
-                    ) : event.role === "tool_call" ? (
-                      <pre ref={eventActive ? (tailRef as Ref<HTMLPreElement>) : undefined}>
-                        {streamedText}
-                        {showCursor ? <span className="cursor">▍</span> : null}
-                      </pre>
-                    ) : event.role === "tool_result" ? (
-                      <div className="tool-result">{event.text}</div>
-                    ) : event.role === "thinking" ? (
-                      <ThinkingStream
-                        event={event}
-                        streamedText={streamedText}
-                        streamedTokens={streamFrame.tokens}
-                        active={eventActive}
-                        showCursor={showCursor}
-                      />
-                    ) : (
-                      <p ref={eventActive ? (tailRef as Ref<HTMLParagraphElement>) : undefined}>
-                        {streamedText}
-                        {showCursor ? <span className="cursor">▍</span> : null}
-                      </p>
-                    )}
-                  </article>
-                );
-              })}
+                  return (
+                    <article
+                      key={event.id}
+                      ref={eventActive ? activeOutputRef : undefined}
+                      className={`race-output-event event-${event.role} ${eventActive ? "current" : ""}`}
+                    >
+                      <div className="event-head">
+                        <span>
+                          turn {event.index + 1} · {eventLabel(event)}
+                        </span>
+                        <span>{eventMetric}</span>
+                      </div>
+                      {waitingForOutput ? (
+                        <p className="race-output-waiting">{waitingCopy}</p>
+                      ) : event.role === "tool_call" ? (
+                        <pre ref={eventActive ? (tailRef as Ref<HTMLPreElement>) : undefined}>
+                          {streamedText}
+                          {showCursor ? <span className="cursor">▍</span> : null}
+                        </pre>
+                      ) : event.role === "tool_result" ? (
+                        <div className="tool-result">{event.text}</div>
+                      ) : event.role === "thinking" ? (
+                        <ThinkingStream
+                          event={event}
+                          streamedText={streamedText}
+                          streamedTokens={streamFrame.tokens}
+                          active={eventActive}
+                          showCursor={showCursor}
+                        />
+                      ) : (
+                        <p ref={eventActive ? (tailRef as Ref<HTMLParagraphElement>) : undefined}>
+                          {streamedText}
+                          {showCursor ? <span className="cursor">▍</span> : null}
+                        </p>
+                      )}
+                    </article>
+                  );
+                })}
           </div>
           {complete && (
             <p className="done-line">

@@ -74,17 +74,17 @@ font-size remains. All 69 declared tokens have a consumer.
 
 ## Before / after
 
-| Surface | |
-| --- | --- |
-| Race — idle | ![](https://raw.githubusercontent.com/totally-tim/tokenfeel/dfb2c51862f4de99a5b14bf4e3ce6bcb5ea2976e/docs/design-pass/race.jpg) |
-| Race — running | ![](https://raw.githubusercontent.com/totally-tim/tokenfeel/dfb2c51862f4de99a5b14bf4e3ce6bcb5ea2976e/docs/design-pass/race-running.jpg) |
-| Playground | ![](https://raw.githubusercontent.com/totally-tim/tokenfeel/dfb2c51862f4de99a5b14bf4e3ce6bcb5ea2976e/docs/design-pass/playground.jpg) |
-| Data & method | ![](https://raw.githubusercontent.com/totally-tim/tokenfeel/dfb2c51862f4de99a5b14bf4e3ce6bcb5ea2976e/docs/design-pass/method.jpg) |
-| Landing | ![](https://raw.githubusercontent.com/totally-tim/tokenfeel/dfb2c51862f4de99a5b14bf4e3ce6bcb5ea2976e/docs/design-pass/landing.jpg) |
-| Contribute | ![](https://raw.githubusercontent.com/totally-tim/tokenfeel/dfb2c51862f4de99a5b14bf4e3ce6bcb5ea2976e/docs/design-pass/contribute.jpg) |
-| Configs | ![](https://raw.githubusercontent.com/totally-tim/tokenfeel/dfb2c51862f4de99a5b14bf4e3ce6bcb5ea2976e/docs/design-pass/configs.jpg) |
-| Race — 390px | ![](https://raw.githubusercontent.com/totally-tim/tokenfeel/dfb2c51862f4de99a5b14bf4e3ce6bcb5ea2976e/docs/design-pass/m-race.jpg) |
-| Trust states | ![](https://raw.githubusercontent.com/totally-tim/tokenfeel/dfb2c51862f4de99a5b14bf4e3ce6bcb5ea2976e/docs/design-pass/trust-four-states.jpg) |
+| Surface        |                                                                                                                                              |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Race — idle    | ![](https://raw.githubusercontent.com/totally-tim/tokenfeel/dfb2c51862f4de99a5b14bf4e3ce6bcb5ea2976e/docs/design-pass/race.jpg)              |
+| Race — running | ![](https://raw.githubusercontent.com/totally-tim/tokenfeel/dfb2c51862f4de99a5b14bf4e3ce6bcb5ea2976e/docs/design-pass/race-running.jpg)      |
+| Playground     | ![](https://raw.githubusercontent.com/totally-tim/tokenfeel/dfb2c51862f4de99a5b14bf4e3ce6bcb5ea2976e/docs/design-pass/playground.jpg)        |
+| Data & method  | ![](https://raw.githubusercontent.com/totally-tim/tokenfeel/dfb2c51862f4de99a5b14bf4e3ce6bcb5ea2976e/docs/design-pass/method.jpg)            |
+| Landing        | ![](https://raw.githubusercontent.com/totally-tim/tokenfeel/dfb2c51862f4de99a5b14bf4e3ce6bcb5ea2976e/docs/design-pass/landing.jpg)           |
+| Contribute     | ![](https://raw.githubusercontent.com/totally-tim/tokenfeel/dfb2c51862f4de99a5b14bf4e3ce6bcb5ea2976e/docs/design-pass/contribute.jpg)        |
+| Configs        | ![](https://raw.githubusercontent.com/totally-tim/tokenfeel/dfb2c51862f4de99a5b14bf4e3ce6bcb5ea2976e/docs/design-pass/configs.jpg)           |
+| Race — 390px   | ![](https://raw.githubusercontent.com/totally-tim/tokenfeel/dfb2c51862f4de99a5b14bf4e3ce6bcb5ea2976e/docs/design-pass/m-race.jpg)            |
+| Trust states   | ![](https://raw.githubusercontent.com/totally-tim/tokenfeel/dfb2c51862f4de99a5b14bf4e3ce6bcb5ea2976e/docs/design-pass/trust-four-states.jpg) |
 
 ## Verification
 
