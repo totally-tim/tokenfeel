@@ -459,6 +459,7 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
           activeEvent={leftPlayback.activeEvent}
           elapsedMs={leftPlayback.elapsedMs}
           hasStarted={leftPlayback.hasStarted}
+          speed={speed}
           winner={verdict.winner === "left"}
         />
         <aside className="delta-spine">
@@ -522,6 +523,7 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
           activeEvent={rightPlayback.activeEvent}
           elapsedMs={rightPlayback.elapsedMs}
           hasStarted={rightPlayback.hasStarted}
+          speed={speed}
           winner={verdict.winner === "right"}
         />
       </section>

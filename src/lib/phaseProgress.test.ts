@@ -86,3 +86,45 @@ describe("rate-scaled motion durations", () => {
     expect(sweepDurationMs(0)).toBe(1150);
   });
 });
+
+describe("speed multiplier is honored in motion durations", () => {
+  // usePlayback scales wall-clock by `speed`, so tokens at 4x land four times
+  // faster. If the cadence/sweep textures ignored the multiplier they would
+  // animate at 1x while the schedule ran at 4x -- a lane whose motion
+  // contradicts its own clock.
+  test("cadenceDurationMs divides by the speed multiplier", () => {
+    expect(cadenceDurationMs(50, 1)).toBe(900);
+    expect(cadenceDurationMs(50, 2)).toBe(450);
+    expect(cadenceDurationMs(25, 2)).toBe(900);
+  });
+
+  test("sweepDurationMs divides by the speed multiplier", () => {
+    expect(sweepDurationMs(800, 1)).toBe(1150);
+    expect(sweepDurationMs(800, 2)).toBe(575);
+    expect(sweepDurationMs(400, 2)).toBe(1150);
+  });
+
+  test("defaults to 1x when no multiplier is supplied", () => {
+    expect(cadenceDurationMs(50)).toBe(cadenceDurationMs(50, 1));
+    expect(sweepDurationMs(800)).toBe(sweepDurationMs(800, 1));
+  });
+
+  test("a non-positive or non-finite multiplier falls back to 1x rather than dividing by zero", () => {
+    expect(cadenceDurationMs(50, 0)).toBe(900);
+    expect(cadenceDurationMs(50, -4)).toBe(900);
+    expect(cadenceDurationMs(50, Number.NaN)).toBe(900);
+    expect(sweepDurationMs(800, 0)).toBe(1150);
+    expect(sweepDurationMs(800, Number.POSITIVE_INFINITY)).toBe(1150);
+  });
+
+  test("the motion floor still applies after the multiplier, so high speeds clamp", () => {
+    // 900 / 8 = 112.5ms, below the 300ms flicker floor.
+    expect(cadenceDurationMs(50, 8)).toBe(300);
+    expect(sweepDurationMs(800, 8)).toBe(300);
+  });
+
+  test("a non-positive rate still respects the multiplier", () => {
+    expect(cadenceDurationMs(0, 2)).toBe(450);
+    expect(sweepDurationMs(0, 2)).toBe(575);
+  });
+});

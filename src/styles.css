@@ -3,6 +3,9 @@
 :root {
   --accent: #0a84ff;
   --accent-strong: #006edb;
+  /* Text-safe accent. --accent-strong is 4.37:1 on --accent-soft, which fails AA
+     for the 10px badge label. */
+  --accent-ink: #0a5bb8;
   --accent-soft: #e8f2ff;
   --border-hair: #d7d7dd;
   --border-primary: #bfc0c7;
@@ -18,35 +21,82 @@
   --surface-secondary: #f5f5f7;
   --surface-control: #e9e9ef;
   --surface-wash: #f2f2f7;
-  --warn: #c06d13;
-  --warn-bright: #ff9f0a;
+
+  /* Amber carries two distinct roles and they need two values. --warn is the
+     text/icon amber: #ff9f0a on white is ~2.0:1 and fails AA for text, so
+     anything with a readable glyph uses this darker value. --warn-fill is the
+     design.md spec amber, used where contrast-for-text does not apply —
+     progress fills, lane stripes, chart marks, strokes. */
+  --warn: #a35c0f;
+  --warn-fill: #ff9f0a;
   --warn-soft: #fff4df;
+
+  /* Thinking is a fourth phase hue, deliberately distinct from accent/warn/ink
+     because reasoning tokens stream before the visible answer. */
+  --think: #7c5cff;
+  --think-ink: #5b3fd1;
+  --think-soft: #f1ecff;
+
   --nav-height: 64px;
+  /* Race uses a single centre-column width so the config band above and the
+     lane band below sit on one grid. The two used to disagree (280px vs 176px),
+     which read as two half-finished layouts stacked. */
+  --race-center: 272px;
   --radius-sm: 8px;
   --radius-md: 10px;
   --radius-lg: 14px;
   --shadow-panel: 0 18px 42px rgba(29, 29, 31, 0.1);
   --shadow-subtle: 0 1px 0 rgba(29, 29, 31, 0.04), 0 10px 28px rgba(29, 29, 31, 0.06);
 
+  /* Derived tint. Add to this list rather than inlining a new rgba(). */
+  --accent-ghost: rgba(10, 132, 255, 0.25);
+
+  /* Type scale. Replaces twelve arbitrary steps between 9px and 14.5px with
+     clean rungs — the dense workbench sizes are 2xs..base, display sizes are
+     reserved for the landing hero and doc-page titles. Font size never scales
+     with viewport width. */
+  --text-2xs: 10px;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-md: 13px;
+  --text-base: 14px;
+  --text-lg: 15px;
+  --text-body: 16px;
+  --text-xl: 18px;
+  --text-2xl: 21px;
+  --text-3xl: 24px;
+  --text-4xl: 30px;
+  --text-5xl: 36px;
+  --display-xs: 40px;
+  --display-s: 44px;
+  --display-m: 48px;
+  --display-l: 62px;
+  --display-xl: 84px;
+
   /* Canonical simulation-phase palette — one source of truth for every
-     surface that shows inference state (Race, Playground, Landing, Method). */
-  --phase-queued: #8a8a92;
-  --phase-queued-soft: #f5f5f7;
-  --phase-prefill: #0a84ff;
-  --phase-prefill-soft: #e8f2ff;
-  --phase-tool: #c06d13;
-  --phase-tool-soft: #fff4df;
-  --phase-decode: #1c1c1e;
-  --phase-decode-soft: #ececf1;
-  --phase-thinking: #7c5cff;
-  --phase-thinking-soft: #f1ecff;
-  --phase-complete: #0a84ff;
-  --phase-complete-soft: #e8f2ff;
+     surface that shows inference state (Race, Playground, Landing, Method).
+     These reference the base tokens rather than copying their hex. */
+  --phase-queued: var(--fg-muted);
+  --phase-queued-soft: var(--surface-secondary);
+  --phase-prefill: var(--accent);
+  --phase-prefill-soft: var(--accent-soft);
+  --phase-tool: var(--warn);
+  --phase-tool-fill: var(--warn-fill);
+  --phase-tool-soft: var(--warn-soft);
+  --phase-decode: var(--surface-ink);
+  --phase-decode-soft: var(--border-subtle);
+  --phase-thinking: var(--think);
+  --phase-thinking-soft: var(--think-soft);
+  --phase-complete: var(--accent);
+  --phase-complete-soft: var(--accent-soft);
 
   /* Motion tokens — timings/easings for the phase language. --sweep-duration
-     and --cadence-duration are overridden per-track in PhaseState with
-     values scaled to the active event's real ppRate/tgRate; these stay only
-     as the fallback before a track sets its own. */
+     and --cadence-duration are overridden per-track in PhaseState with values
+     scaled to the active event's real ppRate/tgRate AND the playback speed
+     multiplier; these stay only as the fallback before a track sets its own.
+     Nothing here may sit between simulated progress and displayed progress:
+     motion styles the cadence, it never times it. */
+  --motion-instant: 90ms;
   --motion-fast: 180ms;
   --motion-med: 320ms;
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
@@ -106,6 +156,15 @@
 
 .app-shell {
   min-height: 100vh;
+  background: var(--surface-wash);
+}
+
+/* Paper texture is for the reading surfaces (landing and the two doc pages).
+   Workbenches -- Playground, Race, Configs -- stay flat: AGENTS.md forbids
+   decoration in app workspaces, and the grid was visibly showing through the
+   gaps in Race's centre column. */
+.app-shell:has(.landing-page),
+.app-shell:has(.doc-page) {
   background:
     linear-gradient(90deg, rgba(215, 215, 221, 0.54) 1px, transparent 1px),
     linear-gradient(0deg, rgba(215, 215, 221, 0.4) 1px, transparent 1px), var(--surface-wash);
@@ -127,7 +186,7 @@
 .boot-screen span {
   color: var(--accent);
   font-family: "Geist Mono", monospace;
-  font-size: 12px;
+  font-size: var(--text-sm);
   letter-spacing: 0.8px;
 }
 
@@ -135,7 +194,7 @@
   max-width: 640px;
   margin: 0;
   font-family: "Geist", system-ui, sans-serif;
-  font-size: 62px;
+  font-size: var(--display-l);
   line-height: 1;
 }
 
@@ -143,7 +202,7 @@
   max-width: 560px;
   margin: 0;
   color: var(--fg-secondary);
-  font-size: 16px;
+  font-size: var(--text-body);
   line-height: 1.5;
 }
 
@@ -193,20 +252,20 @@
   color: var(--fg-inverse);
   font-family: "Geist Mono", monospace;
   font-weight: 700;
-  font-size: 15px;
+  font-size: var(--text-lg);
 }
 
 .brand-word {
   font-family: "Geist", system-ui, sans-serif;
   font-weight: 650;
-  font-size: 18px;
+  font-size: var(--text-xl);
   letter-spacing: 0;
 }
 
 .brand-tag {
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 10px;
+  font-size: var(--text-2xs);
   letter-spacing: 0;
 }
 
@@ -226,7 +285,7 @@
   border: 0;
   background: transparent;
   color: var(--fg-secondary);
-  font-size: 14px;
+  font-size: var(--text-base);
   text-decoration: none;
 }
 
@@ -257,7 +316,7 @@
   gap: 4px;
   color: var(--fg-secondary);
   font-family: "Geist Mono", monospace;
-  font-size: 12px;
+  font-size: var(--text-sm);
   text-decoration: none;
 }
 
@@ -275,7 +334,7 @@
   background: var(--accent);
   color: var(--fg-inverse);
   font-family: "Geist", system-ui, sans-serif;
-  font-size: 14px;
+  font-size: var(--text-base);
   font-weight: 600;
   border-radius: var(--radius-sm);
   box-shadow: 0 8px 18px rgba(10, 132, 255, 0.18);
@@ -286,7 +345,7 @@
 .dark-secondary-button.small {
   min-height: 38px;
   padding: 0 16px;
-  font-size: 14px;
+  font-size: var(--text-base);
 }
 
 .secondary-button {
@@ -310,7 +369,7 @@
   margin: 0;
   color: var(--accent);
   font-family: "Geist Mono", monospace;
-  font-size: 13px;
+  font-size: var(--text-md);
   letter-spacing: 2px;
 }
 
@@ -339,14 +398,22 @@
 }
 
 .hero-section h1 {
-  font-size: 84px;
-  line-height: 0.98;
+  font-size: var(--display-xl);
+  /* 0.98 clipped the descenders ("g" in "generation") at weight 650. 1.06 gives
+     the descender room back without loosening the hero's density. */
+  line-height: 1.06;
   max-width: 820px;
+  overflow-wrap: anywhere;
+  min-width: 0;
 }
 
 mark {
-  padding: 0 0.12em 0.04em;
-  border-radius: 10px;
+  /* Tight to the glyphs, and cloned across line breaks so a wrapped highlight
+     does not paint one oversized box. Trailing punctuation sits outside. */
+  padding: 0 0.06em;
+  border-radius: 8px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
   background: var(--accent-soft);
   color: var(--accent);
 }
@@ -355,7 +422,7 @@ mark {
   max-width: 660px;
   margin: 0;
   color: var(--fg-secondary);
-  font-size: 17px;
+  font-size: var(--text-xl);
   line-height: 1.5;
 }
 
@@ -392,7 +459,7 @@ mark {
 .trust-strip span {
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 0.5px;
 }
 
@@ -400,7 +467,7 @@ mark {
   color: var(--fg-secondary);
   font-family: "Geist", system-ui, sans-serif;
   font-weight: 600;
-  font-size: 15px;
+  font-size: var(--text-lg);
 }
 
 .pipeline-zone {
@@ -424,13 +491,13 @@ mark {
   border-bottom: 1px solid var(--border-hair);
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 0.4px;
 }
 
 .pipeline-head span:first-child {
   color: var(--fg-primary);
-  font-size: 12px;
+  font-size: var(--text-sm);
   letter-spacing: 1.5px;
 }
 
@@ -455,7 +522,7 @@ mark {
   background: rgba(245, 245, 247, 0.84);
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 0.7px;
 }
 
@@ -468,7 +535,7 @@ mark {
   padding: 16px;
   color: var(--fg-secondary);
   font-family: "Geist Mono", monospace;
-  font-size: 12px;
+  font-size: var(--text-sm);
   line-height: 1.9;
   white-space: pre-wrap;
 }
@@ -501,14 +568,14 @@ mark {
 .stats-strip strong {
   display: block;
   font-family: "Geist Mono", monospace;
-  font-size: 44px;
+  font-size: var(--display-s);
   line-height: 1;
   color: var(--fg-primary);
 }
 
 .stats-strip span {
   color: var(--fg-secondary);
-  font-size: 13.5px;
+  font-size: var(--text-md);
 }
 
 .feature-section {
@@ -521,7 +588,7 @@ mark {
 .feature-section h2 {
   margin-bottom: 44px;
   text-align: center;
-  font-size: 40px;
+  font-size: var(--display-xs);
 }
 
 .feature-grid {
@@ -585,7 +652,7 @@ mark {
   background: transparent;
   color: var(--accent);
   font-family: "Geist Mono", monospace;
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 
 .closing-zone {
@@ -601,7 +668,7 @@ mark {
 
 .closing-zone h2 {
   color: var(--fg-inverse);
-  font-size: 48px;
+  font-size: var(--display-m);
   line-height: 1.35;
 }
 
@@ -612,7 +679,7 @@ mark {
   border-top: 1px solid var(--border-hair);
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 11px;
+  font-size: var(--text-xs);
   background: rgba(255, 255, 255, 0.64);
 }
 
@@ -652,7 +719,7 @@ mark {
   justify-content: space-between;
   color: var(--fg-primary);
   font-family: "Geist Mono", monospace;
-  font-size: 12px;
+  font-size: var(--text-sm);
   letter-spacing: 1.2px;
 }
 
@@ -665,7 +732,7 @@ mark {
 .speed-row > span {
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 10.5px;
+  font-size: var(--text-2xs);
   letter-spacing: 0.8px;
 }
 
@@ -681,7 +748,7 @@ mark {
   display: block;
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 10.5px;
+  font-size: var(--text-2xs);
 }
 
 .search-select {
@@ -697,7 +764,7 @@ mark {
   gap: 12px;
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 10.5px;
+  font-size: var(--text-2xs);
   letter-spacing: 1px;
 }
 
@@ -727,7 +794,7 @@ mark {
   padding: 0 10px;
   border-color: var(--border-hair);
   font-family: "Geist Mono", monospace;
-  font-size: 11.5px;
+  font-size: var(--text-xs);
   background: rgba(255, 255, 255, 0.78);
 }
 
@@ -765,7 +832,7 @@ mark {
   overflow: hidden;
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 10.5px;
+  font-size: var(--text-2xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -851,7 +918,7 @@ mark {
   margin: 0;
   padding: 12px;
   color: var(--fg-secondary);
-  font-size: 13px;
+  font-size: var(--text-md);
   line-height: 1.4;
 }
 
@@ -946,13 +1013,13 @@ mark {
   background: transparent;
   color: var(--fg-secondary);
   font-family: "Geist Mono", monospace;
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 600;
 }
 
 .cache-mode-grid button {
   min-height: 28px;
-  font-size: 10.5px;
+  font-size: var(--text-2xs);
 }
 
 .speed-grid button.active,
@@ -975,18 +1042,31 @@ mark {
   margin: 0;
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 10.5px;
+  font-size: var(--text-2xs);
   line-height: 1.4;
 }
 
+/* Before playback starts the transcript holds only the system prompt and the
+   first user turn, so stretching it to fill the viewport left ~400px of empty
+   panel that read as broken rather than as "not started". Idle packs the three
+   rows to the top at their natural heights and leaves plain canvas below --
+   align-content matters here, because without it the leftover space is
+   distributed into the auto rows and inflates the header instead. Once playing,
+   the transcript takes the room it needs to stream into. */
 .session-main {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto;
+  align-content: start;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
   padding: 14px 18px 18px;
   gap: 14px;
+}
+
+.playground-page.session-live .session-main {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  align-content: stretch;
 }
 
 .session-header {
@@ -1005,14 +1085,14 @@ mark {
 .session-header h1 {
   margin: 0;
   font-family: "Geist", system-ui, sans-serif;
-  font-size: 19px;
+  font-size: var(--text-xl);
 }
 
 .session-header p {
   margin: 4px 0 0;
   color: var(--fg-secondary);
   font-family: "Geist Mono", monospace;
-  font-size: 11.5px;
+  font-size: var(--text-xs);
 }
 
 .session-header-right {
@@ -1029,13 +1109,13 @@ mark {
 
 .live-rate strong {
   font-family: "Geist Mono", monospace;
-  font-size: 22px;
+  font-size: var(--text-2xl);
 }
 
 .live-rate span {
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 10px;
+  font-size: var(--text-2xs);
 }
 
 .status-badge {
@@ -1048,7 +1128,7 @@ mark {
   background: var(--accent-soft);
   color: var(--accent);
   font-family: "Geist Mono", monospace;
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 0.5px;
 }
 
@@ -1059,25 +1139,134 @@ mark {
   border-radius: 999px;
 }
 
-.status-community,
-.status-illustrative,
+/* Playback state. Trust state is a separate family below -- `flagged` and
+   `running` used to share one rule here, which made a disputed benchmark row
+   look exactly like a healthy lane mid-race. */
 .status-idle {
   border-color: var(--border-hair);
   background: var(--surface-secondary);
   color: var(--fg-secondary);
 }
 
-.status-flagged,
-.status-running {
-  border-color: var(--warn);
-  background: var(--warn-soft);
-  color: var(--warn);
+.status-generating {
+  border-color: var(--accent-ghost);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .status-finished {
-  border-color: rgba(10, 132, 255, 0.25);
+  border-color: var(--accent-ghost);
   background: var(--accent-soft);
   color: var(--accent);
+}
+
+/* ---- Trust state ------------------------------------------------------- */
+/* Four catalog trust states. Each differs from the others on hue, on the icon
+   glyph, AND on border treatment, so they stay separable in greyscale and for
+   colour-blind users -- "color is not the only state indicator" (AGENTS.md).
+   Do not harmonise these: `flagged` losing its shout is the exact failure mode
+   a restyle introduces. */
+.trust-badge {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  width: fit-content;
+  min-height: 22px;
+  padding: 0 8px;
+  border: 1px solid var(--border-hair);
+  border-radius: 999px;
+  background: var(--surface-secondary);
+  color: var(--fg-secondary);
+  font-family: "Geist Mono", monospace;
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+
+.trust-badge svg {
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+}
+
+/* Verified: accent, solid confident border. */
+.trust-verified {
+  border-color: var(--accent-ghost);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+/* Community: the neutral default. Deliberately quiet -- it is the common case. */
+.trust-community {
+  border-color: var(--border-hair);
+  background: var(--surface-secondary);
+  color: var(--fg-secondary);
+}
+
+/* Flagged: must shout. Heavier border, amber, warning glyph. */
+.trust-flagged {
+  border-width: 2px;
+  border-color: var(--warn);
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-weight: 700;
+}
+
+/* Illustrative/demo: dashed border reads as "not a real measurement" even in
+   greyscale, and the hue is the thinking violet so it cannot be mistaken for
+   either the accent (verified) or the amber (flagged). */
+.trust-illustrative {
+  border-style: dashed;
+  border-color: var(--think-ink);
+  background: var(--think-soft);
+  color: var(--think-ink);
+}
+
+.trust-compact {
+  min-height: 20px;
+  padding: 0 7px;
+  letter-spacing: 0.3px;
+}
+
+/* ---- Provenance ------------------------------------------------------- */
+/* Notes render in full at zero clicks -- wrapped, never ellipsized, no fixed
+   height. Illegible provenance is worse than absent provenance, and hiding a
+   caveat behind a disclosure is worse than either. */
+.provenance {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.provenance-notes {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 8px 10px;
+  list-style: none;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--surface-secondary);
+}
+
+.provenance-notes li {
+  color: var(--fg-secondary);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.provenance-notes li + li {
+  padding-top: 5px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.provenance-source {
+  width: fit-content;
+  color: var(--accent-ink);
+  font-family: "Geist Mono", monospace;
+  font-size: var(--text-2xs);
 }
 
 .transcript {
@@ -1102,7 +1291,7 @@ mark {
   background: var(--surface-secondary);
   color: var(--fg-secondary);
   font-family: "Geist Mono", monospace;
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 0.6px;
 }
 
@@ -1115,7 +1304,7 @@ mark {
   gap: 9px;
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 10.5px;
+  font-size: var(--text-2xs);
 }
 
 .event-head span:first-child {
@@ -1132,7 +1321,7 @@ mark {
 .transcript-event p {
   margin: 0;
   max-width: 960px;
-  font-size: 14.5px;
+  font-size: var(--text-base);
   line-height: 1.55;
 }
 
@@ -1141,7 +1330,7 @@ mark {
   margin: 0;
   padding: 10px 13px;
   font-family: "Geist Mono", monospace;
-  font-size: 12px;
+  font-size: var(--text-sm);
   line-height: 1.5;
   white-space: pre-wrap;
 }
@@ -1163,7 +1352,7 @@ mark {
   background: var(--surface-secondary);
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 10.5px;
+  font-size: var(--text-2xs);
   letter-spacing: 0.4px;
 }
 
@@ -1171,7 +1360,7 @@ mark {
   margin: 0;
   color: var(--fg-secondary);
   font-family: "Geist", system-ui, sans-serif;
-  font-size: 13px;
+  font-size: var(--text-md);
   letter-spacing: 0;
   line-height: 1.45;
 }
@@ -1182,8 +1371,28 @@ mark {
   overscroll-behavior: contain;
 }
 
+/* The decode caret. It pulses at --cadence-duration, which the lane/session
+   root derives from the active event's tgRate and the speed multiplier -- so the
+   caret's tempo *describes* the simulated decode rate. It does not drive it:
+   which token is visible at a given moment comes from usePlayback's rAF clock,
+   never from this animation. */
 .cursor {
   color: var(--accent);
+  animation: caret-cadence var(--cadence-duration) steps(2, jump-none) infinite;
+}
+
+.phase-state-thinking ~ * .cursor,
+.thinking-row .cursor {
+  color: var(--phase-thinking);
+}
+
+@keyframes caret-cadence {
+  0% {
+    opacity: 0.35;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 .bottom-bar {
@@ -1208,7 +1417,7 @@ mark {
   justify-content: space-between;
   color: var(--fg-secondary);
   font-family: "Geist Mono", monospace;
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 
 .meter-head span:first-child {
@@ -1231,7 +1440,7 @@ mark {
 }
 
 .meter-reprefill {
-  background: var(--warn);
+  background: var(--warn-fill);
 }
 
 /* "data ends here" tick: the last measured benchmark depth, so it's visible
@@ -1252,7 +1461,7 @@ mark {
   margin-top: -3px;
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 9px;
+  font-size: var(--text-2xs);
   letter-spacing: 0.4px;
   text-transform: uppercase;
   white-space: nowrap;
@@ -1264,7 +1473,7 @@ mark {
   margin-top: 10px;
   color: var(--fg-secondary);
   font-family: "Geist Mono", monospace;
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 
 .legend {
@@ -1281,7 +1490,7 @@ mark {
 }
 
 .legend.reprefill {
-  background: var(--warn);
+  background: var(--warn-fill);
 }
 
 .legend.headroom {
@@ -1308,13 +1517,13 @@ mark {
 .stat-foot span {
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 10px;
+  font-size: var(--text-2xs);
   letter-spacing: 0.5px;
 }
 
 .stat-foot strong {
   font-family: "Geist Mono", monospace;
-  font-size: 16px;
+  font-size: var(--text-body);
 }
 
 .source-note {
@@ -1322,34 +1531,8 @@ mark {
   margin-top: 8px;
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 10px;
+  font-size: var(--text-2xs);
   text-decoration: none;
-}
-
-/* Always-visible caveat chips (result/hardware/model notes) -- deliberately
-   outside any Disclosure, since they're provenance-relevant, not diagnostic
-   detail. Truncated with an ellipsis; the full text is on the chip's title
-   attribute so nothing is silently cut off. */
-.caveat-notes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 6px;
-}
-
-.caveat-chip {
-  max-width: 100%;
-  overflow: hidden;
-  padding: 3px 8px;
-  border: 1px solid var(--border-hair);
-  border-radius: var(--radius-sm);
-  background: var(--surface-secondary);
-  color: var(--fg-secondary);
-  font-family: "Geist Mono", monospace;
-  font-size: 10px;
-  line-height: 1.4;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .playback-primary {
@@ -1398,7 +1581,7 @@ mark {
   gap: 7px;
   color: var(--fg-primary);
   font-family: "Geist Mono", monospace;
-  font-size: 10px;
+  font-size: var(--text-2xs);
   letter-spacing: 0.8px;
   text-transform: uppercase;
 }
@@ -1444,7 +1627,7 @@ mark {
   margin-bottom: 7px;
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 10px;
+  font-size: var(--text-2xs);
   letter-spacing: 0.7px;
 }
 
@@ -1497,7 +1680,7 @@ mark {
   margin-top: 7px;
   color: var(--fg-secondary);
   font-family: "Geist Mono", monospace;
-  font-size: 10px;
+  font-size: var(--text-2xs);
 }
 
 .timeline-strip {
@@ -1574,7 +1757,7 @@ mark {
 .result-quality-panel dt {
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 9.5px;
+  font-size: var(--text-2xs);
   letter-spacing: 0.6px;
   text-transform: uppercase;
 }
@@ -1585,7 +1768,7 @@ mark {
 .result-quality-panel dd {
   color: var(--fg-primary);
   font-family: "Geist Mono", monospace;
-  font-size: 13px;
+  font-size: var(--text-md);
 }
 
 .cache-ledger p {
@@ -1595,7 +1778,7 @@ mark {
   border-top: 1px solid var(--border-hair);
   color: var(--fg-secondary);
   font-family: "Geist Mono", monospace;
-  font-size: 10px;
+  font-size: var(--text-2xs);
 }
 
 .rate-curve-grid {
@@ -1614,7 +1797,7 @@ mark {
 }
 
 .rate-curve-tg {
-  --curve-color: var(--warn);
+  --curve-color: var(--warn-fill);
 }
 
 .rate-curve-head {
@@ -1700,7 +1883,7 @@ mark {
   margin-top: 8px;
   color: var(--fg-secondary);
   font-family: "Geist Mono", monospace;
-  font-size: 9.5px;
+  font-size: var(--text-2xs);
 }
 
 .evidence-panel {
@@ -1725,7 +1908,7 @@ mark {
 
 .evidence-panel dd {
   color: var(--fg-primary);
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 
 .evidence-panel a {
@@ -1733,7 +1916,7 @@ mark {
   width: fit-content;
   color: var(--accent);
   font-family: "Geist Mono", monospace;
-  font-size: 10.5px;
+  font-size: var(--text-2xs);
   text-decoration: none;
 }
 
@@ -1743,7 +1926,7 @@ mark {
   background: var(--surface-ink);
   color: #f5f5f7;
   font-family: "Geist Mono", monospace;
-  font-size: 10px;
+  font-size: var(--text-2xs);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -1753,7 +1936,7 @@ mark {
   gap: 6px;
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 9.5px;
+  font-size: var(--text-2xs);
 }
 
 .quality-flags svg {
@@ -1802,7 +1985,7 @@ mark {
 }
 
 .delta-spine .gap-row strong {
-  font-size: 17px;
+  font-size: var(--text-xl);
 }
 
 .non-measured-chips {
@@ -1821,7 +2004,7 @@ mark {
   background: var(--surface-secondary);
   color: var(--fg-secondary);
   font-family: "Geist Mono", monospace;
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 
 .race-page {
@@ -1867,7 +2050,7 @@ mark {
   background: rgba(255, 255, 255, 0.72);
   color: var(--fg-secondary);
   font-family: "Geist Mono", monospace;
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 
 .comparison-strong {
@@ -1886,7 +2069,7 @@ mark {
   margin: 0;
   max-width: 760px;
   font-family: "Geist", system-ui, sans-serif;
-  font-size: 24px;
+  font-size: var(--text-3xl);
   line-height: 1.15;
 }
 
@@ -1894,7 +2077,7 @@ mark {
   margin: 0;
   color: var(--fg-secondary);
   font-family: "Geist Mono", monospace;
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 
 .race-control-cluster {
@@ -1925,7 +2108,7 @@ mark {
   background: var(--surface-ink);
   color: var(--fg-inverse);
   font-family: "Geist", system-ui, sans-serif;
-  font-size: 14px;
+  font-size: var(--text-base);
   font-weight: 700;
 }
 
@@ -1941,9 +2124,11 @@ mark {
 
 .race-builder-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.52fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) var(--race-center) minmax(0, 1fr);
   gap: 12px;
-  align-items: stretch;
+  /* Cards size to their own content -- stretching them to match the taller
+     centre column left dead space under the lane pickers. */
+  align-items: start;
 }
 
 .race-page.race-in-session .race-workbench {
@@ -1968,7 +2153,7 @@ mark {
 }
 
 .race-page.race-in-session .race-setup-card-head strong {
-  font-size: 16px;
+  font-size: var(--text-body);
 }
 
 .race-page.race-in-session .race-scenario-card .search-select-trigger {
@@ -1997,13 +2182,21 @@ mark {
   align-items: start;
 }
 
+/* Idle: the pickers directly below already show hardware and model, and the
+   lane panel repeats the identity a few pixels lower. Once a race starts the
+   pickers collapse to display:none and this head becomes the lane's only
+   compact identity, so it comes back. */
+.race-page:not(.race-in-session) .race-setup-card-head > div {
+  display: none;
+}
+
 .race-setup-card-head > span {
   padding: 5px 8px;
   border-radius: var(--radius-sm);
   background: var(--accent-soft);
   color: var(--accent);
   font-family: "Geist Mono", monospace;
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 
 .race-setup-card.lane-b .race-setup-card-head > span {
@@ -2017,7 +2210,7 @@ mark {
   overflow: hidden;
   color: var(--fg-primary);
   font-family: "Geist", system-ui, sans-serif;
-  font-size: 18px;
+  font-size: var(--text-xl);
   line-height: 1.05;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2029,14 +2222,16 @@ mark {
   overflow: hidden;
   color: var(--fg-secondary);
   font-family: "Geist Mono", monospace;
-  font-size: 10.5px;
+  font-size: var(--text-2xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .setup-mode-tabs {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* Four starting points (model / machine / runtime / quant) -- this was
+     repeat(3), which orphaned "Quant" onto a second row. */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   padding: 3px;
   border: 1px solid var(--border-hair);
   border-radius: 10px;
@@ -2050,7 +2245,7 @@ mark {
   background: transparent;
   color: var(--fg-secondary);
   font-family: "Geist", system-ui, sans-serif;
-  font-size: 13px;
+  font-size: var(--text-md);
   font-weight: 600;
 }
 
@@ -2104,14 +2299,14 @@ mark {
 .suggestion-panel > span {
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 9.5px;
+  font-size: var(--text-2xs);
   letter-spacing: 0.8px;
 }
 
 .scenario-token-grid strong {
   overflow: hidden;
   font-family: "Geist Mono", monospace;
-  font-size: 13px;
+  font-size: var(--text-md);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -2143,7 +2338,7 @@ mark {
 .lanes {
   flex: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(176px, 208px) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) var(--race-center) minmax(0, 1fr);
   gap: 14px;
   min-height: 0;
   overflow: hidden;
@@ -2174,7 +2369,7 @@ mark {
 }
 
 .lane-b .lane-stripe {
-  background: var(--warn);
+  background: var(--warn-fill);
 }
 
 .lane-stripe {
@@ -2220,7 +2415,7 @@ mark {
   background: var(--accent-soft);
   color: var(--accent);
   font-family: "Geist Mono", monospace;
-  font-size: 10.5px;
+  font-size: var(--text-2xs);
 }
 
 .lane-b .lane-tag {
@@ -2231,14 +2426,14 @@ mark {
 .lane-head h2 {
   margin: 0;
   font-family: "Geist", system-ui, sans-serif;
-  font-size: 24px;
+  font-size: var(--text-3xl);
 }
 
 .lane-head p,
 .lane-head small {
   color: var(--fg-secondary);
   font-family: "Geist Mono", monospace;
-  font-size: 10.5px;
+  font-size: var(--text-2xs);
 }
 
 .lane-state-text {
@@ -2246,7 +2441,7 @@ mark {
   padding-top: 4px;
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 
 .lane-state-text.live {
@@ -2278,15 +2473,36 @@ mark {
 .lane-big span {
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 10px;
+  font-size: var(--text-2xs);
   letter-spacing: 1px;
 }
 
 .lane-big strong {
   font-family: "Geist Mono", monospace;
-  font-size: 40px;
+  font-size: var(--display-xs);
   line-height: 1;
   letter-spacing: 0;
+}
+
+/* Size the lane's primary readout by what it actually is. A measured final
+   elapsed time keeps display type; a phase name or "Ready" steps down so the
+   throughput figure beside it is no longer out-shouted by a status word. */
+.lane-big > div[data-kind="phase"] strong {
+  font-size: var(--text-4xl);
+  font-family: "Geist", system-ui, sans-serif;
+  font-weight: 600;
+}
+
+.lane-big > div[data-kind="ready"] strong {
+  font-size: var(--text-2xl);
+  font-family: "Geist", system-ui, sans-serif;
+  font-weight: 600;
+  color: var(--fg-secondary);
+}
+
+/* "READY" above "Ready" said the same word twice. */
+.lane-big > div[data-kind="ready"] span {
+  display: none;
 }
 
 .lane-big > div:last-child {
@@ -2295,7 +2511,7 @@ mark {
 
 .lane-big > div:last-child strong {
   color: var(--accent);
-  font-size: 25px;
+  font-size: var(--text-3xl);
   letter-spacing: 0;
 }
 
@@ -2369,7 +2585,7 @@ mark {
   color: var(--fg-primary);
   font-family: "Geist", system-ui, sans-serif;
   font-weight: 700;
-  font-size: 15px;
+  font-size: var(--text-lg);
 }
 
 .phase-state-idle .phase-state-name svg {
@@ -2403,7 +2619,7 @@ mark {
 .phase-state-head strong {
   color: var(--fg-secondary);
   font-family: "Geist Mono", monospace;
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 
 .phase-state-track {
@@ -2430,7 +2646,7 @@ mark {
 }
 
 .phase-state-tool .phase-fill {
-  background: var(--phase-tool);
+  background: var(--phase-tool-fill);
   animation: phase-tool-pulse var(--pulse-duration) ease-in-out infinite;
 }
 
@@ -2497,7 +2713,7 @@ mark {
 .phase-state-meta {
   color: var(--fg-secondary);
   font-family: "Geist Mono", monospace;
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 
 .phase-state-meta span:last-child {
@@ -2521,7 +2737,7 @@ mark {
   border: 1px solid transparent;
   border-radius: 999px;
   font-family: "Geist Mono", monospace;
-  font-size: 9.5px;
+  font-size: var(--text-2xs);
   font-style: normal;
   letter-spacing: 0.4px;
   text-transform: uppercase;
@@ -2544,7 +2760,7 @@ mark {
 .phase-state > p {
   margin: 0;
   color: var(--fg-secondary);
-  font-size: 12px;
+  font-size: var(--text-sm);
   line-height: 1.35;
 }
 
@@ -2564,7 +2780,7 @@ mark {
   background: transparent;
   color: var(--fg-secondary);
   font-family: "Geist Mono", monospace;
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 0.5px;
   text-align: left;
 }
@@ -2628,7 +2844,7 @@ mark {
 .phase-legend-item strong {
   display: block;
   font-family: "Geist", system-ui, sans-serif;
-  font-size: 14px;
+  font-size: var(--text-base);
 }
 
 .phase-legend-item small {
@@ -2636,11 +2852,11 @@ mark {
   margin-top: 1px;
   color: var(--fg-secondary);
   font-family: "Geist Mono", monospace;
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 
 .phase-legend.compact .phase-legend-item strong {
-  font-size: 12.5px;
+  font-size: var(--text-sm);
 }
 
 .phase-legend-idle .phase-legend-swatch {
@@ -2694,7 +2910,7 @@ mark {
   flex: 0 0 auto;
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 10px;
+  font-size: var(--text-2xs);
   letter-spacing: 0.8px;
 }
 
@@ -2702,7 +2918,7 @@ mark {
   margin: 16px 0 0;
   color: var(--fg-secondary);
   font-family: "Geist Mono", monospace;
-  font-size: 11.5px;
+  font-size: var(--text-xs);
   line-height: 1.5;
 }
 
@@ -2729,13 +2945,13 @@ mark {
   padding: 11px 13px 0;
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 10.5px;
+  font-size: var(--text-2xs);
   letter-spacing: 0.7px;
 }
 
 .race-output-head strong {
   color: var(--fg-secondary);
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 0;
 }
 
@@ -2775,7 +2991,7 @@ mark {
 .race-output-event .tool-result {
   margin: 0;
   min-width: 0;
-  font-size: 13px;
+  font-size: var(--text-md);
   line-height: 1.52;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
@@ -2797,19 +3013,7 @@ mark {
 .race-output-event .race-output-waiting {
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 11px;
-}
-
-.race-output-empty {
-  min-height: 150px;
-  display: grid;
-  place-items: center;
-  border: 1px dashed var(--border-primary);
-  border-radius: var(--radius-sm);
-  color: var(--fg-muted);
-  font-family: "Geist Mono", monospace;
-  font-size: 12px;
-  text-align: center;
+  font-size: var(--text-xs);
 }
 
 .done-line {
@@ -2818,7 +3022,7 @@ mark {
   gap: 7px;
   color: var(--accent);
   font-family: "Geist Mono", monospace;
-  font-size: 11px;
+  font-size: var(--text-xs);
   margin: 0;
   padding: 0 12px 12px;
 }
@@ -2882,14 +3086,14 @@ mark {
 .spine-progress span {
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 9.5px;
+  font-size: var(--text-2xs);
   letter-spacing: 0.8px;
 }
 
 .race-clock-card strong {
   color: var(--fg-primary);
   font-family: "Geist Mono", monospace;
-  font-size: 36px;
+  font-size: var(--text-5xl);
   line-height: 1;
 }
 
@@ -2897,11 +3101,14 @@ mark {
   margin: 0;
 }
 
+/* The clock is measured; this gap is a projection. It stays visible but
+   clearly subordinate -- at 30px against the clock's 36px it read as an equal
+   headline number, which flatters an estimate. */
 .gap-summary strong {
   display: block;
   color: var(--accent);
   font-family: "Geist Mono", monospace;
-  font-size: 30px;
+  font-size: var(--text-2xl);
   letter-spacing: 0;
 }
 
@@ -2931,22 +3138,28 @@ mark {
   background: var(--surface-secondary);
 }
 
+/* No transition on width. This bar's width comes straight from
+   usePlayback's rAF-driven progress value, so a transition would retarget every
+   frame -- it made the bar trail true progress by up to 180ms and keep sliding
+   after the lane clock had already locked, contradicting "complete: motion
+   stops and final timing locks". Motion styles the cadence; it never times it.
+   Keep `width` rather than transform: scaleX() -- border-radius: 999px means a
+   scale would squash the right-hand cap. */
 .spine-progress b {
   display: block;
   height: 100%;
   border-radius: inherit;
   background: var(--accent);
-  transition: width 180ms linear;
 }
 
 .spine-progress .bar-b {
-  background: var(--warn);
+  background: var(--warn-fill);
 }
 
 .spine-progress strong {
   color: var(--fg-primary);
   font-family: "Geist Mono", monospace;
-  font-size: 11px;
+  font-size: var(--text-xs);
   text-align: right;
 }
 
@@ -3014,14 +3227,58 @@ mark {
   }
 }
 
+/* Reduced motion. Every @keyframes rule and every transition in this stylesheet
+   is accounted for below -- this list is the audit, so keep it in sync when
+   adding motion.
+
+   @keyframes                selector                             treatment
+   ------------------------  -----------------------------------  ---------
+   phase-sweep-x             .phase-sweep                         off
+   live-stripe               .race-lane.active .lane-stripe       off
+   phase-breathe             .phase-dot                           off
+   phase-tool-pulse          .phase-state-tool .phase-fill        off
+   phase-decode-cadence      .phase-state-decode .phase-fill      off
+   phase-decode-pip          .phase-pip                           off
+   caret-cadence             .cursor                              off, caret stays visible
+
+   transition                selector                             treatment
+   ------------------------  -----------------------------------  ---------
+   border-color, background  .phase-state                         shortened to --motion-instant
+   transform                 .disclosure-toggle svg               off (spatial)
+   (width -- removed)        .spine-progress b                    n/a, see that rule
+   (none)                    .provenance                          no motion; notes are static
+
+   What deliberately survives: determinate fill widths, the race clock counter,
+   per-lane elapsed times, phase colors, and the caret glyph itself. Those carry
+   state rather than announce themselves, so removing them would cost
+   information instead of calm. */
 @media (prefers-reduced-motion: reduce) {
   .phase-sweep,
   .phase-dot,
   .phase-pip,
   .phase-state-tool .phase-fill,
   .phase-state-decode .phase-fill,
-  .race-lane.active .lane-stripe {
+  .race-lane.active .lane-stripe,
+  .cursor {
     animation: none !important;
+  }
+
+  /* The caret still marks the decode position; it just stops pulsing. */
+  .cursor {
+    opacity: 1;
+  }
+
+  /* Spatial: the disclosure chevron must not rotate. */
+  .disclosure-toggle svg {
+    transition: none;
+  }
+
+  /* A color crossfade is not a vestibular trigger, but 320ms still reads as
+     motion. Keep the state change legible and make it quick. */
+  .phase-state {
+    transition:
+      border-color var(--motion-instant) linear,
+      background var(--motion-instant) linear;
   }
 }
 
@@ -3052,18 +3309,17 @@ mark {
   gap: 12px;
 }
 
-.title-row h1,
-.doc-hero h1 {
+.title-row h1 {
   margin: 0;
   font-family: "Geist", system-ui, sans-serif;
-  font-size: 30px;
+  font-size: var(--text-4xl);
   font-weight: 650;
 }
 
 .title-row span {
   color: var(--accent);
   font-family: "Geist Mono", monospace;
-  font-size: 13px;
+  font-size: var(--text-md);
 }
 
 .configs-header p {
@@ -3086,7 +3342,7 @@ mark {
   color: var(--fg-secondary);
   padding: 0 12px;
   font-family: "Geist Mono", monospace;
-  font-size: 11.5px;
+  font-size: var(--text-xs);
   border-radius: var(--radius-sm);
 }
 
@@ -3148,7 +3404,7 @@ mark {
 .sort-control > span {
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 10px;
+  font-size: var(--text-2xs);
   letter-spacing: 0.8px;
 }
 
@@ -3160,7 +3416,7 @@ mark {
   background: transparent;
   color: var(--fg-secondary);
   font-family: "Geist Mono", monospace;
-  font-size: 11.5px;
+  font-size: var(--text-xs);
 }
 
 .sort-control button.active {
@@ -3187,7 +3443,7 @@ mark {
   background: var(--accent-soft);
   color: var(--accent);
   font-family: "Geist Mono", monospace;
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 
 .filter-chip svg {
@@ -3199,7 +3455,7 @@ mark {
   background: transparent;
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 11px;
+  font-size: var(--text-xs);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
@@ -3209,7 +3465,7 @@ mark {
   margin: -4px 0 10px;
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 10.5px;
+  font-size: var(--text-2xs);
 }
 
 .compare-bar {
@@ -3240,13 +3496,13 @@ mark {
 .compare-slots > span {
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 10px;
+  font-size: var(--text-2xs);
   letter-spacing: 0.8px;
 }
 
 .compare-slots strong {
   font-family: "Geist", system-ui, sans-serif;
-  font-size: 15px;
+  font-size: var(--text-lg);
 }
 
 .compare-slots strong.empty {
@@ -3257,7 +3513,7 @@ mark {
 .compare-slots em {
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-style: normal;
 }
 
@@ -3305,19 +3561,19 @@ mark {
   justify-content: space-between;
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 
 .summary-card small {
   color: var(--accent);
   font-family: "Geist Mono", monospace;
-  font-size: 9.5px;
+  font-size: var(--text-2xs);
   letter-spacing: 0.5px;
 }
 
 .summary-card strong {
   font-family: "Geist Mono", monospace;
-  font-size: 34px;
+  font-size: var(--text-4xl);
   letter-spacing: 0;
 }
 
@@ -3325,7 +3581,7 @@ mark {
   margin: 8px 0 0;
   color: var(--fg-secondary);
   font-family: "Geist Mono", monospace;
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 
 .configs-intelligence {
@@ -3356,7 +3612,7 @@ mark {
 .coverage-panel span {
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 10px;
+  font-size: var(--text-2xs);
   letter-spacing: 0.8px;
 }
 
@@ -3384,7 +3640,7 @@ mark {
   gap: 5px;
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 10px;
+  font-size: var(--text-2xs);
   letter-spacing: 0;
   text-transform: uppercase;
 }
@@ -3406,7 +3662,7 @@ mark {
 }
 
 .chart-legend i.raw {
-  background: var(--warn);
+  background: var(--warn-fill);
 }
 
 .frontier-bar-row,
@@ -3442,7 +3698,7 @@ mark {
   overflow: hidden;
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 9.5px;
+  font-size: var(--text-2xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -3492,7 +3748,7 @@ mark {
 .frontier-values strong,
 .coverage-values strong {
   font-family: "Geist Mono", monospace;
-  font-size: 13px;
+  font-size: var(--text-md);
 }
 
 .empty-panel,
@@ -3500,7 +3756,7 @@ mark {
   margin: 0;
   color: var(--fg-secondary);
   font-family: "Geist Mono", monospace;
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 
 .empty-panel {
@@ -3521,7 +3777,7 @@ mark {
 .empty-table-state strong {
   color: var(--fg-primary);
   font-family: "Geist", system-ui, sans-serif;
-  font-size: 16px;
+  font-size: var(--text-body);
 }
 
 .results-table {
@@ -3557,7 +3813,7 @@ mark {
 .pager strong {
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 0.5px;
 }
 
@@ -3575,7 +3831,7 @@ mark {
   background: var(--surface-secondary);
   color: var(--fg-primary);
   font-family: "Geist Mono", monospace;
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 
 .pager button:disabled {
@@ -3608,13 +3864,13 @@ mark {
   border-bottom: 1px solid var(--border-hair);
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 10.5px;
+  font-size: var(--text-2xs);
   letter-spacing: 0.8px;
 }
 
 .table-row span {
   color: var(--fg-secondary);
-  font-size: 13px;
+  font-size: var(--text-md);
 }
 
 .table-row strong {
@@ -3626,7 +3882,7 @@ mark {
   display: block;
   color: var(--fg-muted);
   font-family: "Geist Mono", monospace;
-  font-size: 10px;
+  font-size: var(--text-2xs);
 }
 
 .table-row span:nth-child(6),
@@ -3680,7 +3936,7 @@ mark {
   background: transparent;
   color: var(--accent);
   font-family: "Geist Mono", monospace;
-  font-size: 10px;
+  font-size: var(--text-2xs);
 }
 
 .result-detail-row {
@@ -3703,7 +3959,7 @@ mark {
   width: fit-content;
   color: var(--warn);
   font-family: "Geist Mono", monospace;
-  font-size: 10.5px;
+  font-size: var(--text-2xs);
   text-decoration: none;
 }
 
@@ -3713,7 +3969,6 @@ mark {
 
 .doc-hero {
   box-sizing: border-box;
-  max-width: 860px;
   margin-bottom: 36px;
   padding: 28px;
   border: 1px solid var(--border-hair);
@@ -3723,15 +3978,47 @@ mark {
 
 .doc-hero h1 {
   margin: 16px 0;
-  font-size: 48px;
+  font-size: var(--display-m);
   line-height: 1.15;
+  max-width: 26ch;
 }
 
-.method-grid,
+/* Readable measure inside a now-full-width hero card. */
+.doc-hero p {
+  max-width: 74ch;
+}
+
+/* Contribute is genuinely ordinal -- 01 -> 04 is a real sequence -- so it keeps
+   the four-up grid. Method is five independent explanations of very unequal
+   length; forcing them into four equal-height columns produced ~180px of dead
+   space in the shortest card and left a fifth card orphaned on its own row.
+   Same design system, different shape, because the content is a different kind. */
 .contribute-steps {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
+}
+
+.method-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  /* Cards size to their own content instead of stretching to the tallest. */
+  align-items: start;
+}
+
+/* The spanning article is two columns wide, so its prose needs an explicit
+   measure -- without one it ran to roughly 162ch at 1440px. */
+.method-grid article:last-child:nth-child(odd) p {
+  max-width: 74ch;
+}
+
+/* A trailing item that would sit alone on its own row spans the full width
+   instead. `:nth-child(odd)` is the actual condition -- in a two-column grid only
+   an odd-positioned last child is unpaired -- so adding a sixth explanation
+   pairs it normally rather than re-creating the orphan this rule removes. */
+.method-grid article:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
 }
 
 .method-grid article,
@@ -3834,6 +4121,14 @@ mark {
   margin-top: 24px;
 }
 
+/* The agent handoff prompt is prose meant to be read on the page, so it wraps
+   rather than scrolling sideways. The JSON snippet below keeps horizontal
+   scrolling, where indentation and line breaks carry meaning. */
+.agent-prompt-panel pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .agent-prompt-panel pre,
 .snippet-panel pre {
   max-width: 100%;
@@ -3845,7 +4140,7 @@ mark {
   background: var(--surface-ink);
   color: #f5f5f7;
   font-family: "Geist Mono", monospace;
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 
 @media (max-height: 960px) and (min-width: 981px) {
@@ -3860,11 +4155,11 @@ mark {
   .brand-mark {
     width: 24px;
     height: 24px;
-    font-size: 14px;
+    font-size: var(--text-base);
   }
 
   .brand-word {
-    font-size: 17px;
+    font-size: var(--text-xl);
   }
 
   .nav-links {
@@ -3877,7 +4172,7 @@ mark {
   .play-button {
     min-height: 40px;
     padding: 0 18px;
-    font-size: 14px;
+    font-size: var(--text-base);
   }
 
   .nav-button {
@@ -3895,20 +4190,11 @@ mark {
   }
 
   .rail-head {
-    font-size: 11px;
-  }
-
-  .rail-section-title,
-  .speed-row > span {
-    font-size: 9.5px;
+    font-size: var(--text-xs);
   }
 
   .scenario-card strong {
-    font-size: 14px;
-  }
-
-  .scenario-card small {
-    font-size: 9.5px;
+    font-size: var(--text-base);
   }
 
   .rail-divider {
@@ -3932,7 +4218,7 @@ mark {
 
   .speed-grid button {
     min-height: 28px;
-    font-size: 11px;
+    font-size: var(--text-xs);
   }
 
   .rail-note {
@@ -3944,11 +4230,11 @@ mark {
   }
 
   .session-header h1 {
-    font-size: 18px;
+    font-size: var(--text-xl);
   }
 
   .live-rate strong {
-    font-size: 21px;
+    font-size: var(--text-2xl);
   }
 
   .transcript {
@@ -3965,14 +4251,14 @@ mark {
   }
 
   .transcript-event p {
-    font-size: 13.5px;
+    font-size: var(--text-md);
     line-height: 1.45;
   }
 
   .transcript-event pre,
   .tool-result {
     padding: 8px 11px;
-    font-size: 11.5px;
+    font-size: var(--text-xs);
     line-height: 1.42;
   }
 
@@ -4006,7 +4292,7 @@ mark {
   .legend-row {
     gap: 14px;
     margin-top: 7px;
-    font-size: 10px;
+    font-size: var(--text-2xs);
   }
 
   .stat-foot {
@@ -4020,7 +4306,7 @@ mark {
   }
 
   .stat-foot strong {
-    font-size: 14px;
+    font-size: var(--text-base);
   }
 
   .source-note {
@@ -4037,7 +4323,7 @@ mark {
   }
 
   .race-title-block h1 {
-    font-size: 21px;
+    font-size: var(--text-2xl);
   }
 
   .race-control-cluster {
@@ -4048,8 +4334,16 @@ mark {
     width: 196px;
   }
 
+  /* Short viewports (e.g. 1440x900) tighten the centre column a little, but not
+     below the width the spine's own labels need -- the old 178px is what wrapped
+     "Gap breakdown / prefill vs decode vs / tool" onto three lines. Both bands
+     still share whatever value this resolves to. */
+  .race-page {
+    --race-center: 244px;
+  }
+
   .race-builder-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(240px, 0.56fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) var(--race-center) minmax(0, 1fr);
     gap: 10px;
   }
 
@@ -4067,7 +4361,7 @@ mark {
   }
 
   .lanes {
-    grid-template-columns: minmax(0, 1fr) minmax(158px, 178px) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) var(--race-center) minmax(0, 1fr);
     gap: 10px;
     padding: 10px;
   }
@@ -4078,16 +4372,16 @@ mark {
   }
 
   .lane-head h2 {
-    font-size: 21px;
+    font-size: var(--text-2xl);
   }
 
   .lane-head p,
   .lane-head small {
-    font-size: 10px;
+    font-size: var(--text-2xs);
   }
 
   .lane-big > div:last-child strong {
-    font-size: 22px;
+    font-size: var(--text-2xl);
   }
 
   .phase-state {
@@ -4205,7 +4499,7 @@ mark {
   .closing-zone h2,
   .doc-hero h1,
   .boot-screen h1 {
-    font-size: 40px;
+    font-size: var(--display-xs);
     overflow-wrap: anywhere;
   }
 
@@ -4359,7 +4653,7 @@ mark {
   .table-row > span:nth-child(9)::before {
     color: var(--fg-muted);
     font-family: "Geist Mono", monospace;
-    font-size: 9px;
+    font-size: var(--text-2xs);
     letter-spacing: 0.6px;
   }
 
@@ -4450,7 +4744,7 @@ mark {
   }
 
   .race-title-block h1 {
-    font-size: 20px;
+    font-size: var(--text-2xl);
   }
 
   .lanes {

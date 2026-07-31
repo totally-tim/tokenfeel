@@ -40,6 +40,7 @@ import type {
 import { compactResultLabel, resultMeta } from "../lib/catalog";
 import { hasAnyRawEvidence, maxMeasuredDepth } from "../lib/catalogQuality";
 import { StatusBadge } from "./StatusBadge";
+import { TrustBadge } from "./TrustBadge";
 import { isGeneratedEvent, streamFrameForEvent } from "../lib/streaming";
 import { PhaseWaterfall, QualityFlags } from "./Visualizations";
 import { filterPickerOptions } from "../lib/pickerOptions";
@@ -89,12 +90,14 @@ export function PhaseState({
   event,
   elapsedMs,
   hasStarted,
-  complete
+  complete,
+  speed
 }: {
   event: TimelineEvent;
   elapsedMs: number;
   hasStarted: boolean;
   complete: boolean;
+  speed: number;
 }) {
   const phase = activePhaseForEvent(event, elapsedMs, hasStarted, complete);
   const copy = phaseCopyForEvent(event, phase.kind);
@@ -132,8 +135,8 @@ export function PhaseState({
   const trackStyle = {
     "--phase-fill-width": trackVisual.fillWidth,
     "--phase-pip-left": trackVisual.pipLeft,
-    "--cadence-duration": `${cadenceDurationMs(event.tgRate)}ms`,
-    "--sweep-duration": `${sweepDurationMs(event.ppRate)}ms`
+    "--cadence-duration": `${cadenceDurationMs(event.tgRate, speed)}ms`,
+    "--sweep-duration": `${sweepDurationMs(event.ppRate, speed)}ms`
   } as CSSProperties;
 
   return (
@@ -170,7 +173,7 @@ export function PhaseState({
           )}
         </span>
       </div>
-      <p>{copy.detail}</p>
+      {copy.detail ? <p>{copy.detail}</p> : null}
     </div>
   );
 }
@@ -705,7 +708,7 @@ export function SessionHeader({ catalog, title, result, activeEvent, hasStarted,
         </p>
       </div>
       <div className="session-header-right">
-        {result.status !== "community" && result.status !== "verified" && <StatusBadge status={result.status} />}
+        <TrustBadge status={result.status} compact />
         <StatusBadge status={!hasStarted ? "idle" : isComplete ? "finished" : "generating"} />
         <div className="live-rate">
           <strong>{formatRate(activeEvent.tgRate)}</strong>
@@ -716,12 +719,27 @@ export function SessionHeader({ catalog, title, result, activeEvent, hasStarted,
   );
 }
 
-// result.notes and hardware/model.notes are carried all the way to the
-// client but were never rendered anywhere -- surface them as small,
-// always-visible caveat chips (not buried inside a collapsed Disclosure)
-// on both Race and Playground. Deduped since hardware/model notes are
-// sometimes identical boilerplate (e.g. shared oMLX-import provenance text).
-export function CaveatNotes({
+/**
+ * One provenance control per config, replacing the three stacked caveat chips.
+ *
+ * Those chips were the worst of both worlds: the notes all begin with the same
+ * boilerplate ("Generated from the oMLX community benchmark API import. ..."),
+ * and the ellipsis landed inside that shared prefix, so three chips rendered the
+ * same visible string while occupying the lane's prime real estate.
+ *
+ * The notes stay at ZERO clicks and simply wrap instead of being clipped. An
+ * earlier revision collapsed them behind a "3 source notes" button, which
+ * external review correctly rejected: these are not boilerplate, they carry
+ * action-critical caveats such as a comparison that is "not perfectly isolated"
+ * or measurements clamped after an implausible jump, and a count does not tell
+ * the reader such a caveat exists. Costing vertical space is the right trade;
+ * hiding a caveat behind a click is not.
+ *
+ * Division of labour: TrustBadge sits next to the config identity and answers
+ * "how much should I trust this number"; this block answers "why", and links out
+ * to the source.
+ */
+export function SourceProvenance({
   result,
   hardware,
   model
@@ -733,14 +751,18 @@ export function CaveatNotes({
   const notes = Array.from(
     new Set([result.notes, hardware?.notes, model?.notes].filter((note): note is string => Boolean(note?.trim())))
   );
-  if (notes.length === 0) return null;
   return (
-    <div className="caveat-notes">
-      {notes.map((note) => (
-        <span key={note} className="caveat-chip" title={note}>
-          {note}
-        </span>
-      ))}
+    <div className="provenance">
+      {notes.length > 0 && (
+        <ul className="provenance-notes">
+          {notes.map((note) => (
+            <li key={note}>{note}</li>
+          ))}
+        </ul>
+      )}
+      <a className="provenance-source" href={result.source.url} target="_blank" rel="noreferrer">
+        Source · {result.source.kind}
+      </a>
     </div>
   );
 }
@@ -769,6 +791,7 @@ interface LaneProps {
   elapsedMs: number;
   hasStarted: boolean;
   winner?: boolean;
+  speed: number;
 }
 
 export function RaceLane({
@@ -780,7 +803,8 @@ export function RaceLane({
   activeEvent,
   elapsedMs,
   hasStarted,
-  winner = false
+  winner = false,
+  speed
 }: LaneProps) {
   const complete = hasStarted && elapsedMs >= timeline.totalMs;
   const active = hasStarted && !complete;
@@ -807,6 +831,10 @@ export function RaceLane({
       : "ready";
   const primaryLabel = complete ? "FINAL ELAPSED" : active ? "CURRENT PHASE" : "READY";
   const primaryValue = complete ? formatClock(summary.wallTimeMs) : active ? compactPhaseLabel(phase.kind) : "Ready";
+  // The final elapsed time is the payoff number and earns display type; a phase
+  // name or "Ready" is a status *word* and must not dominate the lane
+  // (AGENTS.md: don't let Running/Finished badges be the dominant element).
+  const primaryKind = complete ? "elapsed" : active ? "phase" : "ready";
   const progressValue = active ? `${Math.round(phase.progress * 100)}% phase` : `${timeline.events.length} turns`;
 
   useEffect(() => {
@@ -822,6 +850,11 @@ export function RaceLane({
   return (
     <section
       className={`race-lane ${label === "B" ? "lane-b" : "lane-a"} ${winner && complete ? "winner" : ""} ${active ? "active" : ""}`}
+      style={
+        {
+          "--cadence-duration": `${cadenceDurationMs(activeEvent.tgRate, speed)}ms`
+        } as CSSProperties
+      }
     >
       <div className="lane-stripe" />
       <div className="lane-inner">
@@ -830,7 +863,7 @@ export function RaceLane({
             <div className="lane-title-row">
               <span className="lane-tag">LANE {label}</span>
               <h2>{labelParts[0]}</h2>
-              {result.status !== "community" && result.status !== "verified" && <StatusBadge status={result.status} />}
+              <TrustBadge status={result.status} compact />
             </div>
             <p>
               {labelParts.slice(1).join(" · ")} · {result.runtime.name}/{result.runtime.backend}
@@ -838,9 +871,9 @@ export function RaceLane({
           </div>
           <span className={`lane-state-text ${active ? "live" : complete ? "done" : ""}`}>{laneStatus}</span>
         </div>
-        <CaveatNotes result={result} hardware={laneHardware} model={laneModel} />
+        <SourceProvenance result={result} hardware={laneHardware} model={laneModel} />
         <div className="lane-big">
-          <div>
+          <div data-kind={primaryKind}>
             <span>{primaryLabel}</span>
             <strong>{primaryValue}</strong>
           </div>
@@ -859,71 +892,69 @@ export function RaceLane({
             </strong>
           </div>
           <div className="race-output-scroll" aria-label={`Lane ${label} live transcript`}>
-            {outputEvents.length === 0 ? (
-              <div className="race-output-empty">Start the race to stream this lane's transcript.</div>
-            ) : (
-              outputEvents.map((event) => {
-                const eventActive = event.index === activeEvent.index;
-                const eventElapsedMs = eventActive ? elapsedMs : event.endMs;
-                const streamFrame = streamFrameForEvent(event, eventElapsedMs);
-                const streamedText = streamFrame.text;
-                const waitingForOutput =
-                  eventActive &&
-                  isGeneratedEvent(event) &&
-                  streamedText.length === 0 &&
-                  streamFrame.tokens === 0 &&
-                  elapsedMs < event.endMs;
-                const waitingCopy =
-                  event.toolLatencyMs > 0 && elapsedMs < event.toolDoneMs
-                    ? "Waiting on tool latency before output can stream."
-                    : "Decode will stream here as soon as the first token arrives.";
-                const showCursor = eventActive && isGeneratedEvent(event) && streamFrame.progress < 1;
-                const eventMetric =
-                  eventActive && isGeneratedEvent(event)
-                    ? `${formatNumber(streamFrame.tokens)} / ${formatNumber(event.tokens)} tok`
-                    : eventActive
-                      ? turnMetricForEvent(event)
-                      : `${formatNumber(event.tokens)} tok`;
+            {outputEvents.length === 0
+              ? null
+              : outputEvents.map((event) => {
+                  const eventActive = event.index === activeEvent.index;
+                  const eventElapsedMs = eventActive ? elapsedMs : event.endMs;
+                  const streamFrame = streamFrameForEvent(event, eventElapsedMs);
+                  const streamedText = streamFrame.text;
+                  const waitingForOutput =
+                    eventActive &&
+                    isGeneratedEvent(event) &&
+                    streamedText.length === 0 &&
+                    streamFrame.tokens === 0 &&
+                    elapsedMs < event.endMs;
+                  const waitingCopy =
+                    event.toolLatencyMs > 0 && elapsedMs < event.toolDoneMs
+                      ? "Waiting on tool latency before output can stream."
+                      : "Decode will stream here as soon as the first token arrives.";
+                  const showCursor = eventActive && isGeneratedEvent(event) && streamFrame.progress < 1;
+                  const eventMetric =
+                    eventActive && isGeneratedEvent(event)
+                      ? `${formatNumber(streamFrame.tokens)} / ${formatNumber(event.tokens)} tok`
+                      : eventActive
+                        ? turnMetricForEvent(event)
+                        : `${formatNumber(event.tokens)} tok`;
 
-                return (
-                  <article
-                    key={event.id}
-                    ref={eventActive ? activeOutputRef : undefined}
-                    className={`race-output-event event-${event.role} ${eventActive ? "current" : ""}`}
-                  >
-                    <div className="event-head">
-                      <span>
-                        turn {event.index + 1} · {eventLabel(event)}
-                      </span>
-                      <span>{eventMetric}</span>
-                    </div>
-                    {waitingForOutput ? (
-                      <p className="race-output-waiting">{waitingCopy}</p>
-                    ) : event.role === "tool_call" ? (
-                      <pre ref={eventActive ? (tailRef as Ref<HTMLPreElement>) : undefined}>
-                        {streamedText}
-                        {showCursor ? <span className="cursor">▍</span> : null}
-                      </pre>
-                    ) : event.role === "tool_result" ? (
-                      <div className="tool-result">{event.text}</div>
-                    ) : event.role === "thinking" ? (
-                      <ThinkingStream
-                        event={event}
-                        streamedText={streamedText}
-                        streamedTokens={streamFrame.tokens}
-                        active={eventActive}
-                        showCursor={showCursor}
-                      />
-                    ) : (
-                      <p ref={eventActive ? (tailRef as Ref<HTMLParagraphElement>) : undefined}>
-                        {streamedText}
-                        {showCursor ? <span className="cursor">▍</span> : null}
-                      </p>
-                    )}
-                  </article>
-                );
-              })
-            )}
+                  return (
+                    <article
+                      key={event.id}
+                      ref={eventActive ? activeOutputRef : undefined}
+                      className={`race-output-event event-${event.role} ${eventActive ? "current" : ""}`}
+                    >
+                      <div className="event-head">
+                        <span>
+                          turn {event.index + 1} · {eventLabel(event)}
+                        </span>
+                        <span>{eventMetric}</span>
+                      </div>
+                      {waitingForOutput ? (
+                        <p className="race-output-waiting">{waitingCopy}</p>
+                      ) : event.role === "tool_call" ? (
+                        <pre ref={eventActive ? (tailRef as Ref<HTMLPreElement>) : undefined}>
+                          {streamedText}
+                          {showCursor ? <span className="cursor">▍</span> : null}
+                        </pre>
+                      ) : event.role === "tool_result" ? (
+                        <div className="tool-result">{event.text}</div>
+                      ) : event.role === "thinking" ? (
+                        <ThinkingStream
+                          event={event}
+                          streamedText={streamedText}
+                          streamedTokens={streamFrame.tokens}
+                          active={eventActive}
+                          showCursor={showCursor}
+                        />
+                      ) : (
+                        <p ref={eventActive ? (tailRef as Ref<HTMLParagraphElement>) : undefined}>
+                          {streamedText}
+                          {showCursor ? <span className="cursor">▍</span> : null}
+                        </p>
+                      )}
+                    </article>
+                  );
+                })}
           </div>
           {complete && (
             <p className="done-line">
@@ -931,7 +962,13 @@ export function RaceLane({
             </p>
           )}
         </div>
-        <PhaseState event={activeEvent} elapsedMs={elapsedMs} hasStarted={hasStarted} complete={complete} />
+        <PhaseState
+          event={activeEvent}
+          elapsedMs={elapsedMs}
+          hasStarted={hasStarted}
+          complete={complete}
+          speed={speed}
+        />
         <Disclosure label="Lane details · context, phases, provenance">
           <ContextMeter
             compact

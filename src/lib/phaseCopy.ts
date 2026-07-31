@@ -26,7 +26,7 @@ export function phaseCopyForEvent(event: TimelineEvent, kind: PhaseCopyKind): Ph
   if (kind === "idle") {
     return {
       label: "Queued",
-      detail: "Start the simulation to process this prompt",
+      detail: "",
       tokenLabel: "waiting"
     };
   }
