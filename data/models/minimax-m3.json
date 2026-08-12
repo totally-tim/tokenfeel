@@ -1,0 +1,8 @@
+{
+  "id": "minimax-m3",
+  "name": "MiniMax-M3",
+  "family": "MiniMax",
+  "params": "427B",
+  "license": "See upstream model card",
+  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. One record per base checkpoint: the quantized builds behind it are MiniMaxAI/MiniMax-M3-MXFP8, nvidia/MiniMax-M3-NVFP4. Model metadata is inferred from those repo paths; each result row records the exact build it measured."
+}

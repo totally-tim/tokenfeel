@@ -1,0 +1,8 @@
+{
+  "id": "trinity-large-thinking",
+  "name": "Trinity-Large-Thinking",
+  "family": "Trinity",
+  "params": "399B",
+  "license": "See upstream model card",
+  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Model metadata inferred from the upstream repo path arcee-ai/Trinity-Large-Thinking-NVFP4."
+}

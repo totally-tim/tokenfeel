@@ -1,0 +1,43 @@
+{
+  "source": "https://spark-arena.com/leaderboard",
+  "snapshotIndex": "https://spark-arena.com/static/snapshot/index",
+  "snapshotTest": "https://spark-arena.com/static/snapshot/test",
+  "parserVersion": "tokenfeel-spark-arena-snapshot/1",
+  "retrievedAt": "2026-08-12T15:43:17.573Z",
+  "snapshotGeneratedAt": "2026-08-12T14:30:20.720Z",
+  "rawFiles": {
+    "snapshot": "data/upstream/spark-arena-snapshot.json",
+    "rawLogs": "data/upstream/spark-arena-raw-logs.jsonl"
+  },
+  "checksums": {
+    "snapshot": "sha256:bea4f06e8d5c38bd039d67478ae0619959bddefe85e2e7efe2225cbe94d114aa",
+    "rawLogs": "sha256:7e520cad448e31e34014b93b22c57fe8d6c8bef891f79da12007e24215fca880"
+  },
+  "selection": {
+    "concurrency": "(c1)",
+    "tests": "pp2048 / tg128",
+    "minSharedDepths": 3,
+    "minMaxDepth": 8192,
+    "maxRateIncreaseRatio": 0.1
+  },
+  "generated": {
+    "candidates": 192,
+    "skippedUnknownClusterSize": 0,
+    "skippedUnusableSweep": 65,
+    "skippedAboveRoofline": 3,
+    "skippedAboveMemory": 2,
+    "results": 80,
+    "resultsWritten": 76,
+    "resultsPreservedNotOwned": 4,
+    "staleResultsRemoved": 3,
+    "staleModelsRemoved": 2,
+    "staleHardwareRemoved": 0,
+    "hardwareWritten": 1,
+    "modelsWritten": 25
+  },
+  "crossCheck": {
+    "valuesComparedAgainstRawLogs": 1062,
+    "mismatches": 0,
+    "note": "The import fails if any selected value is missing from or disagrees with its raw log."
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "id": "dgx-spark__qwen3.5-4b__bf16__sglang",
+  "hardware": "dgx-spark",
+  "model": "qwen3.5-4b",
+  "quant": "bf16",
+  "runtime": {
+    "name": "SGLang",
+    "version": "spark-arena-sparkrun",
+    "backend": "CUDA",
+    "flags": "llama-benchy pp2048/tg128 c1",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 0,
+      "pp": 5559.8,
+      "tg": 15.17,
+      "ppLabel": "pp2048 (c1)",
+      "tgLabel": "tg128 (c1)",
+      "ppStddev": 566.5559375525507,
+      "tgStddev": 0.06126169631377387
+    },
+    {
+      "depth": 4096,
+      "pp": 2037.79,
+      "tg": 13.92,
+      "ppLabel": "pp2048 @ d4096 (c1)",
+      "tgLabel": "tg128 @ d4096 (c1)",
+      "ppStddev": 49.996240286218736,
+      "tgStddev": 0.02303958311255166
+    },
+    {
+      "depth": 8192,
+      "pp": 1169.49,
+      "tg": 12.98,
+      "ppLabel": "pp2048 @ d8192 (c1)",
+      "tgLabel": "tg128 @ d8192 (c1)",
+      "ppStddev": 1.4990315384037909,
+      "tgStddev": 0.016882946397866375
+    },
+    {
+      "depth": 16384,
+      "pp": 559.56,
+      "tg": 11.45,
+      "ppLabel": "pp2048 @ d16384 (c1)",
+      "tgLabel": "tg128 @ d16384 (c1)",
+      "ppStddev": 0.4367627207738235,
+      "tgStddev": 0.019316422323192223
+    },
+    {
+      "depth": 32768,
+      "pp": 232.94,
+      "tg": 9.25,
+      "ppLabel": "pp2048 @ d32768 (c1)",
+      "tgLabel": "tg128 @ d32768 (c1)",
+      "ppStddev": 0.3187709298685384,
+      "tgStddev": 0.021602140587329618
+    },
+    {
+      "depth": 65535,
+      "pp": 84.74,
+      "tg": 6.68,
+      "ppLabel": "pp2048 @ d65535 (c1)",
+      "tgLabel": "tg128 @ d65535 (c1)",
+      "ppStddev": 0.09899751134334334,
+      "tgStddev": 0.017836082074420893
+    },
+    {
+      "depth": 100000,
+      "pp": 42.81,
+      "tg": 5.15,
+      "ppLabel": "pp2048 @ d100000 (c1)",
+      "tgLabel": "tg128 @ d100000 (c1)",
+      "ppStddev": 0.035363447171273335,
+      "tgStddev": 0.010325104656292066
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://spark-arena.com/api/benchmarks/sub1772496753253/raw",
+    "rawFormat": "llama-benchy raw benchmark log",
+    "retrievedAt": "2026-08-12T15:43:17.573Z",
+    "upstreamId": "sub1772496753253",
+    "parserVersion": "tokenfeel-spark-arena-snapshot/1",
+    "upstreamUrls": [
+      "https://spark-arena.com/benchmark/sub1772496753253"
+    ]
+  },
+  "benchmark": {
+    "tool": "llama-benchy",
+    "profile": "sparkrun",
+    "outputFormat": "Spark Arena leaderboard snapshot",
+    "latencyMode": "single-stream (c1)",
+    "ppTokens": 2048,
+    "tgTokens": 128,
+    "concurrency": 1,
+    "metadata": {
+      "spark_arena_cluster_size": 1,
+      "upstream_model_path": "Qwen/Qwen3.5-4B",
+      "upstream_quantization": "BF16",
+      "submitted_at": "2026-03-03T00:12:35.471Z"
+    }
+  },
+  "topology": {
+    "nodeCount": 1,
+    "acceleratorCount": 1
+  },
+  "source": {
+    "kind": "llama-benchy",
+    "title": "Spark Arena Qwen3.5-4B on 1x DGX Spark",
+    "url": "https://spark-arena.com/benchmark/sub1772496753253",
+    "raw": "https://spark-arena.com/api/benchmarks/sub1772496753253/raw",
+    "notes": "Community Spark Arena submission sub1772496753253. Cluster size is leaderboard metadata, not recorded in the raw log."
+  },
+  "submitter": "Spark Arena",
+  "date": "2026-03-03",
+  "status": "community",
+  "overheadMs": 8,
+  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Single-stream (c1) pp2048/tg128 sweep; higher-concurrency Spark Arena tests are intentionally not imported. Prompt-cache mode is the catalog-wide \"prefix\" default, not a measured property of this submission: Spark Arena publishes no cache field and the raw log records none."
+}

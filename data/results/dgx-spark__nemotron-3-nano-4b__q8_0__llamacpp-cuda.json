@@ -1,0 +1,94 @@
+{
+  "id": "dgx-spark__nemotron-3-nano-4b__q8_0__llamacpp-cuda",
+  "hardware": "dgx-spark",
+  "model": "nemotron-3-nano-4b",
+  "quant": "q8_0",
+  "runtime": {
+    "name": "llama.cpp",
+    "version": "b8382",
+    "backend": "CUDA",
+    "flags": "-fa 1 -ub 2048 -ngl 99",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 0,
+      "pp": 2761.9,
+      "ppLabel": "pp2048",
+      "ppStddev": 19.31,
+      "tg": 52.85,
+      "tgLabel": "tg32",
+      "tgStddev": 0.12
+    },
+    {
+      "depth": 4096,
+      "pp": 2687.07,
+      "ppLabel": "pp2048 @ d4096",
+      "ppStddev": 21.84,
+      "tg": 52.32,
+      "tgLabel": "tg32 @ d4096",
+      "tgStddev": 0.23
+    },
+    {
+      "depth": 8192,
+      "pp": 2564.52,
+      "ppLabel": "pp2048 @ d8192",
+      "ppStddev": 57.69,
+      "tg": 51.27,
+      "tgLabel": "tg32 @ d8192",
+      "tgStddev": 0.34
+    },
+    {
+      "depth": 16384,
+      "pp": 2334.02,
+      "ppLabel": "pp2048 @ d16384",
+      "ppStddev": 37.83,
+      "tg": 49.71,
+      "tgLabel": "tg32 @ d16384",
+      "tgStddev": 0.14
+    },
+    {
+      "depth": 32768,
+      "pp": 2041.46,
+      "ppLabel": "pp2048 @ d32768",
+      "ppStddev": 40.45,
+      "tg": 46.71,
+      "tgLabel": "tg32 @ d32768",
+      "tgStddev": 0.13
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://github.com/ggml-org/llama.cpp/blob/master/benches/nemotron/nemotron-dgx-spark.md",
+    "rawFormat": "llama-bench",
+    "retrievedAt": "2026-08-12T15:31:52.383Z",
+    "parserVersion": "tokenfeel-convert/1",
+    "rawRows": [
+      "| nemotron 4B Q8_0        |   3.94 GiB |     3.97 B | CUDA       |     2048 |  1 |          pp2048 |      2761.90 ± 19.31 |",
+      "| nemotron 4B Q8_0        |   3.94 GiB |     3.97 B | CUDA       |     2048 |  1 |            tg32 |         52.85 ± 0.12 |",
+      "| nemotron 4B Q8_0        |   3.94 GiB |     3.97 B | CUDA       |     2048 |  1 |  pp2048 @ d4096 |      2687.07 ± 21.84 |",
+      "| nemotron 4B Q8_0        |   3.94 GiB |     3.97 B | CUDA       |     2048 |  1 |    tg32 @ d4096 |         52.32 ± 0.23 |",
+      "| nemotron 4B Q8_0        |   3.94 GiB |     3.97 B | CUDA       |     2048 |  1 |  pp2048 @ d8192 |      2564.52 ± 57.69 |",
+      "| nemotron 4B Q8_0        |   3.94 GiB |     3.97 B | CUDA       |     2048 |  1 |    tg32 @ d8192 |         51.27 ± 0.34 |",
+      "| nemotron 4B Q8_0        |   3.94 GiB |     3.97 B | CUDA       |     2048 |  1 | pp2048 @ d16384 |      2334.02 ± 37.83 |",
+      "| nemotron 4B Q8_0        |   3.94 GiB |     3.97 B | CUDA       |     2048 |  1 |   tg32 @ d16384 |         49.71 ± 0.14 |",
+      "| nemotron 4B Q8_0        |   3.94 GiB |     3.97 B | CUDA       |     2048 |  1 | pp2048 @ d32768 |      2041.46 ± 40.45 |",
+      "| nemotron 4B Q8_0        |   3.94 GiB |     3.97 B | CUDA       |     2048 |  1 |   tg32 @ d32768 |         46.71 ± 0.13 |"
+    ]
+  },
+  "benchmark": {
+    "tool": "llama-bench",
+    "outputFormat": "text",
+    "ppTokens": 2048,
+    "tgTokens": 32
+  },
+  "source": {
+    "kind": "llama-bench",
+    "title": "llama.cpp Nemotron DGX Spark benchmark file",
+    "url": "https://github.com/ggml-org/llama.cpp/blob/master/benches/nemotron/nemotron-dgx-spark.md",
+    "raw": "ggml-org/Nemotron-3-Nano-4B-GGUF llama-bench table",
+    "license": "MIT"
+  },
+  "submitter": "ggml-org",
+  "date": "2026-03-16",
+  "status": "verified"
+}

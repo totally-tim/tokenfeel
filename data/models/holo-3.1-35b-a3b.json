@@ -1,0 +1,9 @@
+{
+  "id": "holo-3.1-35b-a3b",
+  "name": "Holo-3.1-35B-A3B",
+  "family": "Holo",
+  "params": "35B",
+  "activeParams": "3B",
+  "license": "See upstream model card",
+  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Model metadata inferred from the upstream repo path Hcompany/Holo-3.1-35B-A3B-NVFP4."
+}

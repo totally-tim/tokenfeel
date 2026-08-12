@@ -72,3 +72,9 @@ Run `validate:data` whenever catalog data, scenarios, schemas, or import scripts
 - No dependency additions/updates unless the existing stack (React, Vite, Vitest, zod, Tailwind, lucide-react) genuinely can't do the job — and even then, enforce the 48h package-freshness gate (`npm config set min-release-age=2d`) first, per this project's and the user's global dependency-safety rules.
 - Browser/visual verification is expected for UI work — see AGENTS.md's "Browser And Visual Verification" section for the specific pages/interactions to check (especially Race: Start/Stop, central clock, lane completion, share URL).
 - Before calling non-trivial work complete, AGENTS.md calls for a `claude -p` adversarial review pass — be patient with it, it can run silently for minutes.
+
+## Commits
+
+A pre-commit hook in this repo rejects AI authorship trailers (`Co-Authored-By:`
+naming an AI, `Generated with ...`). Write commit messages without them; a human
+`Co-Authored-By` is fine.

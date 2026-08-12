@@ -1,0 +1,8 @@
+{
+  "id": "qwen2.5-coder-7b",
+  "name": "Qwen2.5-Coder-7B",
+  "family": "Qwen",
+  "params": "7B",
+  "license": "See upstream model card",
+  "notes": "Code-specialised Qwen2.5 7B base model, benchmarked on DGX Spark from the ggml-org/Qwen2.5-Coder-7B-Q8_0-GGUF build."
+}

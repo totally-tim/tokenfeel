@@ -28,7 +28,8 @@
     "validate:data": "tsx scripts/validate-data.ts",
     "prune:data": "tsx scripts/prune-catalog.ts",
     "convert:llama-bench": "tsx scripts/convert-llama-bench.ts",
-    "import:omlx": "tsx scripts/import-omlx-benchmarks.ts"
+    "import:omlx": "tsx scripts/import-omlx-benchmarks.ts",
+    "import:spark-arena": "tsx scripts/import-spark-arena.ts"
   },
   "dependencies": {
     "@tailwindcss/vite": "4.3.2",

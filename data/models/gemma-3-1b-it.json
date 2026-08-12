@@ -1,0 +1,8 @@
+{
+  "id": "gemma-3-1b-it",
+  "name": "gemma-3-1b-it",
+  "family": "Gemma",
+  "params": "1B",
+  "license": "See upstream model card",
+  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Model metadata inferred from the upstream repo path google/gemma-3-1b-it."
+}

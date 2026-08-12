@@ -1,0 +1,94 @@
+{
+  "id": "dgx-spark__gemma-3-4b-it-qat__q4_0__llamacpp-cuda",
+  "hardware": "dgx-spark",
+  "model": "gemma-3-4b-it-qat",
+  "quant": "q4_0",
+  "runtime": {
+    "name": "llama.cpp",
+    "version": "b7941",
+    "backend": "CUDA",
+    "flags": "-fa 1 -ub 2048 -mmp 0",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 0,
+      "pp": 5948.74,
+      "ppLabel": "pp2048",
+      "ppStddev": 10.61,
+      "tg": 81.05,
+      "tgLabel": "tg32",
+      "tgStddev": 0.2
+    },
+    {
+      "depth": 4096,
+      "pp": 5652.69,
+      "ppLabel": "pp2048 @ d4096",
+      "ppStddev": 34.29,
+      "tg": 76.37,
+      "tgLabel": "tg32 @ d4096",
+      "tgStddev": 0.58
+    },
+    {
+      "depth": 8192,
+      "pp": 5509.57,
+      "ppLabel": "pp2048 @ d8192",
+      "ppStddev": 40.69,
+      "tg": 71.61,
+      "tgLabel": "tg32 @ d8192",
+      "tgStddev": 0.8
+    },
+    {
+      "depth": 16384,
+      "pp": 5340.86,
+      "ppLabel": "pp2048 @ d16384",
+      "ppStddev": 36.92,
+      "tg": 70.89,
+      "tgLabel": "tg32 @ d16384",
+      "tgStddev": 0.34
+    },
+    {
+      "depth": 32768,
+      "pp": 5023.3,
+      "ppLabel": "pp2048 @ d32768",
+      "ppStddev": 13.52,
+      "tg": 62.28,
+      "tgLabel": "tg32 @ d32768",
+      "tgStddev": 0.3
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://github.com/ggml-org/llama.cpp/blob/master/benches/dgx-spark/dgx-spark.md",
+    "rawFormat": "llama-bench",
+    "retrievedAt": "2026-08-12T15:31:51.350Z",
+    "parserVersion": "tokenfeel-convert/1",
+    "rawRows": [
+      "| gemma3 4B Q4_0                 |   2.35 GiB |     3.88 B | CUDA       |  99 |     2048 |  1 |    0 |   1 |          pp2048 |      5948.74 ± 10.61 |",
+      "| gemma3 4B Q4_0                 |   2.35 GiB |     3.88 B | CUDA       |  99 |     2048 |  1 |    0 |   1 |            tg32 |         81.05 ± 0.20 |",
+      "| gemma3 4B Q4_0                 |   2.35 GiB |     3.88 B | CUDA       |  99 |     2048 |  1 |    0 |   1 |  pp2048 @ d4096 |      5652.69 ± 34.29 |",
+      "| gemma3 4B Q4_0                 |   2.35 GiB |     3.88 B | CUDA       |  99 |     2048 |  1 |    0 |   1 |    tg32 @ d4096 |         76.37 ± 0.58 |",
+      "| gemma3 4B Q4_0                 |   2.35 GiB |     3.88 B | CUDA       |  99 |     2048 |  1 |    0 |   1 |  pp2048 @ d8192 |      5509.57 ± 40.69 |",
+      "| gemma3 4B Q4_0                 |   2.35 GiB |     3.88 B | CUDA       |  99 |     2048 |  1 |    0 |   1 |    tg32 @ d8192 |         71.61 ± 0.80 |",
+      "| gemma3 4B Q4_0                 |   2.35 GiB |     3.88 B | CUDA       |  99 |     2048 |  1 |    0 |   1 | pp2048 @ d16384 |      5340.86 ± 36.92 |",
+      "| gemma3 4B Q4_0                 |   2.35 GiB |     3.88 B | CUDA       |  99 |     2048 |  1 |    0 |   1 |   tg32 @ d16384 |         70.89 ± 0.34 |",
+      "| gemma3 4B Q4_0                 |   2.35 GiB |     3.88 B | CUDA       |  99 |     2048 |  1 |    0 |   1 | pp2048 @ d32768 |      5023.30 ± 13.52 |",
+      "| gemma3 4B Q4_0                 |   2.35 GiB |     3.88 B | CUDA       |  99 |     2048 |  1 |    0 |   1 |   tg32 @ d32768 |         62.28 ± 0.30 |"
+    ]
+  },
+  "benchmark": {
+    "tool": "llama-bench",
+    "outputFormat": "text",
+    "ppTokens": 2048,
+    "tgTokens": 32
+  },
+  "source": {
+    "kind": "llama-bench",
+    "title": "llama.cpp DGX Spark benchmark file",
+    "url": "https://github.com/ggml-org/llama.cpp/blob/master/benches/dgx-spark/dgx-spark.md",
+    "raw": "ggml-org/gemma-3-4b-it-qat-GGUF llama-bench table",
+    "license": "MIT"
+  },
+  "submitter": "ggml-org",
+  "date": "2026-02-05",
+  "status": "verified"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "huihui-qwen3.6-27b-abliterated",
+  "name": "Huihui-Qwen3.6-27B-abliterated",
+  "family": "Qwen",
+  "params": "27B",
+  "license": "See upstream model card",
+  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Model metadata inferred from the upstream repo path sakamakismile/Huihui-Qwen3.6-27B-abliterated-NVFP4-MTP."
+}

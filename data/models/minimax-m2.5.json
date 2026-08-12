@@ -1,0 +1,8 @@
+{
+  "id": "minimax-m2.5",
+  "name": "MiniMax-M2.5",
+  "family": "MiniMax",
+  "params": "229B",
+  "license": "See upstream model card",
+  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. One record per base checkpoint: the quantized builds behind it are Intel/MiniMax-M2.5-int4-AutoRound, QuantTrio/MiniMax-M2.5-AWQ, cyankiwi/MiniMax-M2.5-AWQ-4bit, nvidia/MiniMax-M2.5-NVFP4. Model metadata is inferred from those repo paths; each result row records the exact build it measured."
+}
