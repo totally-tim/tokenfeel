@@ -749,8 +749,52 @@ const quantOnlyNameSegments = new Set([
   // axis -- and every row here runs on GB10, so the tag distinguishes nothing.
   // Without this, saricles/Qwen3-Coder-Next-NVFP4-GB10 sits apart from the
   // qwen3-coder-next base model that has rows on twenty other machines.
-  "gb10"
+  "gb10",
+  // A speculative-decoding module is runtime behaviour, and AGENTS.md names it
+  // directly: it "usually belong[s] in runtime/benchmark metadata, not as a fake
+  // separate model". The catalog already models it that way -- the hand-authored
+  // DeepSeek row carries runtime.name "vLLM MTP" with an unprefixed model id --
+  // so mtp comes off the name and goes onto the runtime instead.
+  "mtp"
 ]);
+
+/** Whether a checkpoint name advertises a multi-token-prediction module. */
+export function hasSpeculativeModule(name: string): boolean {
+  return name.split(/[-\s_]+/).some((segment) => segment.toLowerCase() === "mtp");
+}
+
+/**
+ * The runtime a submission describes, including a speculative-decoding module
+ * the checkpoint advertises. MTP changes the decode path rather than the model,
+ * so it has to land here for the row to stay distinguishable from a plain build
+ * of the same checkpoint once the tag comes out of the model id.
+ */
+export function runtimeNameFor(meta: SnapshotEntry): string {
+  const base = meta.runtime || "unknown";
+  return hasSpeculativeModule(meta.modelName || meta.modelFullPath) ? `${base} MTP` : base;
+}
+
+/**
+ * Drops a publisher prefix the checkpoint name repeats from its own org, but
+ * only when the shorter identity already exists in the catalog. Spark Arena
+ * serves `nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4`, whose id would
+ * otherwise sit next to the `nemotron-3-super-120b-a12b` record that the
+ * llama.cpp and Apple Silicon rows already use for the same checkpoint.
+ *
+ * Requiring the target to exist is what keeps this safe: it can only ever merge
+ * onto an identity the repo has already decided on, never invent a shorter one.
+ */
+export function withoutRedundantPublisher(
+  name: string,
+  repoPath: string,
+  modelExists: (id: string) => boolean
+): string {
+  const org = repoPath.split("/")[0]?.toLowerCase();
+  const segments = name.split("-");
+  if (!org || segments.length < 2 || segments[0].toLowerCase() !== org) return name;
+  const shorter = segments.slice(1).join("-");
+  return modelExists(slugify(shorter, 64)) ? shorter : name;
+}
 
 /** "4bit", "8bit", "4.75bit" -- a bit-width qualifier, never a model name. */
 const bitWidthSegment = /^\d+(?:\.\d+)?bit$/;
@@ -897,9 +941,15 @@ async function main() {
   // claim and the catalog, and they need the best parameter count available
   // rather than whatever could be guessed from a display name.
   const canonicalModels = readJsonFiles<ModelMetadata & ExistingJson>(modelDir);
+  const modelExists = (id: string) => canonicalModels.has(id);
   const resolveModel = (meta: SnapshotEntry): ModelMetadata => {
     const inferred = modelFromEntry(meta);
-    return resolveModelMetadata(inferred, canonicalModels.get(inferred.id)?.value);
+    const merged = withoutRedundantPublisher(inferred.name, meta.modelFullPath, modelExists);
+    const identified =
+      merged === inferred.name
+        ? inferred
+        : { ...inferred, id: slugify(merged, 64), name: merged, family: inferFamily(merged) };
+    return resolveModelMetadata(identified, canonicalModels.get(identified.id)?.value);
   };
 
   const candidates = buildCandidates(snapshot);
@@ -943,7 +993,7 @@ async function main() {
       hardwareIdByClusterSize.get(item.candidate.meta.clusterSize),
       item.model.id,
       quantFromEntry(item.candidate.meta),
-      slugify(item.candidate.meta.runtime || "unknown", 40)
+      slugify(runtimeNameFor(item.candidate.meta), 40)
     ].join("|");
     const current = groups.get(key);
     if (
@@ -998,7 +1048,7 @@ async function main() {
   for (const { candidate, sweep, model } of groups.values()) {
     const hardwareId = hardwareIdByClusterSize.get(candidate.meta.clusterSize) as string;
     const quant = quantFromEntry(candidate.meta);
-    const runtimeSlug = slugify(candidate.meta.runtime || "unknown", 40);
+    const runtimeSlug = slugify(runtimeNameFor(candidate.meta), 40);
     const raw = rawLogs.get(candidate.benchmarkId);
     const parsedRaw = raw ? parseRawLog(raw.text) : new Map<string, { mean: number; stddev?: number }>();
 
@@ -1065,7 +1115,7 @@ async function main() {
       model: model.id,
       quant,
       runtime: {
-        name: candidate.meta.runtime || "unknown",
+        name: runtimeNameFor(candidate.meta),
         version: candidate.meta.recipeType ? `spark-arena-${candidate.meta.recipeType}` : "spark-arena",
         backend: candidate.meta.clusterSize > 1 ? "CUDA (multi-node)" : "CUDA",
         // cache is the catalog-wide default rather than a per-submission

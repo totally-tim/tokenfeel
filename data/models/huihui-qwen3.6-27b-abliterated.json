@@ -1,6 +1,6 @@
 {
-  "id": "huihui-qwen3.6-27b-abliterated-mtp",
-  "name": "Huihui-Qwen3.6-27B-abliterated-MTP",
+  "id": "huihui-qwen3.6-27b-abliterated",
+  "name": "Huihui-Qwen3.6-27B-abliterated",
   "family": "Qwen",
   "params": "27B",
   "license": "See upstream model card",

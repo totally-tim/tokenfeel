@@ -29,11 +29,11 @@
     "results": 80,
     "resultsWritten": 76,
     "resultsPreservedNotOwned": 4,
-    "staleResultsRemoved": 2,
-    "staleModelsRemoved": 1,
+    "staleResultsRemoved": 3,
+    "staleModelsRemoved": 2,
     "staleHardwareRemoved": 0,
     "hardwareWritten": 1,
-    "modelsWritten": 26
+    "modelsWritten": 25
   },
   "crossCheck": {
     "valuesComparedAgainstRawLogs": 1062,

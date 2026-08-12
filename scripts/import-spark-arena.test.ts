@@ -5,6 +5,9 @@ import {
   canonicalModelName,
   exceedsMemory,
   isOwnedByThisParser,
+  hasSpeculativeModule,
+  runtimeNameFor,
+  withoutRedundantPublisher,
   exceedsRoofline,
   modelFromEntry,
   parseRawLog,
@@ -464,5 +467,49 @@ describe("isOwnedByThisParser", () => {
     // because the repo reserves "verified" for maintainer-reproduced data.
     expect(isOwnedByThisParser({ id: "r", status: "community" })).toBe(false);
     expect(isOwnedByThisParser({ id: "r", status: "community", evidence: {} })).toBe(false);
+  });
+});
+
+describe("speculative decoding stays on the runtime axis", () => {
+  test("takes MTP out of the model name", () => {
+    // AGENTS.md names this directly: a speculative decoding module belongs in
+    // runtime metadata, "not as a fake separate model".
+    expect(canonicalModelName("Huihui-Qwen3.6-27B-abliterated-NVFP4-MTP")).toBe("Huihui-Qwen3.6-27B-abliterated");
+    expect(hasSpeculativeModule("Huihui-Qwen3.6-27B-abliterated-NVFP4-MTP")).toBe(true);
+    expect(hasSpeculativeModule("Qwen3.6-27B-abliterated")).toBe(false);
+  });
+
+  test("puts it on the runtime instead, matching the hand-authored convention", () => {
+    // The existing DeepSeek row uses runtime.name "vLLM MTP" with an unprefixed
+    // model id; a generated row has to land on the same shape, and keeping the
+    // module here is what stops a plain build of the same checkpoint from
+    // colliding with it once the tag leaves the model id.
+    const mtp = makeEntry({ modelName: "Huihui-Qwen3.6-27B-abliterated-NVFP4-MTP", runtime: "vLLM" });
+    expect(runtimeNameFor(mtp)).toBe("vLLM MTP");
+    expect(runtimeNameFor(makeEntry({ modelName: "Huihui-Qwen3.6-27B-abliterated", runtime: "vLLM" }))).toBe("vLLM");
+  });
+});
+
+describe("withoutRedundantPublisher", () => {
+  const exists = (id: string) => id === "nemotron-3-super-120b-a12b";
+
+  test("merges onto an identity the catalog already uses", () => {
+    // nvidia/NVIDIA-Nemotron-... repeats its own org, and the llama.cpp and
+    // Apple Silicon rows for the same checkpoint already use the shorter id.
+    expect(
+      withoutRedundantPublisher("NVIDIA-Nemotron-3-Super-120B-A12B", "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B", exists)
+    ).toBe("Nemotron-3-Super-120B-A12B");
+  });
+
+  test("never invents a shorter identity that does not exist yet", () => {
+    expect(withoutRedundantPublisher("NVIDIA-Nemotron-9-Unknown", "nvidia/NVIDIA-Nemotron-9-Unknown", exists)).toBe(
+      "NVIDIA-Nemotron-9-Unknown"
+    );
+  });
+
+  test("leaves a name whose first segment is not the publisher", () => {
+    expect(withoutRedundantPublisher("Nemotron-3-Super-120B-A12B", "nvidia/Nemotron-3-Super-120B-A12B", exists)).toBe(
+      "Nemotron-3-Super-120B-A12B"
+    );
   });
 });

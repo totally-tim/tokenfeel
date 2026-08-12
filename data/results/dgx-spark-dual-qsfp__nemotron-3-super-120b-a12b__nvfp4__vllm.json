@@ -1,7 +1,7 @@
 {
-  "id": "dgx-spark-dual-qsfp__nvidia-nemotron-3-super-120b-a12b__nvfp4__vllm",
+  "id": "dgx-spark-dual-qsfp__nemotron-3-super-120b-a12b__nvfp4__vllm",
   "hardware": "dgx-spark-dual-qsfp",
-  "model": "nvidia-nemotron-3-super-120b-a12b",
+  "model": "nemotron-3-super-120b-a12b",
   "quant": "nvfp4",
   "runtime": {
     "name": "vLLM",
@@ -108,7 +108,7 @@
   },
   "source": {
     "kind": "llama-benchy",
-    "title": "Spark Arena NVIDIA-Nemotron-3-Super-120B-A12B on 2x DGX Spark",
+    "title": "Spark Arena Nemotron-3-Super-120B-A12B on 2x DGX Spark",
     "url": "https://spark-arena.com/benchmark/sub1773442889830",
     "raw": "https://spark-arena.com/api/benchmarks/sub1773442889830/raw",
     "notes": "Community Spark Arena submission sub1773442889830. Cluster size is leaderboard metadata, not recorded in the raw log."
