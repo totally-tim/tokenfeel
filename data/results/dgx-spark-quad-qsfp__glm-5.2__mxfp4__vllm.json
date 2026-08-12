@@ -1,8 +1,8 @@
 {
-  "id": "dgx-spark-quad-qsfp__glm-5.2__mxfp4-gptq__vllm",
+  "id": "dgx-spark-quad-qsfp__glm-5.2__mxfp4__vllm",
   "hardware": "dgx-spark-quad-qsfp",
   "model": "glm-5.2",
-  "quant": "mxfp4-gptq",
+  "quant": "mxfp4",
   "runtime": {
     "name": "vLLM",
     "version": "spark-arena-spark-vllm-docker",

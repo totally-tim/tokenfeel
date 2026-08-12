@@ -1,7 +1,7 @@
 {
-  "id": "dgx-spark__qwen3-coder-next-gb10__nvfp4__vllm",
+  "id": "dgx-spark__qwen3-coder-next__nvfp4__vllm",
   "hardware": "dgx-spark",
-  "model": "qwen3-coder-next-gb10",
+  "model": "qwen3-coder-next",
   "quant": "nvfp4",
   "runtime": {
     "name": "vLLM",
@@ -106,7 +106,7 @@
   },
   "source": {
     "kind": "llama-benchy",
-    "title": "Spark Arena Qwen3-Coder-Next-GB10 on 1x DGX Spark",
+    "title": "Spark Arena Qwen3 Coder Next on 1x DGX Spark",
     "url": "https://spark-arena.com/benchmark/sub1781064527710",
     "raw": "https://spark-arena.com/api/benchmarks/sub1781064527710/raw",
     "notes": "Community Spark Arena submission sub1781064527710. Cluster size is leaderboard metadata, not recorded in the raw log."

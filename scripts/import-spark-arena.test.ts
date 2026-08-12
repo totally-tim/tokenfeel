@@ -310,6 +310,18 @@ describe("weightFormatsFromRepo", () => {
     expect(weightFormatsFromRepo("nvidia/Model-NVFP4")).toEqual(["nvfp4"]);
     expect(weightFormatsFromRepo("org/Model-MXFP8")).toEqual(["mxfp8"]);
   });
+
+  test("does not let a quantization method join a hybrid", () => {
+    // GLM-5.2-MXFP4-Experts-GPTQ is MXFP4 weights produced with GPTQ, and the
+    // submitter labels it MXFP4 -- "mxfp4-gptq" is a format that exists nowhere.
+    expect(weightFormatsFromRepo("aidendle94/GLM-5.2-MXFP4-Experts-GPTQ")).toEqual(["mxfp4"]);
+  });
+
+  test("still resolves a method label when the repo names no real format", () => {
+    // Ten repos in the snapshot name only the method, so this has to keep working.
+    expect(weightFormatsFromRepo("QuantTrio/MiniMax-M2.5-AWQ")).toEqual(["awq"]);
+    expect(weightFormatsFromRepo("org/Model-GPTQ")).toEqual(["gptq"]);
+  });
 });
 
 describe("canonicalModelName", () => {
@@ -334,6 +346,13 @@ describe("canonicalModelName", () => {
     // suffix in the id and split this from the base model it belongs to.
     expect(canonicalModelName("Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm")).toBe("Qwen3.6-35B-A3B");
     expect(canonicalModelName("Some-Model-sglang")).toBe("Some-Model");
+  });
+
+  test("keeps the accelerator a build was tuned for out of model identity", () => {
+    // Hardware is its own catalog axis, and every row here runs on GB10 -- so
+    // the tag distinguishes nothing while splitting this from a base model that
+    // has rows on twenty other machines.
+    expect(canonicalModelName("Qwen3-Coder-Next-NVFP4-GB10")).toBe("Qwen3-Coder-Next");
   });
 
   test("keeps a model-variant word that only looks like decoration", () => {

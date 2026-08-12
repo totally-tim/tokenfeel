@@ -641,8 +641,9 @@ function inferActiveParams(name: string): string | undefined {
   return match ? `${match[1]}B` : undefined;
 }
 
-// Weight formats, longest first so "nvfp4" wins over "fp4" and "bfloat16" over
-// "bf16". Order within the array is the search order, not a preference rank.
+// True weight formats -- what the tensors are actually stored as. Longest first
+// so "nvfp4" wins over "fp4" and "bfloat16" over "bf16"; order is search order,
+// not a preference rank.
 const weightFormatTokens = [
   "bfloat16",
   "float16",
@@ -655,10 +656,16 @@ const weightFormatTokens = [
   "fp16",
   "fp8",
   "fp4",
-  "bf16",
-  "awq",
-  "gptq"
+  "bf16"
 ];
+
+// Quantization *methods*, kept separate from the formats above. Plenty of repos
+// name only the method ("MiniMax-M2.5-AWQ"), so these still have to resolve a
+// quant when nothing else does -- ten repos in the current snapshot depend on
+// that. What they must never do is join a hybrid: GLM-5.2-MXFP4-Experts-GPTQ is
+// MXFP4 weights produced with GPTQ, not an "mxfp4-gptq" format that exists
+// nowhere, and the submitter labels it MXFP4 too.
+const quantMethodTokens = ["awq", "gptq"];
 
 /**
  * All weight formats the repo name states, in the order they appear in the
@@ -672,14 +679,22 @@ export function weightFormatsFromRepo(repoPath: string): string[] {
   // Match against the repo *name* only: an org like "Intel" or a base-model
   // path segment must not be read as a weight format.
   const name = repoPath.split("/").pop()?.toLowerCase().replace(/_/g, "-") ?? "";
-  const found: Array<{ token: string; index: number }> = [];
-  for (const token of weightFormatTokens) {
-    // The boundaries keep a longer token from also matching a shorter one it
-    // contains -- "nvfp4" never registers as "fp4", "mxfp8" never as "fp8".
-    const match = name.match(new RegExp(`(^|[^a-z0-9])(${token})([^a-z0-9]|$)`));
-    if (match) found.push({ token, index: match.index ?? 0 });
-  }
-  return found.sort((left, right) => left.index - right.index).map((item) => item.token);
+  const tokensIn = (tokens: string[]) => {
+    const found: Array<{ token: string; index: number }> = [];
+    for (const token of tokens) {
+      // The boundaries keep a longer token from also matching a shorter one it
+      // contains -- "nvfp4" never registers as "fp4", "mxfp8" never as "fp8".
+      const match = name.match(new RegExp(`(^|[^a-z0-9])(${token})([^a-z0-9]|$)`));
+      if (match) found.push({ token, index: match.index ?? 0 });
+    }
+    return found.sort((left, right) => left.index - right.index).map((item) => item.token);
+  };
+
+  const formats = tokensIn(weightFormatTokens);
+  if (formats.length > 0) return formats;
+  // No real format named, so fall back to the method label -- one only, since a
+  // method is a single answer to "how were these weights made", never a hybrid.
+  return tokensIn(quantMethodTokens).slice(0, 1);
 }
 
 /**
@@ -713,6 +728,7 @@ export function quantFromEntry(meta: SnapshotEntry): string {
 // is never mistaken for one of these.
 const quantOnlyNameSegments = new Set([
   ...weightFormatTokens,
+  ...quantMethodTokens,
   "autoround",
   "prismaquant",
   "gguf",
@@ -728,7 +744,12 @@ const quantOnlyNameSegments = new Set([
   "vllm",
   "sglang",
   "sgl",
-  "trtllm"
+  "trtllm",
+  // The accelerator a build was tuned for is hardware, which is also its own
+  // axis -- and every row here runs on GB10, so the tag distinguishes nothing.
+  // Without this, saricles/Qwen3-Coder-Next-NVFP4-GB10 sits apart from the
+  // qwen3-coder-next base model that has rows on twenty other machines.
+  "gb10"
 ]);
 
 /** "4bit", "8bit", "4.75bit" -- a bit-width qualifier, never a model name. */
