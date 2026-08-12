@@ -1,11 +1,16 @@
 import { describe, expect, test } from "vitest";
 import {
+  billionsFromParamLabel,
+  bytesPerParamForQuant,
+  canonicalModelName,
   exceedsMemory,
   exceedsRoofline,
   modelFromEntry,
   parseRawLog,
   quantFromEntry,
+  resolveModelMetadata,
   usableSweep,
+  weightFormatsFromRepo,
   type Candidate,
   type SnapshotEntry
 } from "./import-spark-arena";
@@ -253,5 +258,128 @@ describe("exceedsMemory", () => {
   test("passes when the format or parameter count is unknown", () => {
     expect(exceedsMemory(flash162, "some-unknown-format", 1)).toBe(false);
     expect(exceedsMemory({ ...flash162, params: "unknown" }, "fp8", 1)).toBe(false);
+  });
+
+  test("sizes a hybrid checkpoint by its smallest component", () => {
+    // A hybrid stores different tensors in different formats, so the gate stays
+    // a claim about what cannot fit under the most favourable packing.
+    expect(bytesPerParamForQuant("int4-fp8")).toBe(0.5);
+    expect(bytesPerParamForQuant("nvfp4-bf16")).toBe(0.5);
+    expect(bytesPerParamForQuant("fp8")).toBe(1);
+    expect(bytesPerParamForQuant("int4-mystery")).toBeUndefined();
+  });
+});
+
+describe("billionsFromParamLabel", () => {
+  test("reads the A-prefixed active-parameter form", () => {
+    // Two hand-authored records write activeParams as "A3B" rather than "3B".
+    // Both gates allow the row when this returns undefined, so failing to read
+    // the second form let a 937k t/s claim past the roofline check.
+    expect(billionsFromParamLabel("A3B")).toBe(3);
+    expect(billionsFromParamLabel("3B")).toBe(3);
+    expect(billionsFromParamLabel("284B")).toBe(284);
+    expect(billionsFromParamLabel("500M")).toBe(0.5);
+    expect(billionsFromParamLabel("MoE")).toBeUndefined();
+  });
+
+  test("keeps the roofline gate firing on an A-prefixed active count", () => {
+    const model = {
+      id: "m",
+      name: "M",
+      family: "Qwen",
+      params: "35B",
+      activeParams: "A3B",
+      license: "x",
+      notes: "Hand-authored."
+    };
+    // 1 GB10 at 1 PFLOP / (2 * 3B) is roughly 167k t/s.
+    expect(exceedsRoofline(model, 1, 937495)).toBe(true);
+    expect(exceedsRoofline(model, 1, 100000)).toBe(false);
+  });
+});
+
+describe("weightFormatsFromRepo", () => {
+  test("keeps every format a hybrid checkpoint names, in name order", () => {
+    expect(weightFormatsFromRepo("bleysg/Qwen3.5-122B-A10B-int4-fp8-hybrid")).toEqual(["int4", "fp8"]);
+    expect(weightFormatsFromRepo("rdtand/Qwen3.6-27B-Blackwell-NVFP4-BF16-vllm")).toEqual(["nvfp4", "bf16"]);
+  });
+
+  test("never reads a longer token as the shorter one it contains", () => {
+    expect(weightFormatsFromRepo("nvidia/Model-NVFP4")).toEqual(["nvfp4"]);
+    expect(weightFormatsFromRepo("org/Model-MXFP8")).toEqual(["mxfp8"]);
+  });
+});
+
+describe("canonicalModelName", () => {
+  test("strips weight-format decoration so quant is not part of model identity", () => {
+    expect(canonicalModelName("MiniMax-M2.5-AWQ")).toBe("MiniMax-M2.5");
+    expect(canonicalModelName("MiniMax-M2.5-AWQ-4bit")).toBe("MiniMax-M2.5");
+    expect(canonicalModelName("Qwen3.5-122B-A10B-int4-AutoRound")).toBe("Qwen3.5-122B-A10B");
+    expect(canonicalModelName("Qwen3.5-122B-A10B-FP8")).toBe("Qwen3.5-122B-A10B");
+  });
+
+  test("leaves a name that states no weight format untouched", () => {
+    // "162B" is a size, not a format: this community-pruned derivative must stay
+    // distinct from the 284B DeepSeek-V4-Flash it came from.
+    expect(canonicalModelName("DeepSeek-V4-Flash-162B")).toBe("DeepSeek-V4-Flash-162B");
+    expect(canonicalModelName("DeepSeek-V4-Flash")).toBe("DeepSeek-V4-Flash");
+    expect(canonicalModelName("gpt-oss-120b")).toBe("gpt-oss-120b");
+  });
+
+  test("gives quant variants of one checkpoint the same model id", () => {
+    const awq = modelFromEntry(
+      makeEntry({ modelName: "MiniMax-M2.5-AWQ", modelFullPath: "quanttrio/MiniMax-M2.5-AWQ" })
+    );
+    const awq4 = modelFromEntry(
+      makeEntry({ modelName: "MiniMax-M2.5-AWQ-4bit", modelFullPath: "cyankiwi/MiniMax-M2.5-AWQ-4bit" })
+    );
+    expect(awq.id).toBe(awq4.id);
+    expect(awq.id).toBe("minimax-m2.5");
+  });
+
+  test("still reads the parameter counts out of the undecorated name", () => {
+    const model = modelFromEntry(
+      makeEntry({
+        modelName: "Qwen3.5-122B-A10B-int4-AutoRound",
+        modelFullPath: "Intel/Qwen3.5-122B-A10B-int4-AutoRound"
+      })
+    );
+    expect(model.id).toBe("qwen3.5-122b-a10b");
+    expect(model.params).toBe("122B");
+    expect(model.activeParams).toBe("10B");
+  });
+});
+
+describe("resolveModelMetadata", () => {
+  const inferred = modelFromEntry(
+    makeEntry({ modelName: "DeepSeek-V4-Flash", modelFullPath: "deepseek-ai/DeepSeek-V4-Flash" })
+  );
+
+  test("infers nothing useful from a name that states no size", () => {
+    expect(inferred.params).toBe("unknown");
+  });
+
+  test("prefers a hand-authored record so the gates get a real parameter count", () => {
+    const curated = { ...inferred, params: "284B", activeParams: "13B", notes: "Hand-authored." };
+    const resolved = resolveModelMetadata(inferred, curated);
+    expect(resolved.params).toBe("284B");
+    // 284B of FP8 weights cannot fit two 128GB nodes; without the curated record
+    // the gate had nothing to check and admitted the row.
+    expect(exceedsMemory(resolved, "fp8", 2)).toBe(true);
+    expect(exceedsMemory(inferred, "fp8", 2)).toBe(false);
+  });
+
+  test("only fills gaps from a previously generated record", () => {
+    const generated = {
+      ...inferred,
+      params: "284B",
+      notes: "Generated from the Spark Arena DGX Spark leaderboard import. ..."
+    };
+    expect(resolveModelMetadata(inferred, generated).params).toBe("284B");
+    expect(resolveModelMetadata({ ...inferred, params: "92B" }, generated).params).toBe("92B");
+  });
+
+  test("returns the inferred record when nothing exists yet", () => {
+    expect(resolveModelMetadata(inferred, undefined)).toBe(inferred);
   });
 });

@@ -1,9 +1,0 @@
-{
-  "id": "gemma-4-26b-a4b-it-nvfp4",
-  "name": "gemma-4-26B-A4B-it-NVFP4",
-  "family": "Gemma",
-  "params": "26B",
-  "activeParams": "4B",
-  "license": "See upstream model card",
-  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Model metadata inferred from the upstream repo path RedHatAI/gemma-4-26B-A4B-it-NVFP4."
-}

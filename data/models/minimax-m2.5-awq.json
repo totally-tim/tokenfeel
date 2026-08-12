@@ -1,8 +1,0 @@
-{
-  "id": "minimax-m2.5-awq",
-  "name": "MiniMax-M2.5-AWQ",
-  "family": "MiniMax",
-  "params": "229B",
-  "license": "See upstream model card",
-  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Model metadata inferred from the upstream repo path QuantTrio/MiniMax-M2.5-AWQ."
-}

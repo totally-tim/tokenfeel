@@ -1,8 +1,0 @@
-{
-  "id": "glm-4.7-flash-awq-4bit",
-  "name": "GLM-4.7-Flash-AWQ-4bit",
-  "family": "GLM",
-  "params": "31B",
-  "license": "See upstream model card",
-  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Model metadata inferred from the upstream repo path cyankiwi/GLM-4.7-Flash-AWQ-4bit."
-}

@@ -1,8 +1,0 @@
-{
-  "id": "minimax-m3-v0-nvfp4",
-  "name": "Minimax-M3-v0-NVFP4",
-  "family": "MiniMax",
-  "params": "427B",
-  "license": "See upstream model card",
-  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Model metadata inferred from the upstream repo path sparkarena/Minimax-M3-v0-NVFP4."
-}

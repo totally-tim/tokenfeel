@@ -7,7 +7,7 @@
     "name": "vLLM",
     "version": "spark-arena-sparkrun",
     "backend": "CUDA (multi-node)",
-    "flags": "llama-benchy pp2048/tg128 c1; Spark Arena submission sub1775556883392",
+    "flags": "llama-benchy pp2048/tg128 c1",
     "cache": "prefix"
   },
   "measurements": [
@@ -90,7 +90,7 @@
   },
   "source": {
     "kind": "llama-benchy",
-    "title": "Spark Arena gemma-4-31B-it on 2x DGX Spark",
+    "title": "Spark Arena gemma-4-31b-it on 2x DGX Spark",
     "url": "https://spark-arena.com/benchmark/sub1775556883392",
     "raw": "https://spark-arena.com/api/benchmarks/sub1775556883392/raw",
     "notes": "Community Spark Arena submission sub1775556883392. Cluster size is leaderboard metadata, not recorded in the raw log."

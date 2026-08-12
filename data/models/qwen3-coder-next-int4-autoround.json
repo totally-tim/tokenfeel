@@ -1,8 +1,0 @@
-{
-  "id": "qwen3-coder-next-int4-autoround",
-  "name": "Qwen3-Coder-Next-int4-AutoRound",
-  "family": "Qwen",
-  "params": "80B",
-  "license": "See upstream model card",
-  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Model metadata inferred from the upstream repo path Intel/Qwen3-Coder-Next-int4-AutoRound."
-}

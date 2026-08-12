@@ -1,0 +1,121 @@
+{
+  "id": "dgx-spark-quad-qsfp__inkling-small__nvfp4__vllm",
+  "hardware": "dgx-spark-quad-qsfp",
+  "model": "inkling-small",
+  "quant": "nvfp4",
+  "runtime": {
+    "name": "vLLM",
+    "version": "spark-arena-spark-vllm-docker",
+    "backend": "CUDA (multi-node)",
+    "flags": "llama-benchy pp2048/tg128 c1",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 0,
+      "pp": 3807.14,
+      "tg": 47.98,
+      "ppLabel": "pp2048 (c1)",
+      "tgLabel": "tg128 (c1)",
+      "ppStddev": 62.66013809311365,
+      "tgStddev": 1.5959640228917369
+    },
+    {
+      "depth": 4096,
+      "pp": 3068.46,
+      "tg": 44.27,
+      "ppLabel": "pp2048 @ d4096 (c1)",
+      "tgLabel": "tg128 @ d4096 (c1)",
+      "ppStddev": 35.289831556019415,
+      "tgStddev": 1.4395518687460602
+    },
+    {
+      "depth": 8192,
+      "pp": 2936.35,
+      "tg": 39.72,
+      "ppLabel": "pp2048 @ d8192 (c1)",
+      "tgLabel": "tg128 @ d8192 (c1)",
+      "ppStddev": 22.956509383832113,
+      "tgStddev": 1.1978206460586538
+    },
+    {
+      "depth": 16384,
+      "pp": 2799.77,
+      "tg": 40.75,
+      "ppLabel": "pp2048 @ d16384 (c1)",
+      "tgLabel": "tg128 @ d16384 (c1)",
+      "ppStddev": 8.27601151381058,
+      "tgStddev": 1.8696601336101855
+    },
+    {
+      "depth": 32768,
+      "pp": 2521.45,
+      "tg": 34.35,
+      "ppLabel": "pp2048 @ d32768 (c1)",
+      "tgLabel": "tg128 @ d32768 (c1)",
+      "ppStddev": 35.78691978451233,
+      "tgStddev": 3.1518155740782308
+    },
+    {
+      "depth": 65535,
+      "pp": 2100.6,
+      "tg": 32.1,
+      "ppLabel": "pp2048 @ d65535 (c1)",
+      "tgLabel": "tg128 @ d65535 (c1)",
+      "ppStddev": 34.495225362463884,
+      "tgStddev": 3.4641291385698487
+    },
+    {
+      "depth": 100000,
+      "pp": 1768.11,
+      "tg": 30.21,
+      "ppLabel": "pp2048 @ d100000 (c1)",
+      "tgLabel": "tg128 @ d100000 (c1)",
+      "ppStddev": 21.982343289366984,
+      "tgStddev": 3.1691507582059493
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://spark-arena.com/api/benchmarks/sub1785541564261/raw",
+    "rawFormat": "llama-benchy raw benchmark log",
+    "retrievedAt": "2026-08-12T15:43:17.573Z",
+    "upstreamId": "sub1785541564261",
+    "parserVersion": "tokenfeel-spark-arena-snapshot/1",
+    "upstreamUrls": [
+      "https://spark-arena.com/benchmark/sub1785541564261"
+    ]
+  },
+  "benchmark": {
+    "tool": "llama-benchy",
+    "profile": "spark-vllm-docker",
+    "outputFormat": "Spark Arena leaderboard snapshot",
+    "latencyMode": "single-stream (c1)",
+    "ppTokens": 2048,
+    "tgTokens": 128,
+    "concurrency": 1,
+    "metadata": {
+      "spark_arena_cluster_size": 4,
+      "upstream_model_path": "thinkingmachines/Inkling-Small-NVFP4",
+      "upstream_quantization": "NVFP4",
+      "submitted_at": "2026-08-07T12:32:02.521Z"
+    }
+  },
+  "topology": {
+    "nodeCount": 4,
+    "acceleratorCount": 4,
+    "interconnect": "QSFP / ConnectX-7",
+    "distributedRuntime": "vLLM"
+  },
+  "source": {
+    "kind": "llama-benchy",
+    "title": "Spark Arena Inkling-Small on 4x DGX Spark",
+    "url": "https://spark-arena.com/benchmark/sub1785541564261",
+    "raw": "https://spark-arena.com/api/benchmarks/sub1785541564261/raw",
+    "notes": "Community Spark Arena submission sub1785541564261. Cluster size is leaderboard metadata, not recorded in the raw log."
+  },
+  "submitter": "Spark Arena",
+  "date": "2026-08-07",
+  "status": "community",
+  "overheadMs": 29,
+  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Single-stream (c1) pp2048/tg128 sweep; higher-concurrency Spark Arena tests are intentionally not imported."
+}

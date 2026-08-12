@@ -1,8 +1,0 @@
-{
-  "id": "mistral-small-4-119b-2603-nvfp4",
-  "name": "Mistral-Small-4-119B-2603-NVFP4",
-  "family": "Mistral",
-  "params": "119B",
-  "license": "See upstream model card",
-  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Model metadata inferred from the upstream repo path mistralai/Mistral-Small-4-119B-2603-NVFP4."
-}

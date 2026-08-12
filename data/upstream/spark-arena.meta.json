@@ -25,13 +25,16 @@
     "skippedUnknownClusterSize": 0,
     "skippedUnusableSweep": 65,
     "skippedAboveRoofline": 3,
-    "skippedAboveMemory": 0,
-    "results": 82,
+    "skippedAboveMemory": 2,
+    "results": 80,
+    "resultsWritten": 79,
+    "staleResultsRemoved": 0,
+    "staleModelsRemoved": 0,
     "hardwareWritten": 0,
-    "modelsWritten": 56
+    "modelsWritten": 28
   },
   "crossCheck": {
-    "valuesComparedAgainstRawLogs": 1090,
+    "valuesComparedAgainstRawLogs": 1062,
     "mismatches": 0,
     "note": "The import fails if any selected value is missing from or disagrees with its raw log."
   }

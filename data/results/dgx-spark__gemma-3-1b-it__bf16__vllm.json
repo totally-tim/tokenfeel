@@ -7,7 +7,7 @@
     "name": "vLLM",
     "version": "spark-arena-spark-vllm-docker",
     "backend": "CUDA",
-    "flags": "llama-benchy pp2048/tg128 c1; Spark Arena submission sub1779455882567",
+    "flags": "llama-benchy pp2048/tg128 c1",
     "cache": "prefix"
   },
   "measurements": [

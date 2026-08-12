@@ -7,7 +7,7 @@
     "name": "vLLM",
     "version": "spark-arena-spark-vllm-docker",
     "backend": "CUDA (multi-node)",
-    "flags": "llama-benchy pp2048/tg128 c1; Spark Arena submission sub1772848338394",
+    "flags": "llama-benchy pp2048/tg128 c1",
     "cache": "prefix"
   },
   "measurements": [
@@ -108,7 +108,7 @@
   },
   "source": {
     "kind": "llama-benchy",
-    "title": "Spark Arena gpt-oss-120b on 4x DGX Spark",
+    "title": "Spark Arena gpt-oss 120B on 4x DGX Spark",
     "url": "https://spark-arena.com/benchmark/sub1772848338394",
     "raw": "https://spark-arena.com/api/benchmarks/sub1772848338394/raw",
     "notes": "Community Spark Arena submission sub1772848338394. Cluster size is leaderboard metadata, not recorded in the raw log."

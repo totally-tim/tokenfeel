@@ -1,8 +1,0 @@
-{
-  "id": "qwen3.6-27b-prismascout-blackwell-nvfp4-bf16-vllm",
-  "name": "Qwen3.6-27B-PrismaSCOUT-Blackwell-NVFP4-BF16-vllm",
-  "family": "Qwen",
-  "params": "27B",
-  "license": "See upstream model card",
-  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Model metadata inferred from the upstream repo path rdtand/Qwen3.6-27B-PrismaSCOUT-Blackwell-NVFP4-BF16-vllm."
-}

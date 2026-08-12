@@ -1,9 +1,0 @@
-{
-  "id": "qwen3-next-80b-a3b-instruct-fp8",
-  "name": "Qwen3-Next-80B-A3B-Instruct-FP8",
-  "family": "Qwen",
-  "params": "80B",
-  "activeParams": "3B",
-  "license": "See upstream model card",
-  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Model metadata inferred from the upstream repo path Qwen/Qwen3-Next-80B-A3B-Instruct-FP8."
-}

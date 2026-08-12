@@ -1,8 +1,0 @@
-{
-  "id": "north-mini-code-1.0-fp8",
-  "name": "North-Mini-Code-1.0-fp8",
-  "family": "North",
-  "params": "30B",
-  "license": "See upstream model card",
-  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Model metadata inferred from the upstream repo path CohereLabs/North-Mini-Code-1.0-fp8."
-}

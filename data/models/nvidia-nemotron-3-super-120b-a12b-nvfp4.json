@@ -1,9 +1,0 @@
-{
-  "id": "nvidia-nemotron-3-super-120b-a12b-nvfp4",
-  "name": "NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4",
-  "family": "Nemotron",
-  "params": "120B",
-  "activeParams": "12B",
-  "license": "See upstream model card",
-  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Model metadata inferred from the upstream repo path nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4."
-}

@@ -1,8 +1,0 @@
-{
-  "id": "inkling-small-nvfp4",
-  "name": "Inkling-Small-NVFP4",
-  "family": "Inkling",
-  "params": "266B",
-  "license": "See upstream model card",
-  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Model metadata inferred from the upstream repo path thinkingmachines/Inkling-Small-NVFP4."
-}

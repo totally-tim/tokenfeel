@@ -133,6 +133,13 @@ export interface Candidate {
 interface ExistingJson {
   id: string;
   notes?: string;
+  status?: string;
+  evidence?: { parserVersion?: string };
+}
+
+/** A row this importer generated and that nobody has reviewed since. */
+function isOwnedByThisParser(value: ExistingJson): boolean {
+  return value.evidence?.parserVersion === parserVersion && value.status === "community";
 }
 
 function parseArgs(argv: string[]): Args {
@@ -194,7 +201,20 @@ function slugify(value: string, maxLength = 72): string {
 async function fetchText(url: string, args: Args): Promise<string> {
   let lastError = "";
   for (let attempt = 1; attempt <= args.maxRetries; attempt += 1) {
-    const response = await fetch(url, { headers: { accept: "*/*" } });
+    let response: Response;
+    try {
+      response = await fetch(url, { headers: { accept: "*/*" } });
+    } catch (error) {
+      // A transient DNS, socket, TLS, or connection-reset failure rejects the
+      // promise instead of returning a status. A refresh issues dozens of
+      // sequential requests, so one such blip must not abort the whole import
+      // while --max-retries is on the table -- give it the same backoff an
+      // HTTP failure gets.
+      lastError = error instanceof Error ? error.message : String(error);
+      if (attempt >= args.maxRetries) break;
+      await sleep(args.delayMs * attempt * 4);
+      continue;
+    }
     if (response.ok) return response.text();
     lastError = `${response.status} ${response.statusText}`;
     // Spark Arena is a small community server and rate-limits bulk reads.
@@ -303,9 +323,15 @@ export function usableSweep(candidate: Candidate): UsableSweep | undefined {
   return { depths, prefill, decode };
 }
 
-function billionsFromParamLabel(label: string | undefined): number | undefined {
+export function billionsFromParamLabel(label: string | undefined): number | undefined {
   if (!label) return undefined;
-  const match = label.match(/^(\d+(?:\.\d+)?)\s*([BM])$/i);
+  // Active-parameter labels appear both as "3B" and -- following the
+  // checkpoint-naming convention -- as "A3B". Both gates fall back to "not
+  // enough information, allow" when this returns undefined, so refusing to
+  // read the second form would let the roofline gate fail open purely because
+  // of how a label was styled. That is exactly how the 937k t/s Qwen3.6-35B-A3B
+  // submission would reach the catalog.
+  const match = label.trim().match(/^A?(\d+(?:\.\d+)?)\s*([BM])$/i);
   if (!match) return undefined;
   const value = Number(match[1]);
   if (!Number.isFinite(value) || value <= 0) return undefined;
@@ -363,9 +389,24 @@ const gb10MemoryBytes = 128 * 1e9;
  * ignores KV cache, activations, and runtime overhead, so it only fires on a
  * claim that is impossible before the server allocates anything else.
  */
+/**
+ * Bytes per parameter for a quant identity, including the hybrid ones
+ * `quantFromEntry` emits (e.g. "int4-fp8"). A hybrid stores different tensors
+ * in different formats, so the smallest component is used: that keeps this a
+ * statement about what cannot fit under even the most favourable packing,
+ * rather than an estimate of the real mix.
+ */
+export function bytesPerParamForQuant(quant: string): number | undefined {
+  const direct = bytesPerParamByFormat.get(quant);
+  if (direct !== undefined) return direct;
+  const parts = quant.split("-").map((part) => bytesPerParamByFormat.get(part));
+  if (parts.length < 2 || parts.some((value) => value === undefined)) return undefined;
+  return Math.min(...(parts as number[]));
+}
+
 export function exceedsMemory(model: ModelMetadata, quant: string, clusterSize: number): boolean {
   const totalBillions = billionsFromParamLabel(model.params);
-  const bytesPerParam = bytesPerParamByFormat.get(quant);
+  const bytesPerParam = bytesPerParamForQuant(quant);
   if (totalBillions === undefined || bytesPerParam === undefined) return false;
   return totalBillions * 1e9 * bytesPerParam > clusterSize * gb10MemoryBytes;
 }
@@ -605,11 +646,26 @@ const weightFormatTokens = [
   "gptq"
 ];
 
-function weightFormatFromRepo(repoPath: string): string | undefined {
+/**
+ * All weight formats the repo name states, in the order they appear in the
+ * name. Returning every match rather than the first one matters for hybrid
+ * checkpoints: `Qwen3.5-122B-A10B-int4-fp8-hybrid` really does store two
+ * formats, and collapsing it to whichever token happens to sit earliest in the
+ * preference array would advertise it as plain `int4` and let comparison logic
+ * treat it as the same quantization as a non-hybrid int4 build.
+ */
+export function weightFormatsFromRepo(repoPath: string): string[] {
   // Match against the repo *name* only: an org like "Intel" or a base-model
   // path segment must not be read as a weight format.
   const name = repoPath.split("/").pop()?.toLowerCase().replace(/_/g, "-") ?? "";
-  return weightFormatTokens.find((token) => new RegExp(`(^|[^a-z0-9])${token}([^a-z0-9]|$)`).test(name));
+  const found: Array<{ token: string; index: number }> = [];
+  for (const token of weightFormatTokens) {
+    // The boundaries keep a longer token from also matching a shorter one it
+    // contains -- "nvfp4" never registers as "fp4", "mxfp8" never as "fp8".
+    const match = name.match(new RegExp(`(^|[^a-z0-9])(${token})([^a-z0-9]|$)`));
+    if (match) found.push({ token, index: match.index ?? 0 });
+  }
+  return found.sort((left, right) => left.index - right.index).map((item) => item.token);
 }
 
 /**
@@ -630,22 +686,88 @@ function weightFormatFromRepo(repoPath: string): string | undefined {
  * not in the token list -- they resolve to the format the repo also states.
  */
 export function quantFromEntry(meta: SnapshotEntry): string {
-  const fromRepo = weightFormatFromRepo(meta.modelFullPath);
-  if (fromRepo) return fromRepo;
+  const fromRepo = weightFormatsFromRepo(meta.modelFullPath);
+  if (fromRepo.length > 0) return fromRepo.join("-");
   return slugify(meta.quantization || "unknown", 40);
 }
 
+// Name segments that describe how the weights were stored rather than which
+// model they are: the formats themselves, the bit-width qualifiers that trail
+// them ("4bit"), the methods used to produce them ("AutoRound", "GPTQ"), and
+// the words that mark a mixed checkpoint. Only ever applied to a name that
+// actually carries a weight-format token, so a plain size or variant segment
+// is never mistaken for one of these.
+const quantOnlyNameSegments = new Set([
+  ...weightFormatTokens,
+  "autoround",
+  "gguf",
+  "quantized",
+  "quant",
+  "hybrid",
+  "mixed",
+  "experts",
+  "w4a4",
+  "w8a8"
+]);
+
+/**
+ * Strips weight-format decoration from a checkpoint name so the model id names
+ * the model rather than the build. `result.quant` already carries the format,
+ * so leaving it in the id makes `MiniMax-M2.5-AWQ` and `MiniMax-M2.5-AWQ-4bit`
+ * two different models that can never be compared against each other, and
+ * turns FP8-vs-NVFP4 into a cross-model comparison instead of the same-model
+ * quant comparison it actually is.
+ *
+ * Deliberately conservative: a name with no format token is returned untouched,
+ * so a size or derivative marker survives. `DeepSeek-V4-Flash-162B` therefore
+ * stays distinct from the 284B `DeepSeek-V4-Flash` it was pruned from.
+ */
+export function canonicalModelName(name: string): string {
+  const segments = name.split(/[-\s_]+/).filter(Boolean);
+  if (!segments.some((segment) => weightFormatTokens.includes(segment.toLowerCase()))) return name;
+  const kept = segments.filter((segment) => {
+    const lower = segment.toLowerCase();
+    return !quantOnlyNameSegments.has(lower) && !/^\d+bit$/.test(lower);
+  });
+  return kept.length > 0 ? kept.join("-") : name;
+}
+
 export function modelFromEntry(meta: SnapshotEntry): ModelMetadata {
-  const name = meta.modelName?.trim() || meta.modelFullPath.split("/").pop() || meta.modelFullPath;
-  const activeParams = inferActiveParams(name);
+  const rawName = meta.modelName?.trim() || meta.modelFullPath.split("/").pop() || meta.modelFullPath;
+  const name = canonicalModelName(rawName);
+  // Parameter counts are still read from the *raw* name: "A10B" and "122B" are
+  // size facts that canonicalisation must not be able to eat.
+  const activeParams = inferActiveParams(rawName);
   return {
     id: slugify(name, 64),
     name,
     family: inferFamily(name),
-    params: inferParams(name, meta.modelFullPath),
+    params: inferParams(rawName, meta.modelFullPath),
     ...(activeParams ? { activeParams } : {}),
     license: "See upstream model card",
     notes: `${generatedNotePrefix} Model metadata inferred from the upstream repo path ${meta.modelFullPath}.`
+  };
+}
+
+/**
+ * Folds a hand-authored model record into the inferred one.
+ *
+ * The safety gates are only as good as the parameter count they are given, and
+ * inference from a display name frequently yields "unknown" -- `DeepSeek-V4-Flash`
+ * names no size, so the memory gate had nothing to check and admitted a 284B
+ * model as FP8 on two 128GB nodes. When a curated record for the same id already
+ * exists in the repo it is the better source, so it wins outright; a previously
+ * generated record only fills gaps.
+ */
+export function resolveModelMetadata(inferred: ModelMetadata, existing: ModelMetadata | undefined): ModelMetadata {
+  if (!existing) return inferred;
+  const isHandAuthored = !existing.notes?.startsWith(generatedNotePrefix);
+  if (isHandAuthored) return existing;
+  const activeParams = inferred.activeParams ?? existing.activeParams;
+  return {
+    ...inferred,
+    params: inferred.params !== "unknown" ? inferred.params : existing.params,
+    ...(activeParams ? { activeParams } : {})
   };
 }
 
@@ -664,6 +786,23 @@ function readJsonFiles<T extends ExistingJson>(dir: string): Map<string, { fileP
 function writeJson(filePath: string, value: unknown) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`);
+}
+
+/**
+ * Drops files this parser owns that the current snapshot no longer produces,
+ * so the catalog stays a reproducible view of the cached snapshot rather than
+ * the union of every historical import. Without this, a submission that has
+ * disappeared upstream -- or that now fails the sweep, roofline, or memory
+ * gate -- keeps its row forever.
+ */
+function removeGeneratedJsonFiles(dir: string, keepIds: Set<string>, owned: (value: ExistingJson) => boolean) {
+  let removed = 0;
+  for (const [id, { filePath, value }] of readJsonFiles<ExistingJson>(dir)) {
+    if (keepIds.has(id) || !owned(value)) continue;
+    fs.unlinkSync(filePath);
+    removed += 1;
+  }
+  return removed;
 }
 
 async function main() {
@@ -688,8 +827,18 @@ async function main() {
     writeJson(snapshotPath, snapshot);
   }
 
+  // Read the canonical model records before filtering, not after: the roofline
+  // and memory gates are the only thing standing between an impossible upstream
+  // claim and the catalog, and they need the best parameter count available
+  // rather than whatever could be guessed from a display name.
+  const canonicalModels = readJsonFiles<ModelMetadata & ExistingJson>(modelDir);
+  const resolveModel = (meta: SnapshotEntry): ModelMetadata => {
+    const inferred = modelFromEntry(meta);
+    return resolveModelMetadata(inferred, canonicalModels.get(inferred.id)?.value);
+  };
+
   const candidates = buildCandidates(snapshot);
-  const usable = new Map<string, { candidate: Candidate; sweep: UsableSweep }>();
+  const usable = new Map<string, { candidate: Candidate; sweep: UsableSweep; model: ModelMetadata }>();
   const skipped = { clusterSize: 0, sweep: 0, roofline: 0, memory: 0 };
   for (const candidate of candidates.values()) {
     if (!hardwareIdByClusterSize.has(candidate.meta.clusterSize)) {
@@ -701,7 +850,7 @@ async function main() {
       skipped.sweep += 1;
       continue;
     }
-    const candidateModel = modelFromEntry(candidate.meta);
+    const candidateModel = resolveModel(candidate.meta);
     const candidateQuant = quantFromEntry(candidate.meta);
     if (exceedsRoofline(candidateModel, candidate.meta.clusterSize, Math.max(...sweep.prefill))) {
       console.warn(
@@ -717,18 +866,17 @@ async function main() {
       skipped.memory += 1;
       continue;
     }
-    usable.set(candidate.benchmarkId, { candidate, sweep });
+    usable.set(candidate.benchmarkId, { candidate, sweep, model: candidateModel });
   }
 
   // One row per (hardware, model, quant, runtime): the result id is built from
   // exactly those four fields, so two submissions sharing them would collide.
   // Prefer the longest sweep, then the most recent submission.
-  const groups = new Map<string, { candidate: Candidate; sweep: UsableSweep }>();
+  const groups = new Map<string, { candidate: Candidate; sweep: UsableSweep; model: ModelMetadata }>();
   for (const item of usable.values()) {
-    const model = modelFromEntry(item.candidate.meta);
     const key = [
       hardwareIdByClusterSize.get(item.candidate.meta.clusterSize),
-      model.id,
+      item.model.id,
       quantFromEntry(item.candidate.meta),
       slugify(item.candidate.meta.runtime || "unknown", 40)
     ].join("|");
@@ -763,7 +911,17 @@ async function main() {
   const previousMeta = fs.existsSync(metaPath)
     ? (JSON.parse(fs.readFileSync(metaPath, "utf8")) as { retrievedAt?: string })
     : undefined;
-  const retrievedAt = args.skipFetch && previousMeta?.retrievedAt ? previousMeta.retrievedAt : new Date().toISOString();
+  // Falling back to "now" here would let an offline rebuild claim freshly
+  // retrieved provenance for a snapshot it never fetched -- the cached
+  // snapshot and raw logs can both be present, so the import would otherwise
+  // succeed with a retrievedAt that never happened.
+  if (args.skipFetch && !previousMeta?.retrievedAt) {
+    throw new Error(
+      `--skip-fetch needs a cached retrieval timestamp in ${path.relative(root, metaPath)}, but none is recorded. ` +
+        "An offline rebuild retrieved nothing and must not stamp evidence with the current time; run once without --skip-fetch first."
+    );
+  }
+  const retrievedAt = args.skipFetch ? (previousMeta?.retrievedAt as string) : new Date().toISOString();
 
   const hardwareItems = new Map<string, HardwareConfig>();
   const modelItems = new Map<string, ModelMetadata>();
@@ -771,9 +929,8 @@ async function main() {
   let crossChecked = 0;
   const crossCheckFailures: string[] = [];
 
-  for (const { candidate, sweep } of groups.values()) {
+  for (const { candidate, sweep, model } of groups.values()) {
     const hardwareId = hardwareIdByClusterSize.get(candidate.meta.clusterSize) as string;
-    const model = modelFromEntry(candidate.meta);
     const quant = quantFromEntry(candidate.meta);
     const runtimeSlug = slugify(candidate.meta.runtime || "unknown", 40);
     const raw = rawLogs.get(candidate.benchmarkId);
@@ -839,7 +996,13 @@ async function main() {
         name: candidate.meta.runtime || "unknown",
         version: candidate.meta.recipeType ? `spark-arena-${candidate.meta.recipeType}` : "spark-arena",
         backend: candidate.meta.clusterSize > 1 ? "CUDA (multi-node)" : "CUDA",
-        flags: `llama-benchy ${prefillTestPrefix}/${decodeTestPrefix} c1; Spark Arena submission ${candidate.benchmarkId}`,
+        // The submission id belongs to the evidence, not to the runtime.
+        // runtimeKey() hashes the whole flags string, so putting a unique id in
+        // here gave every row its own runtime: 82 keys for seven real
+        // name/backend/recipe stacks, which collapsed Race's runtime-first flow
+        // into "pick a runtime, get exactly one submission". It stays available
+        // on evidence.upstreamId and in benchmark.metadata.
+        flags: `llama-benchy ${prefillTestPrefix}/${decodeTestPrefix} c1`,
         cache: "prefix" as const
       },
       measurements,
@@ -917,9 +1080,51 @@ async function main() {
     writtenModels += 1;
   }
 
+  // Sweep before writing, and only over rows still owned by this parser: a row
+  // hand-reviewed to verified/flagged that has since dropped out of the import
+  // set must survive, because the per-row guard below only protects rows that
+  // are still in the current set.
+  const removedResults = removeGeneratedJsonFiles(
+    resultDir,
+    new Set(results.map((result) => result.id as string)),
+    isOwnedByThisParser
+  );
+
+  // An existing row that has moved past "community" (hand-reviewed to
+  // "verified"/"flagged") or that a different generator produced carries
+  // curated evidence and notes, so a refresh must never silently downgrade it
+  // back to a freshly generated community row.
+  const existingResults = readJsonFiles<ExistingJson>(resultDir);
+  let writtenResults = 0;
   for (const result of results) {
-    writeJson(path.join(resultDir, `${result.id as string}.json`), result);
+    const id = result.id as string;
+    const current = existingResults.get(id);
+    if (current && current.value.status !== "community") {
+      console.warn(`skipping ${id}: existing row has status "${current.value.status}", not overwriting reviewed data`);
+      continue;
+    }
+    if (current?.value.evidence?.parserVersion && current.value.evidence.parserVersion !== parserVersion) {
+      console.warn(
+        `skipping ${id}: existing row's evidence.parserVersion "${current.value.evidence.parserVersion}" does not match "${parserVersion}", not overwriting`
+      );
+      continue;
+    }
+    writeJson(path.join(resultDir, `${id}.json`), result);
+    writtenResults += 1;
   }
+
+  // Canonicalisation orphans a generated model file whenever its last row goes
+  // away. Sweep those, but key the keep-set off the rows that actually survived
+  // on disk rather than off this run's groups: a reviewed row that dropped out
+  // of the import set still references its model, and deleting it underneath
+  // would leave a dangling reference. Hand-authored models are never swept.
+  const referencedModelIds = new Set<string>();
+  for (const { value } of readJsonFiles<ExistingJson & { model?: string }>(resultDir).values()) {
+    if (value.model) referencedModelIds.add(value.model);
+  }
+  const removedModels = removeGeneratedJsonFiles(modelDir, referencedModelIds, (value) =>
+    Boolean(value.notes?.startsWith(generatedNotePrefix))
+  );
 
   writeJson(metaPath, {
     source: leaderboardUrl,
@@ -950,6 +1155,9 @@ async function main() {
       skippedAboveRoofline: skipped.roofline,
       skippedAboveMemory: skipped.memory,
       results: results.length,
+      resultsWritten: writtenResults,
+      staleResultsRemoved: removedResults,
+      staleModelsRemoved: removedModels,
       hardwareWritten: writtenHardware,
       modelsWritten: writtenModels
     },
@@ -961,8 +1169,9 @@ async function main() {
   });
 
   console.log(
-    `Spark Arena import: ${results.length} results, ${writtenModels} models, ${writtenHardware} hardware entries written.`
+    `Spark Arena import: ${writtenResults}/${results.length} results, ${writtenModels} models, ${writtenHardware} hardware entries written.`
   );
+  console.log(`Removed ${removedResults} stale generated result(s) and ${removedModels} orphaned generated model(s).`);
   console.log(
     `Skipped ${skipped.sweep} submissions with an unusable sweep, ${skipped.roofline} above the GB10 roofline, ${skipped.memory} whose weights cannot fit, and ${skipped.clusterSize} with an unmapped cluster size.`
   );

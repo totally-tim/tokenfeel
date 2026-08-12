@@ -1,8 +1,0 @@
-{
-  "id": "qwen3-coder-next-nvfp4-gb10",
-  "name": "Qwen3-Coder-Next-NVFP4-GB10",
-  "family": "Qwen",
-  "params": "80B",
-  "license": "See upstream model card",
-  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Model metadata inferred from the upstream repo path saricles/Qwen3-Coder-Next-NVFP4-GB10."
-}

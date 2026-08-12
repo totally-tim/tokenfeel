@@ -7,7 +7,7 @@
     "name": "SGLang",
     "version": "spark-arena-sparkrun",
     "backend": "CUDA",
-    "flags": "llama-benchy pp2048/tg128 c1; Spark Arena submission sub1772496710907",
+    "flags": "llama-benchy pp2048/tg128 c1",
     "cache": "prefix"
   },
   "measurements": [

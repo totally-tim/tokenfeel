@@ -1,8 +1,0 @@
-{
-  "id": "muse-glimmer-30b-nvfp4-w4a4",
-  "name": "Muse-Glimmer-30B-NVFP4-W4A4",
-  "family": "Muse",
-  "params": "30B",
-  "license": "See upstream model card",
-  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Model metadata inferred from the upstream repo path Inferact/Muse-Glimmer-30B-NVFP4-W4A4."
-}
