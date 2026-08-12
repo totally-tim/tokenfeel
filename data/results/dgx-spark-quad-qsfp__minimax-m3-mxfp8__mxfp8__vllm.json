@@ -1,8 +1,8 @@
 {
-  "id": "dgx-spark-quad-qsfp__minimax-m3-mxfp8__fp8__vllm",
+  "id": "dgx-spark-quad-qsfp__minimax-m3-mxfp8__mxfp8__vllm",
   "hardware": "dgx-spark-quad-qsfp",
   "model": "minimax-m3-mxfp8",
-  "quant": "fp8",
+  "quant": "mxfp8",
   "runtime": {
     "name": "vLLM",
     "version": "spark-arena-spark-vllm-docker",
@@ -89,6 +89,6 @@
   "submitter": "Spark Arena",
   "date": "2026-06-17",
   "status": "community",
-  "overheadMs": 90,
+  "overheadMs": 6,
   "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Single-stream (c1) pp2048/tg128 sweep; higher-concurrency Spark Arena tests are intentionally not imported."
 }

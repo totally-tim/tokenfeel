@@ -1,8 +1,10 @@
 import { describe, expect, test } from "vitest";
 import {
+  exceedsMemory,
   exceedsRoofline,
   modelFromEntry,
   parseRawLog,
+  quantFromEntry,
   usableSweep,
   type Candidate,
   type SnapshotEntry
@@ -27,7 +29,8 @@ function makeCandidate(prefill: Array<[number, number]>, decode: Array<[number, 
     benchmarkId: "sub1",
     meta: makeEntry(),
     prefill: new Map(prefill),
-    decode: new Map(decode)
+    decode: new Map(decode),
+    clientOverheadMs: new Map()
   };
 }
 
@@ -61,6 +64,20 @@ describe("parseRawLog", () => {
   test("reads the quoted csv variant", () => {
     const parsed = parseRawLog(['"model","test","t/s (total)"', '"a/b","pp2048 (c1)","742.67 ± 39.31"'].join("\n"));
     expect(parsed.get("pp2048 (c1)")).toEqual({ mean: 742.67, stddev: 39.31 });
+  });
+
+  test("honours quoting when a field contains the delimiter", () => {
+    // A naive split(",") shifts every later column and silently drops both the
+    // measurement and its cross-check.
+    const parsed = parseRawLog(
+      ['"model","test","t/s (total)"', '"Acme, Inc/model","pp2048 (c1)","742.67 ± 39.31"'].join("\n")
+    );
+    expect(parsed.get("pp2048 (c1)")).toEqual({ mean: 742.67, stddev: 39.31 });
+  });
+
+  test("reads a doubled quote inside a quoted field as one literal quote", () => {
+    const parsed = parseRawLog(['"model","test","t/s (total)"', '"a""b/model","tg128 (c1)","42.5"'].join("\n"));
+    expect(parsed.get("tg128 (c1)")?.mean).toBe(42.5);
   });
 
   // Some Spark Arena exports mangle "±" into mojibake; the value must still parse.
@@ -153,22 +170,88 @@ describe("exceedsRoofline", () => {
   });
 
   test("scales the ceiling with cluster size", () => {
-    const single = exceedsRoofline(moe, 1, 400000);
-    expect(single).toBe(true);
+    expect(exceedsRoofline(moe, 1, 400000)).toBe(true);
     expect(exceedsRoofline(moe, 8, 400000)).toBe(false);
   });
 
-  test("tolerates an undisclosed MoE active count instead of rejecting the row", () => {
-    // "gpt-oss-120b" is a MoE with roughly 5B active, but the name only
-    // discloses 120B, so a strict ceiling would wrongly reject a real run.
+  test("skips the check when the active count is undisclosed", () => {
+    // "gpt-oss-120b" is a MoE with roughly 5B active, but the name discloses
+    // only 120B. Falling back to the total would put the ceiling at 4167 t/s
+    // and reject a real 4229 t/s run as physically impossible.
     const undisclosed = modelFromEntry(makeEntry({ modelName: "gpt-oss-120b", modelFullPath: "openai/gpt-oss-120b" }));
     expect(undisclosed.params).toBe("120B");
+    expect(undisclosed.activeParams).toBeUndefined();
     expect(exceedsRoofline(undisclosed, 1, 4229)).toBe(false);
+    expect(exceedsRoofline(undisclosed, 1, 1e9)).toBe(false);
   });
 
   test("passes a model whose parameter count cannot be parsed", () => {
     const unknown = modelFromEntry(makeEntry({ modelName: "mystery-model", modelFullPath: "x/mystery-model" }));
     expect(unknown.params).toBe("unknown");
     expect(exceedsRoofline(unknown, 1, 1e9)).toBe(false);
+  });
+});
+
+describe("quantFromEntry", () => {
+  test("prefers the format published in the repo name over the submitter's label", () => {
+    // Real row: the repo builds NVFP4 weights but the submitter typed BFLOAT16,
+    // which would offer a quantization of this checkpoint that does not exist.
+    expect(
+      quantFromEntry(makeEntry({ modelFullPath: "lukealonso/MiniMax-M2.7-NVFP4", quantization: "BFLOAT16" }))
+    ).toBe("nvfp4");
+  });
+
+  test("collapses a method label onto the format the repo states", () => {
+    // The same Intel repo arrived twice, as "INT4" and as "AUTO-ROUND", which
+    // split one configuration into a phantom quant comparison.
+    const repo = "Intel/Qwen3.5-122B-A10B-int4-AutoRound";
+    expect(quantFromEntry(makeEntry({ modelFullPath: repo, quantization: "INT4" }))).toBe("int4");
+    expect(quantFromEntry(makeEntry({ modelFullPath: repo, quantization: "AUTO-ROUND" }))).toBe("int4");
+  });
+
+  test("prefers the longer token when formats overlap", () => {
+    expect(quantFromEntry(makeEntry({ modelFullPath: "nvidia/Model-NVFP4", quantization: "x" }))).toBe("nvfp4");
+    expect(quantFromEntry(makeEntry({ modelFullPath: "org/Model-MXFP8", quantization: "x" }))).toBe("mxfp8");
+  });
+
+  test("does not read a weight format out of the org name", () => {
+    expect(quantFromEntry(makeEntry({ modelFullPath: "fp8-labs/Some-Model", quantization: "NVFP4" }))).toBe("nvfp4");
+  });
+
+  test("falls back to the submitter label when the repo names no format", () => {
+    expect(quantFromEntry(makeEntry({ modelFullPath: "MiniMaxAI/MiniMax-M2.5", quantization: "BF16" }))).toBe("bf16");
+  });
+});
+
+describe("exceedsMemory", () => {
+  const flash162 = modelFromEntry(
+    makeEntry({ modelName: "DeepSeek-V4-Flash-162B", modelFullPath: "0xSero/DeepSeek-V4-Flash-162B" })
+  );
+
+  test("uses the measured parameter count, not the one in the repo name", () => {
+    // The repo name says 162B; it actually stores 92.2B unpacked elements.
+    expect(flash162.params).toBe("92B");
+  });
+
+  test("rejects weights that cannot fit the cluster", () => {
+    // 162B of FP8 weights would be 162GB on a 128GB single node.
+    const asNamed = { ...flash162, params: "162B" };
+    expect(exceedsMemory(asNamed, "fp8", 1)).toBe(true);
+    expect(exceedsMemory(flash162, "fp8", 1)).toBe(false);
+  });
+
+  test("accounts for the weight format and the cluster size", () => {
+    const big = { ...flash162, params: "400B" };
+    // 400B: 800GB at bf16, 400GB at fp8, 200GB at nvfp4.
+    expect(exceedsMemory(big, "bf16", 1)).toBe(true);
+    expect(exceedsMemory(big, "nvfp4", 1)).toBe(true);
+    expect(exceedsMemory(big, "nvfp4", 2)).toBe(false);
+    expect(exceedsMemory(big, "bf16", 4)).toBe(true);
+    expect(exceedsMemory(big, "bf16", 8)).toBe(false);
+  });
+
+  test("passes when the format or parameter count is unknown", () => {
+    expect(exceedsMemory(flash162, "some-unknown-format", 1)).toBe(false);
+    expect(exceedsMemory({ ...flash162, params: "unknown" }, "fp8", 1)).toBe(false);
   });
 });

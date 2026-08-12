@@ -77,13 +77,6 @@ const gb10PeakFlops = 1e15;
 // A transformer forward pass costs roughly 2 FLOPs per active parameter per
 // token, so peak tok/s = (nodes * peakFlops) / (2 * activeParams).
 const flopsPerActiveParamPerToken = 2;
-// Active parameters are inferred from the model name, which does not always
-// disclose them: "gpt-oss-120b" is a MoE with roughly 5B active, so measuring
-// it against a 120B ceiling understates the true limit by ~20x. Requiring a
-// submission to exceed the ceiling by this factor keeps the gate on the side
-// of only rejecting the clearly impossible -- the bogus rows this exists for
-// overshoot by 4x or more even against their correct ceiling.
-const rooflineToleranceFactor = 2;
 // Mirrors PUBLIC_SIMULATION_MIN_DEPTH in src/lib/catalogQuality.ts: a sweep
 // that never reaches 8k context gets pruned from the simulator anyway.
 const minMaxDepth = 8192;
@@ -106,6 +99,9 @@ export interface SnapshotEntry {
   submittedAt: string;
   recipeType?: string;
   userId?: string;
+  // Prompt-processing time and client-perceived time to first token, in ms.
+  estPpt?: number | null;
+  e2eTtft?: number | null;
 }
 
 interface SnapshotTest {
@@ -129,6 +125,9 @@ export interface Candidate {
   meta: SnapshotEntry;
   prefill: Map<number, number>;
   decode: Map<number, number>;
+  // e2eTtft - estPpt per prefill depth: the client-side cost on top of raw
+  // prompt processing.
+  clientOverheadMs: Map<number, number>;
 }
 
 interface ExistingJson {
@@ -252,10 +251,19 @@ function buildCandidates(snapshot: SnapshotCache): Map<string, Candidate> {
       if (!entry.benchmarkId || !Number.isFinite(entry.tokensPerSec) || entry.tokensPerSec <= 0) continue;
       let candidate = candidates.get(entry.benchmarkId);
       if (!candidate) {
-        candidate = { benchmarkId: entry.benchmarkId, meta: entry, prefill: new Map(), decode: new Map() };
+        candidate = {
+          benchmarkId: entry.benchmarkId,
+          meta: entry,
+          prefill: new Map(),
+          decode: new Map(),
+          clientOverheadMs: new Map()
+        };
         candidates.set(entry.benchmarkId, candidate);
       }
       (isPrefill ? candidate.prefill : candidate.decode).set(depth, entry.tokensPerSec);
+      if (isPrefill && typeof entry.e2eTtft === "number" && typeof entry.estPpt === "number") {
+        candidate.clientOverheadMs.set(depth, entry.e2eTtft - entry.estPpt);
+      }
     }
   }
   return candidates;
@@ -311,14 +319,55 @@ function billionsFromParamLabel(label: string | undefined): number | undefined {
  * such rows: one claims ~937k tok/s prefill for a 3B-active model on a single
  * GB10, about 5.6x past the theoretical ceiling.
  *
- * This is deliberately a roofline and not a tuned threshold -- it can only
- * ever discard the impossible, never a legitimately fast run.
+ * Only applied when the *active* parameter count is actually known. Falling
+ * back to the total would make this reject legitimate MoE runs: gpt-oss-120b
+ * discloses no active count, so a 120B-derived ceiling of 4167 t/s sits far
+ * below its real limit and a genuinely fast run would look impossible.
+ * Skipping the unknown case keeps this a true statement about physics rather
+ * than a tuned threshold, so it needs no fudge factor.
  */
 export function exceedsRoofline(model: ModelMetadata, clusterSize: number, peakPrefill: number): boolean {
-  const activeBillions = billionsFromParamLabel(model.activeParams) ?? billionsFromParamLabel(model.params);
+  const activeBillions = billionsFromParamLabel(model.activeParams);
   if (activeBillions === undefined) return false;
   const ceiling = (clusterSize * gb10PeakFlops) / (flopsPerActiveParamPerToken * activeBillions * 1e9);
-  return peakPrefill > ceiling * rooflineToleranceFactor;
+  return peakPrefill > ceiling;
+}
+
+// Bytes of weight storage per parameter, by the weight format resolved from
+// the repo name. Only formats that actually appear upstream are listed.
+const bytesPerParamByFormat = new Map<string, number>([
+  ["bfloat16", 2],
+  ["float16", 2],
+  ["bf16", 2],
+  ["fp16", 2],
+  ["fp8", 1],
+  ["mxfp8", 1],
+  ["int8", 1],
+  ["nvfp4", 0.5],
+  ["mxfp4", 0.5],
+  ["fp4", 0.5],
+  ["int4", 0.5],
+  ["awq", 0.5],
+  ["gptq", 0.5],
+  ["w4a16", 0.5]
+]);
+
+const gb10MemoryBytes = 128 * 1e9;
+
+/**
+ * Rejects rows whose weights could not fit the machine they claim to have run
+ * on. This catches a different failure than the roofline -- a wrong *parameter
+ * count* rather than a wrong rate.
+ *
+ * Deliberately generous: it compares against the full unified memory and
+ * ignores KV cache, activations, and runtime overhead, so it only fires on a
+ * claim that is impossible before the server allocates anything else.
+ */
+export function exceedsMemory(model: ModelMetadata, quant: string, clusterSize: number): boolean {
+  const totalBillions = billionsFromParamLabel(model.params);
+  const bytesPerParam = bytesPerParamByFormat.get(quant);
+  if (totalBillions === undefined || bytesPerParam === undefined) return false;
+  return totalBillions * 1e9 * bytesPerParam > clusterSize * gb10MemoryBytes;
 }
 
 function rawLogUrl(benchmarkId: string): string {
@@ -372,8 +421,35 @@ export function parseRawLog(text: string): Map<string, { mean: number; stddev?: 
   }
 
   const delimiter = header.includes("\t") ? "\t" : ",";
-  const splitRow = (line: string): string[] =>
-    line.split(delimiter).map((cell) => cell.trim().replace(/^"|"$/g, "").trim());
+  // A naive split on the delimiter shifts every later column when a quoted
+  // field contains one (e.g. `"Acme, Inc/model"`), which silently drops the
+  // measurement and its cross-check. Track quoting instead.
+  const splitRow = (line: string): string[] => {
+    const cells: string[] = [];
+    let cell = "";
+    let quoted = false;
+    for (let index = 0; index < line.length; index += 1) {
+      const char = line[index];
+      if (char === '"') {
+        // A doubled quote inside a quoted field is one literal quote.
+        if (quoted && line[index + 1] === '"') {
+          cell += '"';
+          index += 1;
+        } else {
+          quoted = !quoted;
+        }
+        continue;
+      }
+      if (char === delimiter && !quoted) {
+        cells.push(cell.trim());
+        cell = "";
+        continue;
+      }
+      cell += char;
+    }
+    cells.push(cell.trim());
+    return cells;
+  };
 
   const columns = splitRow(lines[0]);
   const testIndex = columns.findIndex((column) => column === "test_name" || column === "test");
@@ -393,6 +469,28 @@ export function parseRawLog(text: string): Map<string, { mean: number; stddev?: 
     out.set(testName, value);
   }
   return out;
+}
+
+/**
+ * Per-request client overhead on top of raw prompt processing, taken as the
+ * median of (e2eTtft - estPpt) across the row's own selected prefill depths.
+ *
+ * Tokenfeel adds overheadMs to every prefill event, so a made-up value
+ * systematically skews short and multi-turn simulations. The leaderboard
+ * publishes both timings, and their difference across the selected c1 points
+ * is a few milliseconds -- nothing like the 90ms an earlier hand-authored row
+ * happened to carry. The median rather than the mean because a handful of
+ * submissions carry multi-second outliers.
+ */
+function clientOverheadMs(candidate: Candidate, depths: number[]): number | undefined {
+  const samples = depths
+    .map((depth) => candidate.clientOverheadMs.get(depth))
+    .filter((value): value is number => typeof value === "number" && Number.isFinite(value) && value >= 0)
+    .sort((left, right) => left - right);
+  if (samples.length === 0) return undefined;
+  const middle = Math.floor(samples.length / 2);
+  const median = samples.length % 2 === 0 ? (samples[middle - 1] + samples[middle]) / 2 : samples[middle];
+  return Math.round(median);
 }
 
 function testNameFor(prefix: string, depth: number): string {
@@ -463,7 +561,13 @@ const knownParamsByRepo = new Map<string, string>([
   ["qwen/qwen3-coder-next-fp8", "80B"], // Qwen/Qwen3-Coder-Next-FP8 = 79.7B
   ["intel/qwen3-coder-next-int4-autoround", "80B"], // Qwen/Qwen3-Coder-Next = 79.7B
   ["saricles/qwen3-coder-next-nvfp4-gb10", "80B"], // Qwen/Qwen3-Coder-Next = 79.7B
-  ["arcee-ai/trinity-large-thinking-nvfp4", "399B"] // arcee-ai/Trinity-Large-Thinking = 398.6B
+  ["arcee-ai/trinity-large-thinking-nvfp4", "399B"], // arcee-ai/Trinity-Large-Thinking = 398.6B
+  // The "162B" in this repo's name is not its parameter count: the repo stores
+  // 92.2B elements in unpacked dtypes (BF16/F8_E4M3/I8), and 162B of FP8
+  // weights could not fit the single 128GB node it was benchmarked on. It is a
+  // community-pruned derivative of deepseek-ai/DeepSeek-V4-Flash (284B), so it
+  // stays a distinct model rather than being merged into it.
+  ["0xsero/deepseek-v4-flash-162b", "92B"]
 ]);
 
 function inferParams(name: string, repoPath: string): string {
@@ -480,6 +584,55 @@ function inferParams(name: string, repoPath: string): string {
 function inferActiveParams(name: string): string | undefined {
   const match = name.match(/\bA(\d+(?:\.\d+)?)\s*B\b/i);
   return match ? `${match[1]}B` : undefined;
+}
+
+// Weight formats, longest first so "nvfp4" wins over "fp4" and "bfloat16" over
+// "bf16". Order within the array is the search order, not a preference rank.
+const weightFormatTokens = [
+  "bfloat16",
+  "float16",
+  "nvfp4",
+  "mxfp8",
+  "mxfp4",
+  "w4a16",
+  "int8",
+  "int4",
+  "fp16",
+  "fp8",
+  "fp4",
+  "bf16",
+  "awq",
+  "gptq"
+];
+
+function weightFormatFromRepo(repoPath: string): string | undefined {
+  // Match against the repo *name* only: an org like "Intel" or a base-model
+  // path segment must not be read as a weight format.
+  const name = repoPath.split("/").pop()?.toLowerCase().replace(/_/g, "-") ?? "";
+  return weightFormatTokens.find((token) => new RegExp(`(^|[^a-z0-9])${token}([^a-z0-9]|$)`).test(name));
+}
+
+/**
+ * The leaderboard's `quantization` field is free text typed by the submitter,
+ * and it lands in the result id, the dedup key, and the schema's uniqueness
+ * key -- so a wrong value invents a configuration that does not exist. Two
+ * real failures in the current snapshot:
+ *
+ *   - lukealonso/MiniMax-M2.7-NVFP4 is labelled "BFLOAT16", which would offer
+ *     an NVFP4 checkpoint as a bfloat16 option.
+ *   - Intel/Qwen3.5-122B-A10B-int4-AutoRound appears as both "INT4" and
+ *     "AUTO-ROUND", splitting one configuration into a phantom quant
+ *     comparison between two unrelated submissions.
+ *
+ * The repo name is the stronger signal because it is published by whoever
+ * built the weights, so it wins whenever it names a format. "AutoRound" and
+ * friends are quantization *methods* rather than formats and are deliberately
+ * not in the token list -- they resolve to the format the repo also states.
+ */
+export function quantFromEntry(meta: SnapshotEntry): string {
+  const fromRepo = weightFormatFromRepo(meta.modelFullPath);
+  if (fromRepo) return fromRepo;
+  return slugify(meta.quantization || "unknown", 40);
 }
 
 export function modelFromEntry(meta: SnapshotEntry): ModelMetadata {
@@ -537,7 +690,7 @@ async function main() {
 
   const candidates = buildCandidates(snapshot);
   const usable = new Map<string, { candidate: Candidate; sweep: UsableSweep }>();
-  const skipped = { clusterSize: 0, sweep: 0, roofline: 0 };
+  const skipped = { clusterSize: 0, sweep: 0, roofline: 0, memory: 0 };
   for (const candidate of candidates.values()) {
     if (!hardwareIdByClusterSize.has(candidate.meta.clusterSize)) {
       skipped.clusterSize += 1;
@@ -548,11 +701,20 @@ async function main() {
       skipped.sweep += 1;
       continue;
     }
-    if (exceedsRoofline(modelFromEntry(candidate.meta), candidate.meta.clusterSize, Math.max(...sweep.prefill))) {
+    const candidateModel = modelFromEntry(candidate.meta);
+    const candidateQuant = quantFromEntry(candidate.meta);
+    if (exceedsRoofline(candidateModel, candidate.meta.clusterSize, Math.max(...sweep.prefill))) {
       console.warn(
         `skipping ${candidate.benchmarkId} (${candidate.meta.modelFullPath}, ${candidate.meta.runtime}): peak prefill ${Math.max(...sweep.prefill).toFixed(0)} t/s exceeds the GB10 roofline for ${candidate.meta.clusterSize} node(s)`
       );
       skipped.roofline += 1;
+      continue;
+    }
+    if (exceedsMemory(candidateModel, candidateQuant, candidate.meta.clusterSize)) {
+      console.warn(
+        `skipping ${candidate.benchmarkId} (${candidate.meta.modelFullPath}, ${candidateQuant}): ${candidateModel.params} of weights cannot fit ${candidate.meta.clusterSize} node(s)`
+      );
+      skipped.memory += 1;
       continue;
     }
     usable.set(candidate.benchmarkId, { candidate, sweep });
@@ -567,7 +729,7 @@ async function main() {
     const key = [
       hardwareIdByClusterSize.get(item.candidate.meta.clusterSize),
       model.id,
-      slugify(item.candidate.meta.quantization || "unknown", 40),
+      quantFromEntry(item.candidate.meta),
       slugify(item.candidate.meta.runtime || "unknown", 40)
     ].join("|");
     const current = groups.get(key);
@@ -595,39 +757,66 @@ async function main() {
     fs.writeFileSync(rawLogsPath, records.map((record) => JSON.stringify(record)).join("\n") + "\n");
   }
 
-  const retrievedAt = new Date().toISOString();
+  // An offline rebuild retrieved nothing, so it must not restamp evidence with
+  // "now" -- that would both falsify the provenance date and turn a no-op
+  // regeneration into a diff touching every row.
+  const previousMeta = fs.existsSync(metaPath)
+    ? (JSON.parse(fs.readFileSync(metaPath, "utf8")) as { retrievedAt?: string })
+    : undefined;
+  const retrievedAt = args.skipFetch && previousMeta?.retrievedAt ? previousMeta.retrievedAt : new Date().toISOString();
+
   const hardwareItems = new Map<string, HardwareConfig>();
   const modelItems = new Map<string, ModelMetadata>();
   const results: Array<Record<string, unknown>> = [];
   let crossChecked = 0;
-  let crossCheckMismatches = 0;
+  const crossCheckFailures: string[] = [];
 
   for (const { candidate, sweep } of groups.values()) {
     const hardwareId = hardwareIdByClusterSize.get(candidate.meta.clusterSize) as string;
     const model = modelFromEntry(candidate.meta);
-    const quant = slugify(candidate.meta.quantization || "unknown", 40);
+    const quant = quantFromEntry(candidate.meta);
     const runtimeSlug = slugify(candidate.meta.runtime || "unknown", 40);
     const raw = rawLogs.get(candidate.benchmarkId);
     const parsedRaw = raw ? parseRawLog(raw.text) : new Map<string, { mean: number; stddev?: number }>();
 
+    const overheadMs = clientOverheadMs(candidate, sweep.depths);
+
     const generated = generatedHardware.get(hardwareId);
     if (generated) hardwareItems.set(hardwareId, generated);
-    modelItems.set(model.id, model);
+    // One model id can be reachable from several publisher repos, and
+    // knownParamsByRepo is keyed on the repo -- so whichever submission wrote
+    // last would decide whether the model has a real parameter count or
+    // "unknown". An unknown count prunes every row of that model out of the
+    // product, so prefer a resolved one regardless of iteration order.
+    const existingModel = modelItems.get(model.id);
+    if (!existingModel || (existingModel.params === "unknown" && model.params !== "unknown")) {
+      modelItems.set(model.id, model);
+    }
 
     const measurements: BenchmarkMeasurement[] = sweep.depths.map((depth, index) => {
       const prefillRaw = parsedRaw.get(testNameFor(prefillTestPrefix, depth));
       const decodeRaw = parsedRaw.get(testNameFor(decodeTestPrefix, depth));
-      // The snapshot value is the leaderboard's own aggregate. Where the raw
-      // log is machine-readable it is cross-checked against that value, and
-      // only its stddev is carried over -- the measurement itself always stays
-      // the published number so the row matches what the leaderboard shows.
-      for (const [rawValue, snapshotValue] of [
-        [prefillRaw?.mean, sweep.prefill[index]],
-        [decodeRaw?.mean, sweep.decode[index]]
-      ] as Array<[number | undefined, number]>) {
-        if (rawValue === undefined) continue;
+      // The snapshot value is the leaderboard's own aggregate. It is checked
+      // against the raw log and only the log's stddev is carried over -- the
+      // measurement itself always stays the published number so the row
+      // matches what the leaderboard shows.
+      //
+      // Every selected value must be checkable. A row advertises
+      // evidence.rawUrl as its provenance, so a value the raw log does not
+      // confirm (parser regression, missing cached log, genuine upstream
+      // disagreement) must fail the import rather than ship as raw-backed.
+      for (const [label, rawValue, snapshotValue] of [
+        [testNameFor(prefillTestPrefix, depth), prefillRaw?.mean, sweep.prefill[index]],
+        [testNameFor(decodeTestPrefix, depth), decodeRaw?.mean, sweep.decode[index]]
+      ] as Array<[string, number | undefined, number]>) {
+        if (rawValue === undefined) {
+          crossCheckFailures.push(`${candidate.benchmarkId} ${label}: no value in raw log`);
+          continue;
+        }
         crossChecked += 1;
-        if (Math.abs(rawValue - snapshotValue) / Math.max(snapshotValue, 1e-9) > 0.001) crossCheckMismatches += 1;
+        if (Math.abs(rawValue - snapshotValue) / Math.max(snapshotValue, 1e-9) > 0.001) {
+          crossCheckFailures.push(`${candidate.benchmarkId} ${label}: raw ${rawValue} != snapshot ${snapshotValue}`);
+        }
       }
 
       return {
@@ -694,9 +883,18 @@ async function main() {
       submitter: "Spark Arena",
       date: candidate.meta.submittedAt.slice(0, 10),
       status: "community" as const,
-      overheadMs: 90,
+      ...(overheadMs === undefined ? {} : { overheadMs }),
       notes: `${generatedNotePrefix} Single-stream (c1) ${prefillTestPrefix}/${decodeTestPrefix} sweep; higher-concurrency Spark Arena tests are intentionally not imported.`
     });
+  }
+
+  if (crossCheckFailures.length > 0) {
+    // Fail before writing: every row claims evidence.rawUrl as its provenance,
+    // so shipping a value the raw log does not confirm would misrepresent it.
+    console.error(`${crossCheckFailures.length} value(s) could not be confirmed against their raw log:`);
+    for (const failure of crossCheckFailures.slice(0, 20)) console.error(`  ${failure}`);
+    if (crossCheckFailures.length > 20) console.error(`  ...and ${crossCheckFailures.length - 20} more`);
+    throw new Error("Raw-log cross-check failed; no rows were written.");
   }
 
   const existingHardware = readJsonFiles<HardwareConfig & ExistingJson>(hardwareDir);
@@ -750,13 +948,15 @@ async function main() {
       skippedUnknownClusterSize: skipped.clusterSize,
       skippedUnusableSweep: skipped.sweep,
       skippedAboveRoofline: skipped.roofline,
+      skippedAboveMemory: skipped.memory,
       results: results.length,
       hardwareWritten: writtenHardware,
       modelsWritten: writtenModels
     },
     crossCheck: {
       valuesComparedAgainstRawLogs: crossChecked,
-      mismatches: crossCheckMismatches
+      mismatches: 0,
+      note: "The import fails if any selected value is missing from or disagrees with its raw log."
     }
   });
 
@@ -764,9 +964,9 @@ async function main() {
     `Spark Arena import: ${results.length} results, ${writtenModels} models, ${writtenHardware} hardware entries written.`
   );
   console.log(
-    `Skipped ${skipped.sweep} submissions with an unusable sweep, ${skipped.roofline} above the GB10 roofline, and ${skipped.clusterSize} with an unmapped cluster size.`
+    `Skipped ${skipped.sweep} submissions with an unusable sweep, ${skipped.roofline} above the GB10 roofline, ${skipped.memory} whose weights cannot fit, and ${skipped.clusterSize} with an unmapped cluster size.`
   );
-  console.log(`Cross-checked ${crossChecked} values against raw logs (${crossCheckMismatches} mismatches).`);
+  console.log(`Cross-checked ${crossChecked} values against raw logs; all confirmed.`);
 }
 
 // Only run when invoked directly, so the parser stays unit-testable.

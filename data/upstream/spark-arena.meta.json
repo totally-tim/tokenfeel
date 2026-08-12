@@ -11,7 +11,7 @@
   },
   "checksums": {
     "snapshot": "sha256:bea4f06e8d5c38bd039d67478ae0619959bddefe85e2e7efe2225cbe94d114aa",
-    "rawLogs": "sha256:d02e82d014ee6caabc165476a192b8da155f5e843430d4007c028a937698a8ae"
+    "rawLogs": "sha256:7e520cad448e31e34014b93b22c57fe8d6c8bef891f79da12007e24215fca880"
   },
   "selection": {
     "concurrency": "(c1)",
@@ -25,12 +25,14 @@
     "skippedUnknownClusterSize": 0,
     "skippedUnusableSweep": 65,
     "skippedAboveRoofline": 3,
-    "results": 84,
+    "skippedAboveMemory": 0,
+    "results": 82,
     "hardwareWritten": 0,
     "modelsWritten": 56
   },
   "crossCheck": {
-    "valuesComparedAgainstRawLogs": 1118,
-    "mismatches": 0
+    "valuesComparedAgainstRawLogs": 1090,
+    "mismatches": 0,
+    "note": "The import fails if any selected value is missing from or disagrees with its raw log."
   }
 }

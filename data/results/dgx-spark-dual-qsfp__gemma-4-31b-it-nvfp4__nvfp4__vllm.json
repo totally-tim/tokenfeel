@@ -116,6 +116,6 @@
   "submitter": "Spark Arena",
   "date": "2026-04-07",
   "status": "community",
-  "overheadMs": 90,
+  "overheadMs": 1,
   "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Single-stream (c1) pp2048/tg128 sweep; higher-concurrency Spark Arena tests are intentionally not imported."
 }

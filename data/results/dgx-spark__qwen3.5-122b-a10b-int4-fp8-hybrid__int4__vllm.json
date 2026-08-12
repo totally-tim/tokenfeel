@@ -1,8 +1,8 @@
 {
-  "id": "dgx-spark__qwen3.5-122b-a10b-int4-fp8-hybrid__auto-round__vllm",
+  "id": "dgx-spark__qwen3.5-122b-a10b-int4-fp8-hybrid__int4__vllm",
   "hardware": "dgx-spark",
   "model": "qwen3.5-122b-a10b-int4-fp8-hybrid",
-  "quant": "auto-round",
+  "quant": "int4",
   "runtime": {
     "name": "vLLM",
     "version": "spark-arena-sparkrun",
@@ -114,6 +114,6 @@
   "submitter": "Spark Arena",
   "date": "2026-07-27",
   "status": "community",
-  "overheadMs": 90,
+  "overheadMs": 3,
   "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Single-stream (c1) pp2048/tg128 sweep; higher-concurrency Spark Arena tests are intentionally not imported."
 }

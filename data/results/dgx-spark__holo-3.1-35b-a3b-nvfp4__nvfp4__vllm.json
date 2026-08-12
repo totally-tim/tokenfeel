@@ -1,8 +1,8 @@
 {
-  "id": "dgx-spark__holo-3.1-35b-a3b-nvfp4__w4a16-nvfp4__vllm",
+  "id": "dgx-spark__holo-3.1-35b-a3b-nvfp4__nvfp4__vllm",
   "hardware": "dgx-spark",
   "model": "holo-3.1-35b-a3b-nvfp4",
-  "quant": "w4a16-nvfp4",
+  "quant": "nvfp4",
   "runtime": {
     "name": "vLLM",
     "version": "spark-arena-sparkrun",
@@ -114,6 +114,6 @@
   "submitter": "Spark Arena",
   "date": "2026-07-25",
   "status": "community",
-  "overheadMs": 90,
+  "overheadMs": 2,
   "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Single-stream (c1) pp2048/tg128 sweep; higher-concurrency Spark Arena tests are intentionally not imported."
 }
