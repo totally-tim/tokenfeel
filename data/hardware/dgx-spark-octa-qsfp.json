@@ -1,0 +1,9 @@
+{
+  "id": "dgx-spark-octa-qsfp",
+  "name": "NVIDIA DGX Spark Octa QSFP Cluster",
+  "shortName": "8x DGX Spark",
+  "vendor": "NVIDIA",
+  "memory": "1TB unified aggregate",
+  "accelerator": "8x GB10 over QSFP / ConnectX-7 fabric",
+  "notes": "Eight DGX Spark systems connected over QSFP for distributed vLLM inference. Cluster size is community-reported Spark Arena leaderboard metadata; the raw llama-benchy logs do not themselves record node count."
+}

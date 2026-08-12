@@ -1,88 +1,88 @@
 {
-  "id": "dgx-spark-dual-qsfp__gpt-oss-120b__mxfp4__vllm",
-  "hardware": "dgx-spark-dual-qsfp",
-  "model": "gpt-oss-120b",
-  "quant": "mxfp4",
+  "id": "dgx-spark__gemma-4-e2b-it__fp8__vllm",
+  "hardware": "dgx-spark",
+  "model": "gemma-4-e2b-it",
+  "quant": "fp8",
   "runtime": {
     "name": "vLLM",
     "version": "spark-arena-spark-vllm-docker",
-    "backend": "CUDA (multi-node)",
-    "flags": "llama-benchy pp2048/tg128 c1; Spark Arena submission sub1770681883769",
+    "backend": "CUDA",
+    "flags": "llama-benchy pp2048/tg128 c1; Spark Arena submission sub1779466806655",
     "cache": "prefix"
   },
   "measurements": [
     {
       "depth": 0,
-      "pp": 6294.54,
-      "tg": 75.96,
+      "pp": 14847.58,
+      "tg": 67.06,
       "ppLabel": "pp2048 (c1)",
       "tgLabel": "tg128 (c1)",
-      "ppStddev": 625.36,
-      "tgStddev": 0.73
+      "ppStddev": 346.95,
+      "tgStddev": 0.02
     },
     {
       "depth": 4096,
-      "pp": 6275.16,
-      "tg": 72.22,
+      "pp": 9270.24,
+      "tg": 64.88,
       "ppLabel": "pp2048 @ d4096 (c1)",
       "tgLabel": "tg128 @ d4096 (c1)",
-      "ppStddev": 66.22,
-      "tgStddev": 1.98
+      "ppStddev": 115.03,
+      "tgStddev": 0.06
     },
     {
       "depth": 8192,
-      "pp": 5830.3,
-      "tg": 70.95,
+      "pp": 6754.61,
+      "tg": 64.63,
       "ppLabel": "pp2048 @ d8192 (c1)",
       "tgLabel": "tg128 @ d8192 (c1)",
-      "ppStddev": 17.61,
-      "tgStddev": 1.49
+      "ppStddev": 63.74,
+      "tgStddev": 0.13
     },
     {
       "depth": 16384,
-      "pp": 4526.5,
-      "tg": 65.36,
+      "pp": 3836.12,
+      "tg": 62.16,
       "ppLabel": "pp2048 @ d16384 (c1)",
       "tgLabel": "tg128 @ d16384 (c1)",
-      "ppStddev": 876.25,
-      "tgStddev": 7.64
+      "ppStddev": 34.57,
+      "tgStddev": 0.17
     },
     {
       "depth": 32768,
-      "pp": 4116.02,
-      "tg": 66.9,
+      "pp": 2048.65,
+      "tg": 60.1,
       "ppLabel": "pp2048 @ d32768 (c1)",
       "tgLabel": "tg128 @ d32768 (c1)",
-      "ppStddev": 54.52,
-      "tgStddev": 2.96
+      "ppStddev": 3.52,
+      "tgStddev": 0.03
     },
     {
       "depth": 65535,
-      "pp": 3020.1,
-      "tg": 63.11,
+      "pp": 1109.19,
+      "tg": 55.88,
       "ppLabel": "pp2048 @ d65535 (c1)",
       "tgLabel": "tg128 @ d65535 (c1)",
-      "ppStddev": 57.9,
-      "tgStddev": 0.21
+      "ppStddev": 8.78,
+      "tgStddev": 0.3
     },
     {
       "depth": 100000,
-      "pp": 2305.55,
-      "tg": 57.29,
+      "pp": 758.25,
+      "tg": 53.09,
       "ppLabel": "pp2048 @ d100000 (c1)",
       "tgLabel": "tg128 @ d100000 (c1)",
-      "ppStddev": 46.79,
-      "tgStddev": 0.12
+      "ppStddev": 0.77,
+      "tgStddev": 0.05
     }
   ],
   "evidence": {
-    "rawUrl": "https://spark-arena.com/api/benchmarks/sub1770681883769/raw",
+    "rawUrl": "https://spark-arena.com/api/benchmarks/sub1779466806655/raw",
     "rawFormat": "llama-benchy raw benchmark log",
     "retrievedAt": "2026-08-12T15:43:17.573Z",
-    "upstreamId": "sub1770681883769",
+    "upstreamId": "sub1779466806655",
     "parserVersion": "tokenfeel-spark-arena-snapshot/1",
     "upstreamUrls": [
-      "https://spark-arena.com/benchmark/sub1770681883769"
+      "https://spark-arena.com/benchmark/sub1779466806655"
     ]
   },
   "benchmark": {
@@ -94,27 +94,25 @@
     "tgTokens": 128,
     "concurrency": 1,
     "metadata": {
-      "spark_arena_cluster_size": 2,
-      "upstream_model_path": "openai/gpt-oss-120b",
-      "upstream_quantization": "MXFP4",
-      "submitted_at": "2026-02-10T00:04:45.784Z"
+      "spark_arena_cluster_size": 1,
+      "upstream_model_path": "google/gemma-4-E2B-it",
+      "upstream_quantization": "FP8",
+      "submitted_at": "2026-05-22T16:20:11.080Z"
     }
   },
   "topology": {
-    "nodeCount": 2,
-    "acceleratorCount": 2,
-    "interconnect": "QSFP / ConnectX-7",
-    "distributedRuntime": "vLLM"
+    "nodeCount": 1,
+    "acceleratorCount": 1
   },
   "source": {
     "kind": "llama-benchy",
-    "title": "Spark Arena gpt-oss-120b on 2x DGX Spark",
-    "url": "https://spark-arena.com/benchmark/sub1770681883769",
-    "raw": "https://spark-arena.com/api/benchmarks/sub1770681883769/raw",
-    "notes": "Community Spark Arena submission sub1770681883769. Cluster size is leaderboard metadata, not recorded in the raw log."
+    "title": "Spark Arena gemma-4-E2B-it on 1x DGX Spark",
+    "url": "https://spark-arena.com/benchmark/sub1779466806655",
+    "raw": "https://spark-arena.com/api/benchmarks/sub1779466806655/raw",
+    "notes": "Community Spark Arena submission sub1779466806655. Cluster size is leaderboard metadata, not recorded in the raw log."
   },
   "submitter": "Spark Arena",
-  "date": "2026-02-10",
+  "date": "2026-05-22",
   "status": "community",
   "overheadMs": 90,
   "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Single-stream (c1) pp2048/tg128 sweep; higher-concurrency Spark Arena tests are intentionally not imported."

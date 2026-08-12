@@ -1,0 +1,36 @@
+{
+  "source": "https://spark-arena.com/leaderboard",
+  "snapshotIndex": "https://spark-arena.com/static/snapshot/index",
+  "snapshotTest": "https://spark-arena.com/static/snapshot/test",
+  "parserVersion": "tokenfeel-spark-arena-snapshot/1",
+  "retrievedAt": "2026-08-12T15:43:17.573Z",
+  "snapshotGeneratedAt": "2026-08-12T14:30:20.720Z",
+  "rawFiles": {
+    "snapshot": "data/upstream/spark-arena-snapshot.json",
+    "rawLogs": "data/upstream/spark-arena-raw-logs.jsonl"
+  },
+  "checksums": {
+    "snapshot": "sha256:bea4f06e8d5c38bd039d67478ae0619959bddefe85e2e7efe2225cbe94d114aa",
+    "rawLogs": "sha256:d02e82d014ee6caabc165476a192b8da155f5e843430d4007c028a937698a8ae"
+  },
+  "selection": {
+    "concurrency": "(c1)",
+    "tests": "pp2048 / tg128",
+    "minSharedDepths": 3,
+    "minMaxDepth": 8192,
+    "maxRateIncreaseRatio": 0.1
+  },
+  "generated": {
+    "candidates": 192,
+    "skippedUnknownClusterSize": 0,
+    "skippedUnusableSweep": 65,
+    "skippedAboveRoofline": 3,
+    "results": 84,
+    "hardwareWritten": 0,
+    "modelsWritten": 56
+  },
+  "crossCheck": {
+    "valuesComparedAgainstRawLogs": 1118,
+    "mismatches": 0
+  }
+}

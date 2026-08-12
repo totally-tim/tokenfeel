@@ -1,0 +1,92 @@
+{
+  "id": "dgx-spark__qwen-agentworld-35b-a3b__bf16__vllm",
+  "hardware": "dgx-spark",
+  "model": "qwen-agentworld-35b-a3b",
+  "quant": "bf16",
+  "runtime": {
+    "name": "vLLM",
+    "version": "spark-arena-spark-vllm-docker",
+    "backend": "CUDA",
+    "flags": "llama-benchy pp2048/tg128 c1; Spark Arena submission sub1782504196690",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 0,
+      "pp": 2499.34,
+      "tg": 31.88,
+      "ppLabel": "pp2048 (c1)",
+      "tgLabel": "tg128 (c1)",
+      "ppStddev": 49.07,
+      "tgStddev": 0.09
+    },
+    {
+      "depth": 2048,
+      "pp": 2149.75,
+      "tg": 31.33,
+      "ppLabel": "pp2048 @ d2048 (c1)",
+      "tgLabel": "tg128 @ d2048 (c1)",
+      "ppStddev": 16.16,
+      "tgStddev": 0.02
+    },
+    {
+      "depth": 8192,
+      "pp": 2096.25,
+      "tg": 30.68,
+      "ppLabel": "pp2048 @ d8192 (c1)",
+      "tgLabel": "tg128 @ d8192 (c1)",
+      "ppStddev": 16.34,
+      "tgStddev": 0.03
+    },
+    {
+      "depth": 16384,
+      "pp": 2003.1,
+      "tg": 30.01,
+      "ppLabel": "pp2048 @ d16384 (c1)",
+      "tgLabel": "tg128 @ d16384 (c1)",
+      "ppStddev": 39.59,
+      "tgStddev": 0.05
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://spark-arena.com/api/benchmarks/sub1782504196690/raw",
+    "rawFormat": "llama-benchy raw benchmark log",
+    "retrievedAt": "2026-08-12T15:43:17.573Z",
+    "upstreamId": "sub1782504196690",
+    "parserVersion": "tokenfeel-spark-arena-snapshot/1",
+    "upstreamUrls": [
+      "https://spark-arena.com/benchmark/sub1782504196690"
+    ]
+  },
+  "benchmark": {
+    "tool": "llama-benchy",
+    "profile": "spark-vllm-docker",
+    "outputFormat": "Spark Arena leaderboard snapshot",
+    "latencyMode": "single-stream (c1)",
+    "ppTokens": 2048,
+    "tgTokens": 128,
+    "concurrency": 1,
+    "metadata": {
+      "spark_arena_cluster_size": 1,
+      "upstream_model_path": "Qwen/Qwen-AgentWorld-35B-A3B",
+      "upstream_quantization": "BF16",
+      "submitted_at": "2026-06-26T20:03:19.336Z"
+    }
+  },
+  "topology": {
+    "nodeCount": 1,
+    "acceleratorCount": 1
+  },
+  "source": {
+    "kind": "llama-benchy",
+    "title": "Spark Arena Qwen-AgentWorld-35B-A3B on 1x DGX Spark",
+    "url": "https://spark-arena.com/benchmark/sub1782504196690",
+    "raw": "https://spark-arena.com/api/benchmarks/sub1782504196690/raw",
+    "notes": "Community Spark Arena submission sub1782504196690. Cluster size is leaderboard metadata, not recorded in the raw log."
+  },
+  "submitter": "Spark Arena",
+  "date": "2026-06-26",
+  "status": "community",
+  "overheadMs": 90,
+  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Single-stream (c1) pp2048/tg128 sweep; higher-concurrency Spark Arena tests are intentionally not imported."
+}

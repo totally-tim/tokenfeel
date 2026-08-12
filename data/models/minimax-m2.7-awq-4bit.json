@@ -1,0 +1,8 @@
+{
+  "id": "minimax-m2.7-awq-4bit",
+  "name": "MiniMax-M2.7-AWQ-4bit",
+  "family": "MiniMax",
+  "params": "229B",
+  "license": "See upstream model card",
+  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Model metadata inferred from the upstream repo path cyankiwi/MiniMax-M2.7-AWQ-4bit."
+}

@@ -1,0 +1,8 @@
+{
+  "id": "solar-open2-250b-nota-nvfp4",
+  "name": "Solar-Open2-250B-Nota-NVFP4",
+  "family": "Solar",
+  "params": "250B",
+  "license": "See upstream model card",
+  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Model metadata inferred from the upstream repo path nota-ai/Solar-Open2-250B-Nota-NVFP4."
+}

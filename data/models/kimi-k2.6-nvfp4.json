@@ -1,0 +1,8 @@
+{
+  "id": "kimi-k2.6-nvfp4",
+  "name": "Kimi-K2.6-NVFP4",
+  "family": "Kimi",
+  "params": "1027B",
+  "license": "See upstream model card",
+  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Model metadata inferred from the upstream repo path nvidia/Kimi-K2.6-NVFP4."
+}

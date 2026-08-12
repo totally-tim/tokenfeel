@@ -1,0 +1,8 @@
+{
+  "id": "deepseek-v4-flash-162b",
+  "name": "DeepSeek-V4-Flash-162B",
+  "family": "DeepSeek",
+  "params": "162B",
+  "license": "See upstream model card",
+  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Model metadata inferred from the upstream repo path 0xSero/DeepSeek-V4-Flash-162B."
+}

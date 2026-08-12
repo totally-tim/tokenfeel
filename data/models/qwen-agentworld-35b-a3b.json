@@ -1,0 +1,9 @@
+{
+  "id": "qwen-agentworld-35b-a3b",
+  "name": "Qwen-AgentWorld-35B-A3B",
+  "family": "Qwen",
+  "params": "35B",
+  "activeParams": "3B",
+  "license": "See upstream model card",
+  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Model metadata inferred from the upstream repo path Qwen/Qwen-AgentWorld-35B-A3B."
+}

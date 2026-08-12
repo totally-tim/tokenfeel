@@ -1,88 +1,88 @@
 {
-  "id": "dgx-spark-dual-qsfp__gpt-oss-120b__mxfp4__vllm",
-  "hardware": "dgx-spark-dual-qsfp",
-  "model": "gpt-oss-120b",
+  "id": "dgx-spark-quad-qsfp__glm-5.2-mxfp4-experts-gptq__mxfp4__vllm",
+  "hardware": "dgx-spark-quad-qsfp",
+  "model": "glm-5.2-mxfp4-experts-gptq",
   "quant": "mxfp4",
   "runtime": {
     "name": "vLLM",
     "version": "spark-arena-spark-vllm-docker",
     "backend": "CUDA (multi-node)",
-    "flags": "llama-benchy pp2048/tg128 c1; Spark Arena submission sub1770681883769",
+    "flags": "llama-benchy pp2048/tg128 c1; Spark Arena submission sub1785102203417",
     "cache": "prefix"
   },
   "measurements": [
     {
       "depth": 0,
-      "pp": 6294.54,
-      "tg": 75.96,
+      "pp": 898.01,
+      "tg": 19.53,
       "ppLabel": "pp2048 (c1)",
       "tgLabel": "tg128 (c1)",
-      "ppStddev": 625.36,
-      "tgStddev": 0.73
+      "ppStddev": 14.168145364337244,
+      "tgStddev": 1.5957838709450525
     },
     {
       "depth": 4096,
-      "pp": 6275.16,
-      "tg": 72.22,
+      "pp": 575.22,
+      "tg": 18.42,
       "ppLabel": "pp2048 @ d4096 (c1)",
       "tgLabel": "tg128 @ d4096 (c1)",
-      "ppStddev": 66.22,
-      "tgStddev": 1.98
+      "ppStddev": 15.623396416335165,
+      "tgStddev": 0.6724193298323253
     },
     {
       "depth": 8192,
-      "pp": 5830.3,
-      "tg": 70.95,
+      "pp": 560.87,
+      "tg": 19.39,
       "ppLabel": "pp2048 @ d8192 (c1)",
       "tgLabel": "tg128 @ d8192 (c1)",
-      "ppStddev": 17.61,
-      "tgStddev": 1.49
+      "ppStddev": 10.589600816718018,
+      "tgStddev": 0.3888325411303182
     },
     {
       "depth": 16384,
-      "pp": 4526.5,
-      "tg": 65.36,
+      "pp": 557.1,
+      "tg": 18.57,
       "ppLabel": "pp2048 @ d16384 (c1)",
       "tgLabel": "tg128 @ d16384 (c1)",
-      "ppStddev": 876.25,
-      "tgStddev": 7.64
+      "ppStddev": 3.8049715081400266,
+      "tgStddev": 0.688269296256481
     },
     {
       "depth": 32768,
-      "pp": 4116.02,
-      "tg": 66.9,
+      "pp": 542.59,
+      "tg": 20.04,
       "ppLabel": "pp2048 @ d32768 (c1)",
       "tgLabel": "tg128 @ d32768 (c1)",
-      "ppStddev": 54.52,
-      "tgStddev": 2.96
+      "ppStddev": 1.6563722917811095,
+      "tgStddev": 0.7019289118022415
     },
     {
       "depth": 65535,
-      "pp": 3020.1,
-      "tg": 63.11,
+      "pp": 508.1,
+      "tg": 19.65,
       "ppLabel": "pp2048 @ d65535 (c1)",
       "tgLabel": "tg128 @ d65535 (c1)",
-      "ppStddev": 57.9,
-      "tgStddev": 0.21
+      "ppStddev": 7.8418931961115135,
+      "tgStddev": 1.9568313465772929
     },
     {
       "depth": 100000,
-      "pp": 2305.55,
-      "tg": 57.29,
+      "pp": 471.37,
+      "tg": 19.74,
       "ppLabel": "pp2048 @ d100000 (c1)",
       "tgLabel": "tg128 @ d100000 (c1)",
-      "ppStddev": 46.79,
-      "tgStddev": 0.12
+      "ppStddev": 6.112791204725619,
+      "tgStddev": 1.322209943758928
     }
   ],
   "evidence": {
-    "rawUrl": "https://spark-arena.com/api/benchmarks/sub1770681883769/raw",
+    "rawUrl": "https://spark-arena.com/api/benchmarks/sub1785102203417/raw",
     "rawFormat": "llama-benchy raw benchmark log",
     "retrievedAt": "2026-08-12T15:43:17.573Z",
-    "upstreamId": "sub1770681883769",
+    "upstreamId": "sub1785102203417",
     "parserVersion": "tokenfeel-spark-arena-snapshot/1",
     "upstreamUrls": [
-      "https://spark-arena.com/benchmark/sub1770681883769"
+      "https://spark-arena.com/benchmark/sub1785102203417"
     ]
   },
   "benchmark": {
@@ -94,27 +94,27 @@
     "tgTokens": 128,
     "concurrency": 1,
     "metadata": {
-      "spark_arena_cluster_size": 2,
-      "upstream_model_path": "openai/gpt-oss-120b",
+      "spark_arena_cluster_size": 4,
+      "upstream_model_path": "aidendle94/GLM-5.2-MXFP4-Experts-GPTQ",
       "upstream_quantization": "MXFP4",
-      "submitted_at": "2026-02-10T00:04:45.784Z"
+      "submitted_at": "2026-07-26T21:43:24.933Z"
     }
   },
   "topology": {
-    "nodeCount": 2,
-    "acceleratorCount": 2,
+    "nodeCount": 4,
+    "acceleratorCount": 4,
     "interconnect": "QSFP / ConnectX-7",
     "distributedRuntime": "vLLM"
   },
   "source": {
     "kind": "llama-benchy",
-    "title": "Spark Arena gpt-oss-120b on 2x DGX Spark",
-    "url": "https://spark-arena.com/benchmark/sub1770681883769",
-    "raw": "https://spark-arena.com/api/benchmarks/sub1770681883769/raw",
-    "notes": "Community Spark Arena submission sub1770681883769. Cluster size is leaderboard metadata, not recorded in the raw log."
+    "title": "Spark Arena GLM-5.2-MXFP4-Experts-GPTQ on 4x DGX Spark",
+    "url": "https://spark-arena.com/benchmark/sub1785102203417",
+    "raw": "https://spark-arena.com/api/benchmarks/sub1785102203417/raw",
+    "notes": "Community Spark Arena submission sub1785102203417. Cluster size is leaderboard metadata, not recorded in the raw log."
   },
   "submitter": "Spark Arena",
-  "date": "2026-02-10",
+  "date": "2026-07-26",
   "status": "community",
   "overheadMs": 90,
   "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Single-stream (c1) pp2048/tg128 sweep; higher-concurrency Spark Arena tests are intentionally not imported."

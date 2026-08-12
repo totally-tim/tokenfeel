@@ -1,0 +1,9 @@
+{
+  "id": "nemotron-3-nano-omni-30b-a3b-reasoning-nvfp4",
+  "name": "Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4",
+  "family": "Nemotron",
+  "params": "30B",
+  "activeParams": "3B",
+  "license": "See upstream model card",
+  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Model metadata inferred from the upstream repo path nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4."
+}

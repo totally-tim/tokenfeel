@@ -1,0 +1,103 @@
+{
+  "id": "dgx-spark-octa-qsfp__kimi-k2.6-nvfp4__nvfp4__vllm",
+  "hardware": "dgx-spark-octa-qsfp",
+  "model": "kimi-k2.6-nvfp4",
+  "quant": "nvfp4",
+  "runtime": {
+    "name": "vLLM",
+    "version": "spark-arena-spark-vllm-docker",
+    "backend": "CUDA (multi-node)",
+    "flags": "llama-benchy pp2048/tg128 c1; Spark Arena submission sub1778908823507",
+    "cache": "prefix"
+  },
+  "measurements": [
+    {
+      "depth": 0,
+      "pp": 1362.95,
+      "tg": 16.94,
+      "ppLabel": "pp2048 (c1)",
+      "tgLabel": "tg128 (c1)",
+      "ppStddev": 101.03,
+      "tgStddev": 0.55
+    },
+    {
+      "depth": 4096,
+      "pp": 1636.3,
+      "tg": 17.87,
+      "ppLabel": "pp2048 @ d4096 (c1)",
+      "tgLabel": "tg128 @ d4096 (c1)",
+      "ppStddev": 20.94,
+      "tgStddev": 0.47
+    },
+    {
+      "depth": 8192,
+      "pp": 1557.3,
+      "tg": 17.29,
+      "ppLabel": "pp2048 @ d8192 (c1)",
+      "tgLabel": "tg128 @ d8192 (c1)",
+      "ppStddev": 8.75,
+      "tgStddev": 0.82
+    },
+    {
+      "depth": 16384,
+      "pp": 1374.57,
+      "tg": 17.04,
+      "ppLabel": "pp2048 @ d16384 (c1)",
+      "tgLabel": "tg128 @ d16384 (c1)",
+      "ppStddev": 16.06,
+      "tgStddev": 0.94
+    },
+    {
+      "depth": 28672,
+      "pp": 1073.78,
+      "tg": 16.49,
+      "ppLabel": "pp2048 @ d28672 (c1)",
+      "tgLabel": "tg128 @ d28672 (c1)",
+      "ppStddev": 120.78,
+      "tgStddev": 0.27
+    }
+  ],
+  "evidence": {
+    "rawUrl": "https://spark-arena.com/api/benchmarks/sub1778908823507/raw",
+    "rawFormat": "llama-benchy raw benchmark log",
+    "retrievedAt": "2026-08-12T15:43:17.573Z",
+    "upstreamId": "sub1778908823507",
+    "parserVersion": "tokenfeel-spark-arena-snapshot/1",
+    "upstreamUrls": [
+      "https://spark-arena.com/benchmark/sub1778908823507"
+    ]
+  },
+  "benchmark": {
+    "tool": "llama-benchy",
+    "profile": "spark-vllm-docker",
+    "outputFormat": "Spark Arena leaderboard snapshot",
+    "latencyMode": "single-stream (c1)",
+    "ppTokens": 2048,
+    "tgTokens": 128,
+    "concurrency": 1,
+    "metadata": {
+      "spark_arena_cluster_size": 8,
+      "upstream_model_path": "nvidia/Kimi-K2.6-NVFP4",
+      "upstream_quantization": "NVFP4",
+      "submitted_at": "2026-05-16T05:20:25.733Z"
+    }
+  },
+  "topology": {
+    "nodeCount": 8,
+    "acceleratorCount": 8,
+    "interconnect": "QSFP / ConnectX-7",
+    "distributedRuntime": "vLLM"
+  },
+  "source": {
+    "kind": "llama-benchy",
+    "title": "Spark Arena Kimi-K2.6-NVFP4 on 8x DGX Spark",
+    "url": "https://spark-arena.com/benchmark/sub1778908823507",
+    "raw": "https://spark-arena.com/api/benchmarks/sub1778908823507/raw",
+    "notes": "Community Spark Arena submission sub1778908823507. Cluster size is leaderboard metadata, not recorded in the raw log."
+  },
+  "submitter": "Spark Arena",
+  "date": "2026-05-16",
+  "status": "community",
+  "overheadMs": 90,
+  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Single-stream (c1) pp2048/tg128 sweep; higher-concurrency Spark Arena tests are intentionally not imported."
+}
