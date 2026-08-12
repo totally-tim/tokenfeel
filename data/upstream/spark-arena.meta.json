@@ -27,11 +27,13 @@
     "skippedAboveRoofline": 3,
     "skippedAboveMemory": 2,
     "results": 80,
-    "resultsWritten": 79,
+    "resultsWritten": 76,
+    "resultsPreservedNotOwned": 4,
     "staleResultsRemoved": 0,
     "staleModelsRemoved": 0,
-    "hardwareWritten": 0,
-    "modelsWritten": 28
+    "staleHardwareRemoved": 0,
+    "hardwareWritten": 1,
+    "modelsWritten": 27
   },
   "crossCheck": {
     "valuesComparedAgainstRawLogs": 1062,

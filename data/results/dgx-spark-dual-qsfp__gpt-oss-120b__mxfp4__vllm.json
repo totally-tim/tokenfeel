@@ -5,117 +5,30 @@
   "quant": "mxfp4",
   "runtime": {
     "name": "vLLM",
-    "version": "spark-arena-spark-vllm-docker",
-    "backend": "CUDA (multi-node)",
-    "flags": "llama-benchy pp2048/tg128 c1",
+    "version": "spark-vllm-docker",
+    "backend": "CUDA/Ray",
+    "flags": "Spark Arena raw run sub1770681883769; llama-benchy pp2048/tg128 c1",
     "cache": "prefix"
   },
   "measurements": [
-    {
-      "depth": 0,
-      "pp": 6294.54,
-      "tg": 75.96,
-      "ppLabel": "pp2048 (c1)",
-      "tgLabel": "tg128 (c1)",
-      "ppStddev": 625.36,
-      "tgStddev": 0.73
-    },
-    {
-      "depth": 4096,
-      "pp": 6275.16,
-      "tg": 72.22,
-      "ppLabel": "pp2048 @ d4096 (c1)",
-      "tgLabel": "tg128 @ d4096 (c1)",
-      "ppStddev": 66.22,
-      "tgStddev": 1.98
-    },
-    {
-      "depth": 8192,
-      "pp": 5830.3,
-      "tg": 70.95,
-      "ppLabel": "pp2048 @ d8192 (c1)",
-      "tgLabel": "tg128 @ d8192 (c1)",
-      "ppStddev": 17.61,
-      "tgStddev": 1.49
-    },
-    {
-      "depth": 16384,
-      "pp": 4526.5,
-      "tg": 65.36,
-      "ppLabel": "pp2048 @ d16384 (c1)",
-      "tgLabel": "tg128 @ d16384 (c1)",
-      "ppStddev": 876.25,
-      "tgStddev": 7.64
-    },
-    {
-      "depth": 32768,
-      "pp": 4116.02,
-      "tg": 66.9,
-      "ppLabel": "pp2048 @ d32768 (c1)",
-      "tgLabel": "tg128 @ d32768 (c1)",
-      "ppStddev": 54.52,
-      "tgStddev": 2.96
-    },
-    {
-      "depth": 65535,
-      "pp": 3020.1,
-      "tg": 63.11,
-      "ppLabel": "pp2048 @ d65535 (c1)",
-      "tgLabel": "tg128 @ d65535 (c1)",
-      "ppStddev": 57.9,
-      "tgStddev": 0.21
-    },
-    {
-      "depth": 100000,
-      "pp": 2305.55,
-      "tg": 57.29,
-      "ppLabel": "pp2048 @ d100000 (c1)",
-      "tgLabel": "tg128 @ d100000 (c1)",
-      "ppStddev": 46.79,
-      "tgStddev": 0.12
-    }
+    { "depth": 0, "pp": 6294.54, "tg": 75.96, "ppLabel": "pp2048 (c1)", "tgLabel": "tg128 (c1)" },
+    { "depth": 4096, "pp": 6275.16, "tg": 72.22, "ppLabel": "pp2048 @ d4096 (c1)", "tgLabel": "tg128 @ d4096 (c1)" },
+    { "depth": 8192, "pp": 5830.3, "tg": 70.95, "ppLabel": "pp2048 @ d8192 (c1)", "tgLabel": "tg128 @ d8192 (c1)" },
+    { "depth": 16384, "pp": 4526.5, "tg": 65.36, "ppLabel": "pp2048 @ d16384 (c1)", "tgLabel": "tg128 @ d16384 (c1)" },
+    { "depth": 32768, "pp": 4116.02, "tg": 66.9, "ppLabel": "pp2048 @ d32768 (c1)", "tgLabel": "tg128 @ d32768 (c1)" },
+    { "depth": 65535, "pp": 3020.1, "tg": 63.11, "ppLabel": "pp2048 @ d65535 (c1)", "tgLabel": "tg128 @ d65535 (c1)" },
+    { "depth": 100000, "pp": 2305.55, "tg": 57.29, "ppLabel": "pp2048 @ d100000 (c1)", "tgLabel": "tg128 @ d100000 (c1)" }
   ],
-  "evidence": {
-    "rawUrl": "https://spark-arena.com/api/benchmarks/sub1770681883769/raw",
-    "rawFormat": "llama-benchy raw benchmark log",
-    "retrievedAt": "2026-08-12T15:43:17.573Z",
-    "upstreamId": "sub1770681883769",
-    "parserVersion": "tokenfeel-spark-arena-snapshot/1",
-    "upstreamUrls": [
-      "https://spark-arena.com/benchmark/sub1770681883769"
-    ]
-  },
-  "benchmark": {
-    "tool": "llama-benchy",
-    "profile": "spark-vllm-docker",
-    "outputFormat": "Spark Arena leaderboard snapshot",
-    "latencyMode": "single-stream (c1)",
-    "ppTokens": 2048,
-    "tgTokens": 128,
-    "concurrency": 1,
-    "metadata": {
-      "spark_arena_cluster_size": 2,
-      "upstream_model_path": "openai/gpt-oss-120b",
-      "upstream_quantization": "MXFP4",
-      "submitted_at": "2026-02-10T00:04:45.784Z"
-    }
-  },
-  "topology": {
-    "nodeCount": 2,
-    "acceleratorCount": 2,
-    "interconnect": "QSFP / ConnectX-7",
-    "distributedRuntime": "vLLM"
-  },
   "source": {
     "kind": "llama-benchy",
-    "title": "Spark Arena gpt-oss 120B on 2x DGX Spark",
+    "title": "Spark Arena raw benchmark sub1770681883769",
     "url": "https://spark-arena.com/benchmark/sub1770681883769",
     "raw": "https://spark-arena.com/api/benchmarks/sub1770681883769/raw",
-    "notes": "Community Spark Arena submission sub1770681883769. Cluster size is leaderboard metadata, not recorded in the raw log."
+    "notes": "Community Spark Arena raw log. Agent research found no reliable triple-Spark row; this is a dual-Spark QSFP/Ray result."
   },
   "submitter": "Spark Arena",
-  "date": "2026-02-10",
+  "date": "2026-07-04",
   "status": "community",
-  "overheadMs": 48,
-  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Single-stream (c1) pp2048/tg128 sweep; higher-concurrency Spark Arena tests are intentionally not imported."
+  "overheadMs": 90,
+  "notes": "Dual-system topology inferred from Spark Arena cluster-size research; treat as community raw-log evidence."
 }

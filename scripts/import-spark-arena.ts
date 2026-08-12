@@ -54,8 +54,10 @@ const generatedHardware = new Map<string, HardwareConfig>([
       vendor: "NVIDIA",
       memory: "1TB unified aggregate",
       accelerator: "8x GB10 over QSFP / ConnectX-7 fabric",
-      notes:
-        "Eight DGX Spark systems connected over QSFP for distributed vLLM inference. Cluster size is community-reported Spark Arena leaderboard metadata; the raw llama-benchy logs do not themselves record node count."
+      // Must carry the generated prefix: the write guard treats anything else
+      // as hand-authored, which would freeze this entry at its first version
+      // and exempt it from the cleanup sweep below.
+      notes: `${generatedNotePrefix} Eight DGX Spark systems connected over QSFP for distributed vLLM inference. Cluster size is community-reported Spark Arena leaderboard metadata; the raw llama-benchy logs do not themselves record node count.`
     }
   ]
 ]);
@@ -137,8 +139,14 @@ interface ExistingJson {
   evidence?: { parserVersion?: string };
 }
 
-/** A row this importer generated and that nobody has reviewed since. */
-function isOwnedByThisParser(value: ExistingJson): boolean {
+/**
+ * A row this importer generated and that nobody has reviewed since. Ownership
+ * must be proven, never assumed: the repo reserves "verified" for
+ * maintainer-reproduced data, so a curated hand-authored row legitimately stays
+ * "community" and carries no parser marker at all. Reading a missing marker as
+ * "probably ours" is what let a refresh overwrite three of them.
+ */
+export function isOwnedByThisParser(value: ExistingJson): boolean {
   return value.evidence?.parserVersion === parserVersion && value.status === "community";
 }
 
@@ -706,6 +714,7 @@ export function quantFromEntry(meta: SnapshotEntry): string {
 const quantOnlyNameSegments = new Set([
   ...weightFormatTokens,
   "autoround",
+  "prismaquant",
   "gguf",
   "quantized",
   "quant",
@@ -713,8 +722,22 @@ const quantOnlyNameSegments = new Set([
   "mixed",
   "experts",
   "w4a4",
-  "w8a8"
+  "w8a8",
+  // Serving stacks sometimes appear in a checkpoint name. Runtime is its own
+  // catalog axis, so leaving these in would split one model per serving stack.
+  "vllm",
+  "sglang",
+  "sgl",
+  "trtllm"
 ]);
+
+/** "4bit", "8bit", "4.75bit" -- a bit-width qualifier, never a model name. */
+const bitWidthSegment = /^\d+(?:\.\d+)?bit$/;
+
+function isQuantOrRuntimeSegment(segment: string): boolean {
+  const lower = segment.toLowerCase();
+  return quantOnlyNameSegments.has(lower) || bitWidthSegment.test(lower);
+}
 
 /**
  * Strips weight-format decoration from a checkpoint name so the model id names
@@ -730,11 +753,11 @@ const quantOnlyNameSegments = new Set([
  */
 export function canonicalModelName(name: string): string {
   const segments = name.split(/[-\s_]+/).filter(Boolean);
-  if (!segments.some((segment) => weightFormatTokens.includes(segment.toLowerCase()))) return name;
-  const kept = segments.filter((segment) => {
-    const lower = segment.toLowerCase();
-    return !quantOnlyNameSegments.has(lower) && !/^\d+bit$/.test(lower);
-  });
+  // Gate on the name actually carrying quant or runtime decoration. Stripping
+  // unconditionally would let a segment that merely shares a word with the list
+  // be eaten out of a name that never described a build in the first place.
+  if (!segments.some(isQuantOrRuntimeSegment)) return name;
+  const kept = segments.filter((segment) => !isQuantOrRuntimeSegment(segment));
   return kept.length > 0 ? kept.join("-") : name;
 }
 
@@ -1024,6 +1047,10 @@ async function main() {
         name: candidate.meta.runtime || "unknown",
         version: candidate.meta.recipeType ? `spark-arena-${candidate.meta.recipeType}` : "spark-arena",
         backend: candidate.meta.clusterSize > 1 ? "CUDA (multi-node)" : "CUDA",
+        // cache is the catalog-wide default rather than a per-submission
+        // measurement -- Spark Arena publishes no cache field and the raw
+        // llama-benchy logs record none, so this matches what every other row
+        // and importer in the repo does. The row notes disclose that.
         // The submission id belongs to the evidence, not to the runtime.
         // runtimeKey() hashes the whole flags string, so putting a unique id in
         // here gave every row its own runtime: 82 keys for seven real
@@ -1075,7 +1102,7 @@ async function main() {
       date: candidate.meta.submittedAt.slice(0, 10),
       status: "community" as const,
       ...(overheadMs === undefined ? {} : { overheadMs }),
-      notes: `${generatedNotePrefix} Single-stream (c1) ${prefillTestPrefix}/${decodeTestPrefix} sweep; higher-concurrency Spark Arena tests are intentionally not imported.`
+      notes: `${generatedNotePrefix} Single-stream (c1) ${prefillTestPrefix}/${decodeTestPrefix} sweep; higher-concurrency Spark Arena tests are intentionally not imported. Prompt-cache mode is the catalog-wide "prefix" default, not a measured property of this submission: Spark Arena publishes no cache field and the raw log records none.`
     });
   }
 
@@ -1119,23 +1146,25 @@ async function main() {
     isOwnedByThisParser
   );
 
-  // An existing row that has moved past "community" (hand-reviewed to
-  // "verified"/"flagged") or that a different generator produced carries
-  // curated evidence and notes, so a refresh must never silently downgrade it
-  // back to a freshly generated community row.
+  // Overwrite only what this parser demonstrably owns. Treating a missing
+  // parserVersion as "probably ours" is what let a refresh replace three
+  // hand-authored community rows -- the repo reserves "verified" for
+  // maintainer-reproduced data, so an ordinary curated correction legitimately
+  // stays "community" and has no parser marker at all. Absence of proof of
+  // ownership is not proof of ownership.
   const existingResults = readJsonFiles<ExistingJson>(resultDir);
   let writtenResults = 0;
+  let preservedResults = 0;
   for (const result of results) {
     const id = result.id as string;
     const current = existingResults.get(id);
-    if (current && current.value.status !== "community") {
-      console.warn(`skipping ${id}: existing row has status "${current.value.status}", not overwriting reviewed data`);
-      continue;
-    }
-    if (current?.value.evidence?.parserVersion && current.value.evidence.parserVersion !== parserVersion) {
-      console.warn(
-        `skipping ${id}: existing row's evidence.parserVersion "${current.value.evidence.parserVersion}" does not match "${parserVersion}", not overwriting`
-      );
+    if (current && !isOwnedByThisParser(current.value)) {
+      const reason =
+        current.value.status !== "community"
+          ? `status is "${current.value.status}"`
+          : `evidence.parserVersion is ${current.value.evidence?.parserVersion ? `"${current.value.evidence.parserVersion}"` : "absent"}`;
+      console.warn(`skipping ${id}: ${reason}, not overwriting data this importer does not own`);
+      preservedResults += 1;
       continue;
     }
     writeJson(path.join(resultDir, `${id}.json`), result);
@@ -1148,12 +1177,17 @@ async function main() {
   // of the import set still references its model, and deleting it underneath
   // would leave a dangling reference. Hand-authored models are never swept.
   const referencedModelIds = new Set<string>();
-  for (const { value } of readJsonFiles<ExistingJson & { model?: string }>(resultDir).values()) {
+  const referencedHardwareIds = new Set<string>();
+  for (const { value } of readJsonFiles<ExistingJson & { model?: string; hardware?: string }>(resultDir).values()) {
     if (value.model) referencedModelIds.add(value.model);
+    if (value.hardware) referencedHardwareIds.add(value.hardware);
   }
-  const removedModels = removeGeneratedJsonFiles(modelDir, referencedModelIds, (value) =>
-    Boolean(value.notes?.startsWith(generatedNotePrefix))
-  );
+  const isGenerated = (value: ExistingJson) => Boolean(value.notes?.startsWith(generatedNotePrefix));
+  const removedModels = removeGeneratedJsonFiles(modelDir, referencedModelIds, isGenerated);
+  // Hardware needs the same cleanup: a cluster definition this importer created
+  // for a submission that has since dropped out would otherwise linger and
+  // inflate the hardware count on Landing with a machine no row uses.
+  const removedHardware = removeGeneratedJsonFiles(hardwareDir, referencedHardwareIds, isGenerated);
 
   writeJson(metaPath, {
     source: leaderboardUrl,
@@ -1185,8 +1219,10 @@ async function main() {
       skippedAboveMemory: skipped.memory,
       results: results.length,
       resultsWritten: writtenResults,
+      resultsPreservedNotOwned: preservedResults,
       staleResultsRemoved: removedResults,
       staleModelsRemoved: removedModels,
+      staleHardwareRemoved: removedHardware,
       hardwareWritten: writtenHardware,
       modelsWritten: writtenModels
     },
@@ -1200,7 +1236,12 @@ async function main() {
   console.log(
     `Spark Arena import: ${writtenResults}/${results.length} results, ${writtenModels} models, ${writtenHardware} hardware entries written.`
   );
-  console.log(`Removed ${removedResults} stale generated result(s) and ${removedModels} orphaned generated model(s).`);
+  console.log(
+    `Removed ${removedResults} stale generated result(s), ${removedModels} orphaned generated model(s), and ${removedHardware} orphaned generated hardware entr(ies).`
+  );
+  if (preservedResults > 0) {
+    console.log(`Preserved ${preservedResults} existing row(s) this importer does not own.`);
+  }
   console.log(
     `Skipped ${skipped.sweep} submissions with an unusable sweep, ${skipped.roofline} above the GB10 roofline, ${skipped.memory} whose weights cannot fit, and ${skipped.clusterSize} with an unmapped cluster size.`
   );

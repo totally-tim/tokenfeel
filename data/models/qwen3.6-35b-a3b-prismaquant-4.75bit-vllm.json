@@ -1,9 +1,0 @@
-{
-  "id": "qwen3.6-35b-a3b-prismaquant-4.75bit-vllm",
-  "name": "Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm",
-  "family": "Qwen",
-  "params": "35B",
-  "activeParams": "3B",
-  "license": "See upstream model card",
-  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Model metadata inferred from the upstream repo path rdtand/Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm."
-}

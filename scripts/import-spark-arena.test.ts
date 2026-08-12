@@ -4,6 +4,7 @@ import {
   bytesPerParamForQuant,
   canonicalModelName,
   exceedsMemory,
+  isOwnedByThisParser,
   exceedsRoofline,
   modelFromEntry,
   parseRawLog,
@@ -327,6 +328,22 @@ describe("canonicalModelName", () => {
     expect(canonicalModelName("gpt-oss-120b")).toBe("gpt-oss-120b");
   });
 
+  test("strips quant-method and runtime decoration even with no format token", () => {
+    // Real row: "PrismaQuant" is a method and "4.75bit" a width, so neither is a
+    // recognised weight format -- gating on a format token alone left the whole
+    // suffix in the id and split this from the base model it belongs to.
+    expect(canonicalModelName("Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm")).toBe("Qwen3.6-35B-A3B");
+    expect(canonicalModelName("Some-Model-sglang")).toBe("Some-Model");
+  });
+
+  test("keeps a model-variant word that only looks like decoration", () => {
+    // "PrismaSCOUT" is a checkpoint variant, not a quantization method, and
+    // "Blackwell" names a GPU generation -- neither may be eaten.
+    expect(canonicalModelName("Qwen3.6-27B-PrismaSCOUT-Blackwell-NVFP4-BF16-vllm")).toBe(
+      "Qwen3.6-27B-PrismaSCOUT-Blackwell"
+    );
+  });
+
   test("gives quant variants of one checkpoint the same model id", () => {
     const awq = modelFromEntry(
       makeEntry({ modelName: "MiniMax-M2.5-AWQ", modelFullPath: "quanttrio/MiniMax-M2.5-AWQ" })
@@ -411,5 +428,22 @@ describe("modelNoteFor", () => {
     // would make generated records look hand-authored and never be refreshed.
     expect(modelNoteFor(["a/b"]).startsWith("Generated from the Spark Arena")).toBe(true);
     expect(modelNoteFor(["a/b", "c/d"]).startsWith("Generated from the Spark Arena")).toBe(true);
+  });
+});
+
+describe("isOwnedByThisParser", () => {
+  const owned = { id: "r", status: "community", evidence: { parserVersion: "tokenfeel-spark-arena-snapshot/1" } };
+
+  test("claims only rows carrying this parser's marker and still community", () => {
+    expect(isOwnedByThisParser(owned)).toBe(true);
+    expect(isOwnedByThisParser({ ...owned, status: "verified" })).toBe(false);
+    expect(isOwnedByThisParser({ ...owned, evidence: { parserVersion: "tokenfeel-omlx-api/1" } })).toBe(false);
+  });
+
+  test("does not claim a curated community row that has no parser marker", () => {
+    // The exact shape that got overwritten: hand-authored, still "community"
+    // because the repo reserves "verified" for maintainer-reproduced data.
+    expect(isOwnedByThisParser({ id: "r", status: "community" })).toBe(false);
+    expect(isOwnedByThisParser({ id: "r", status: "community", evidence: {} })).toBe(false);
   });
 });

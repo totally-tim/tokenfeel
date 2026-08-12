@@ -1,7 +1,7 @@
 {
-  "id": "dgx-spark__qwen3.6-27b-prismascout-blackwell-vllm__nvfp4-bf16__vllm",
+  "id": "dgx-spark__qwen3.6-27b-prismascout-blackwell__nvfp4-bf16__vllm",
   "hardware": "dgx-spark",
-  "model": "qwen3.6-27b-prismascout-blackwell-vllm",
+  "model": "qwen3.6-27b-prismascout-blackwell",
   "quant": "nvfp4-bf16",
   "runtime": {
     "name": "vLLM",
@@ -106,7 +106,7 @@
   },
   "source": {
     "kind": "llama-benchy",
-    "title": "Spark Arena Qwen3.6-27B-PrismaSCOUT-Blackwell-vllm on 1x DGX Spark",
+    "title": "Spark Arena Qwen3.6-27B-PrismaSCOUT-Blackwell on 1x DGX Spark",
     "url": "https://spark-arena.com/benchmark/sub1779802794188",
     "raw": "https://spark-arena.com/api/benchmarks/sub1779802794188/raw",
     "notes": "Community Spark Arena submission sub1779802794188. Cluster size is leaderboard metadata, not recorded in the raw log."
@@ -115,5 +115,5 @@
   "date": "2026-05-26",
   "status": "community",
   "overheadMs": 3,
-  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Single-stream (c1) pp2048/tg128 sweep; higher-concurrency Spark Arena tests are intentionally not imported."
+  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Single-stream (c1) pp2048/tg128 sweep; higher-concurrency Spark Arena tests are intentionally not imported. Prompt-cache mode is the catalog-wide \"prefix\" default, not a measured property of this submission: Spark Arena publishes no cache field and the raw log records none."
 }

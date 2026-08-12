@@ -1,6 +1,6 @@
 {
-  "id": "qwen3.6-27b-prismascout-blackwell-vllm",
-  "name": "Qwen3.6-27B-PrismaSCOUT-Blackwell-vllm",
+  "id": "qwen3.6-27b-prismascout-blackwell",
+  "name": "Qwen3.6-27B-PrismaSCOUT-Blackwell",
   "family": "Qwen",
   "params": "27B",
   "license": "See upstream model card",
