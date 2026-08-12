@@ -5,5 +5,5 @@
   "params": "397B",
   "activeParams": "17B",
   "license": "See upstream model card",
-  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Model metadata inferred from the upstream repo path nvidia/Qwen3.5-397B-A17B-NVFP4."
+  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. One record per base checkpoint: the quantized builds behind it are Intel/Qwen3.5-397B-A17B-int4-AutoRound, nvidia/Qwen3.5-397B-A17B-NVFP4. Model metadata is inferred from those repo paths; each result row records the exact build it measured."
 }

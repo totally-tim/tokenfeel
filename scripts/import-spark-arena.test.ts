@@ -8,6 +8,7 @@ import {
   modelFromEntry,
   parseRawLog,
   quantFromEntry,
+  modelNoteFor,
   resolveModelMetadata,
   usableSweep,
   weightFormatsFromRepo,
@@ -381,5 +382,34 @@ describe("resolveModelMetadata", () => {
 
   test("returns the inferred record when nothing exists yet", () => {
     expect(resolveModelMetadata(inferred, undefined)).toBe(inferred);
+  });
+});
+
+describe("modelNoteFor", () => {
+  test("names the single repo behind a record", () => {
+    expect(modelNoteFor(["nvidia/MiniMax-M3-NVFP4"])).toContain(
+      "inferred from the upstream repo path nvidia/MiniMax-M3-NVFP4"
+    );
+  });
+
+  test("names every build when one canonical record serves several repos", () => {
+    // Claiming any one of these is "the" source would be false for the others.
+    const note = modelNoteFor([
+      "nvidia/MiniMax-M2.5-NVFP4",
+      "QuantTrio/MiniMax-M2.5-AWQ",
+      "Intel/MiniMax-M2.5-int4-AutoRound",
+      "nvidia/MiniMax-M2.5-NVFP4"
+    ]);
+    expect(note).toContain("Intel/MiniMax-M2.5-int4-AutoRound");
+    expect(note).toContain("QuantTrio/MiniMax-M2.5-AWQ");
+    expect(note).toContain("nvidia/MiniMax-M2.5-NVFP4");
+    expect(note).toContain("each result row records the exact build it measured");
+  });
+
+  test("still starts with the generated prefix so the overwrite guards keep working", () => {
+    // writeMetadataFiles and the stale sweep both key off this prefix; losing it
+    // would make generated records look hand-authored and never be refreshed.
+    expect(modelNoteFor(["a/b"]).startsWith("Generated from the Spark Arena")).toBe(true);
+    expect(modelNoteFor(["a/b", "c/d"]).startsWith("Generated from the Spark Arena")).toBe(true);
   });
 });

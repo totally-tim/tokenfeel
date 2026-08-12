@@ -140,6 +140,22 @@ describe("race comparison helpers", () => {
     });
   });
 
+  test("labels a quant-only difference as a quant comparison, not a confounded one", () => {
+    // Canonical model ids make this the common shape for imported rows: one
+    // checkpoint benchmarked at several weight formats on the same machine and
+    // the same runtime. Calling that "quant and runtime both differ" would
+    // claim a confound the rows do not have.
+    const runtime = { name: "vLLM", version: "1", backend: "CUDA", flags: "", cache: "prefix" as const };
+    const awq = result({ id: "dgx-qwen-awq", hardware: "dgx", model: "qwen", quant: "awq", runtime });
+    const nvfp4 = result({ id: "dgx-qwen-nvfp4", hardware: "dgx", model: "qwen", quant: "nvfp4", runtime });
+
+    expect(comparisonSummary(catalog, awq, nvfp4)).toMatchObject({
+      label: "Quant comparison",
+      detail: "Same model, hardware and runtime. Quant is the main variable.",
+      level: "strong"
+    });
+  });
+
   test("downgrades same-model different-hardware races to related when quant and runtime both also differ", () => {
     const eightBitOnDgx = result({
       id: "dgx-qwen-8bit",

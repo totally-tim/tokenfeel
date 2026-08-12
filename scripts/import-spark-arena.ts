@@ -167,7 +167,13 @@ Fetches the Spark Arena DGX Spark leaderboard snapshot plus the raw llama-benchy
 log behind every selected submission, then regenerates the matching
 data/hardware, data/models, and data/results rows.
 
---skip-fetch rebuilds purely from the cached files in data/upstream/.`;
+--skip-fetch rebuilds purely from the cached files in data/upstream/.
+
+The raw-log cache only holds the submissions that won grouping when it was
+fetched, so a change to model canonicalisation, quant resolution, or the
+grouping key can select a submission whose log was never cached. That surfaces
+as "no value in raw log" cross-check failures for the newly selected rows; the
+fix is a real run without --skip-fetch, not a change to the cross-check.`;
 }
 
 function sleep(ms: number) {
@@ -759,6 +765,21 @@ export function modelFromEntry(meta: SnapshotEntry): ModelMetadata {
  * exists in the repo it is the better source, so it wins outright; a previously
  * generated record only fills gaps.
  */
+/**
+ * The provenance note for a generated model record. One canonical id can be
+ * reached from several publisher repos once the weight format stops being part
+ * of the identity -- `minimax-m2.5` is built by four of them -- so naming a
+ * single repo would assert something false about the other three. Each result
+ * row still records its own exact `upstream_model_path`.
+ */
+export function modelNoteFor(upstreamPaths: string[]): string {
+  const paths = [...new Set(upstreamPaths)].sort();
+  if (paths.length <= 1) {
+    return `${generatedNotePrefix} Model metadata inferred from the upstream repo path ${paths[0] ?? "unknown"}.`;
+  }
+  return `${generatedNotePrefix} One record per base checkpoint: the quantized builds behind it are ${paths.join(", ")}. Model metadata is inferred from those repo paths; each result row records the exact build it measured.`;
+}
+
 export function resolveModelMetadata(inferred: ModelMetadata, existing: ModelMetadata | undefined): ModelMetadata {
   if (!existing) return inferred;
   const isHandAuthored = !existing.notes?.startsWith(generatedNotePrefix);
@@ -925,6 +946,7 @@ async function main() {
 
   const hardwareItems = new Map<string, HardwareConfig>();
   const modelItems = new Map<string, ModelMetadata>();
+  const upstreamPathsByModel = new Map<string, Set<string>>();
   const results: Array<Record<string, unknown>> = [];
   let crossChecked = 0;
   const crossCheckFailures: string[] = [];
@@ -949,6 +971,12 @@ async function main() {
     if (!existingModel || (existingModel.params === "unknown" && model.params !== "unknown")) {
       modelItems.set(model.id, model);
     }
+    // Canonical ids mean one model record can be reached from several publisher
+    // repos, so the note must not claim whichever one happened to write last is
+    // *the* source. Collect them all and state them honestly below.
+    const paths = upstreamPathsByModel.get(model.id) ?? new Set<string>();
+    paths.add(candidate.meta.modelFullPath);
+    upstreamPathsByModel.set(model.id, paths);
 
     const measurements: BenchmarkMeasurement[] = sweep.depths.map((depth, index) => {
       const prefillRaw = parsedRaw.get(testNameFor(prefillTestPrefix, depth));
@@ -1076,7 +1104,8 @@ async function main() {
   for (const model of modelItems.values()) {
     const current = existingModels.get(model.id);
     if (current && !current.value.notes?.startsWith(generatedNotePrefix)) continue;
-    writeJson(path.join(modelDir, `${model.id}.json`), model);
+    const notes = modelNoteFor([...(upstreamPathsByModel.get(model.id) ?? [])]);
+    writeJson(path.join(modelDir, `${model.id}.json`), { ...model, notes });
     writtenModels += 1;
   }
 

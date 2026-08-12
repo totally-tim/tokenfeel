@@ -271,15 +271,30 @@ export function comparisonSummary(
   }
 
   if (sameModel && left.hardware === right.hardware) {
-    return {
-      label: sameQuant ? "Runtime comparison" : "Configuration comparison",
-      detail:
-        sameQuant && sameRuntime
+    if (sameQuant) {
+      return {
+        label: "Runtime comparison",
+        detail: sameRuntime
           ? "Same model and hardware. This is effectively the same measured setup."
-          : sameQuant
-            ? "Same model, hardware and quant. Runtime differences are the main variable."
-            : "Same model and hardware, but quant and runtime both differ.",
-      level: sameQuant ? "strong" : "related"
+          : "Same model, hardware and quant. Runtime differences are the main variable.",
+        level: "strong"
+      };
+    }
+    // Quant differing on its own is the cleanest quant comparison there is, so
+    // it must not be described as "quant and runtime both differ" -- that
+    // claims a confound the rows do not have and undersells the comparison as
+    // merely related.
+    if (sameRuntime) {
+      return {
+        label: "Quant comparison",
+        detail: "Same model, hardware and runtime. Quant is the main variable.",
+        level: "strong"
+      };
+    }
+    return {
+      label: "Configuration comparison",
+      detail: "Same model and hardware, but quant and runtime both differ.",
+      level: "related"
     };
   }
 

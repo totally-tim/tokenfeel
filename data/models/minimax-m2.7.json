@@ -4,5 +4,5 @@
   "family": "MiniMax",
   "params": "229B",
   "license": "See upstream model card",
-  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Model metadata inferred from the upstream repo path nvidia/MiniMax-M2.7-NVFP4."
+  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. One record per base checkpoint: the quantized builds behind it are cyankiwi/MiniMax-M2.7-AWQ-4bit, lukealonso/MiniMax-M2.7-NVFP4, nvidia/MiniMax-M2.7-NVFP4, olka-fi/MiniMax-M2.7-MXFP4. Model metadata is inferred from those repo paths; each result row records the exact build it measured."
 }

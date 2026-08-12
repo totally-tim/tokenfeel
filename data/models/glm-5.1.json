@@ -4,5 +4,5 @@
   "family": "GLM",
   "params": "754B",
   "license": "See upstream model card",
-  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. Model metadata inferred from the upstream repo path zai-org/GLM-5.1-FP8."
+  "notes": "Generated from the Spark Arena DGX Spark leaderboard import. One record per base checkpoint: the quantized builds behind it are QuantTrio/GLM-5.1-AWQ, zai-org/GLM-5.1-FP8. Model metadata is inferred from those repo paths; each result row records the exact build it measured."
 }
