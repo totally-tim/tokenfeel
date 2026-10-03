@@ -17,6 +17,7 @@ import {
   raceFieldOptions,
   raceSetupOrders,
   raceVerdict,
+  raceVerdictLabel,
   resolveRaceSelection,
   selectionFromResult,
   suggestComparableResults,
@@ -24,6 +25,7 @@ import {
   type RaceSetupMode
 } from "../lib/raceComparison";
 import { usePlayback } from "../hooks/usePlayback";
+import { raceFinishAnnouncement } from "../lib/raceAnnouncement";
 import { buildRaceShareUrl, parseRaceShareHash } from "../lib/raceShare";
 import { raceNeedsSetupReset } from "../lib/raceSession";
 import { pageFromHashValue, type PageId } from "../lib/routing";
@@ -49,6 +51,9 @@ const fieldLabels: Record<RaceSetupField, string> = {
   runtimeKey: "Runtime",
   quant: "Quant"
 };
+
+const copyLabels = { idle: "Copy link", copied: "Copied", failed: "Copy failed" };
+const copyAnnouncements = { idle: "", copied: "Race link copied.", failed: "Could not copy the race link." };
 
 const modeLabels: Record<RaceSetupMode, string> = {
   model: "Model",
@@ -154,7 +159,13 @@ function RaceSetupCard({
 
       <div className="setup-mode-tabs" role="group" aria-label={`Lane ${lane} setup starting point`}>
         {(Object.keys(modeLabels) as RaceSetupMode[]).map((item) => (
-          <button key={item} type="button" className={mode === item ? "active" : ""} onClick={() => setMode(item)}>
+          <button
+            key={item}
+            type="button"
+            className={mode === item ? "active" : ""}
+            aria-pressed={mode === item}
+            onClick={() => setMode(item)}
+          >
             {modeLabels[item]}
           </button>
         ))}
@@ -193,7 +204,10 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
   const [scenarioId, setScenarioId] = useState(initialState.scenarioId);
   const [speed, setSpeed] = useState(initialState.speed);
   const [cacheMode, setCacheMode] = useState<CacheMode>(initialState.cacheMode);
-  const [copyText, setCopyText] = useState("Copy link");
+  const [copyState, setCopyState] = useState<keyof typeof copyLabels>("idle");
+  // Stop and setup resets leave playback identical to "ready", so the Start,
+  // Stop and reset handlers set this text directly.
+  const [raceAction, setRaceAction] = useState("");
 
   // leftId/rightId/scenarioId are always ids that exist in `catalog`:
   // resolveRaceState validates share-link/hash ids on mount and on every
@@ -232,6 +246,12 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
           Math.min(rightPlayback.elapsedMs, rightPlayback.timeline.totalMs)
         )
       : 0;
+  const raceAnnouncement =
+    raceFinishAnnouncement(
+      { complete: leftPlayback.isComplete, wallTimeMs: leftPlayback.summary.wallTimeMs },
+      { complete: rightPlayback.isComplete, wallTimeMs: rightPlayback.summary.wallTimeMs },
+      verdict
+    ) || raceAction;
   const raceClockLabel = raceComplete ? "finished" : raceRunning ? "running" : raceStarted ? "stopped" : "ready";
   const raceMeta = raceComplete
     ? `${formatClock(leftPlayback.summary.wallTimeMs)} vs ${formatClock(rightPlayback.summary.wallTimeMs)} final`
@@ -241,6 +261,7 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
     if (!raceNeedsSetupReset({ leftStarted: leftPlayback.hasStarted, rightStarted: rightPlayback.hasStarted })) return;
     leftPlayback.reset();
     rightPlayback.reset();
+    setRaceAction("Race reset after a setup change.");
   };
 
   useEffect(() => {
@@ -312,11 +333,13 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
   const startRace = () => {
     leftPlayback.restart();
     rightPlayback.restart();
+    setRaceAction("Race started.");
   };
 
   const stopRace = () => {
     leftPlayback.reset();
     rightPlayback.reset();
+    setRaceAction("Race stopped.");
   };
 
   const updateLeftId = (nextId: string) => {
@@ -346,16 +369,21 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
   const copyRace = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
-      setCopyText("Copied");
-      setTimeout(() => setCopyText("Copy link"), 1200);
+      setCopyState("copied");
     } catch {
-      setCopyText("Copy failed");
-      setTimeout(() => setCopyText("Copy link"), 1200);
+      setCopyState("failed");
     }
+    setTimeout(() => setCopyState("idle"), 1200);
   };
 
   return (
     <main className={`race-page full-height-page ${raceRunning ? "race-in-session" : ""}`}>
+      <div className="sr-only" role="status">
+        {raceAnnouncement}
+      </div>
+      <div className="sr-only" role="status">
+        {copyAnnouncements[copyState]}
+      </div>
       <section className="race-workbench">
         <div className="race-workbench-head">
           <div className="race-title-block">
@@ -384,7 +412,7 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
               onClick={() => void copyRace()}
               title={shareUrl}
             >
-              <Link size={15} /> {copyText}
+              <Link size={15} /> {copyLabels[copyState]}
             </button>
             <SpeedSelector speed={speed} onSpeed={setSpeed} />
             <CacheModeSelector mode={cacheMode} onMode={updateCacheMode} />
@@ -463,7 +491,7 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
           winner={verdict.winner === "left"}
         />
         <aside className="delta-spine">
-          <div className={`race-clock-card ${raceRunning ? "running" : raceComplete ? "complete" : ""}`}>
+          <div className={`race-clock-card ${raceRunning ? "running" : raceComplete ? "complete" : ""}`} role="timer">
             <span>RACE CLOCK</span>
             <strong>{formatClock(raceElapsedMs)}</strong>
             <p>{raceClockLabel}</p>
@@ -475,15 +503,7 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
               {formatClock(gap)}
             </strong>
             <p>
-              {raceComplete
-                ? verdict.winner === "too-close"
-                  ? "Too close to call from this data"
-                  : verdict.winner === "left"
-                    ? "Lane A won"
-                    : "Lane B won"
-                : raceStarted
-                  ? "projected finish gap"
-                  : "projected gap"}
+              {raceComplete ? raceVerdictLabel(verdict.winner) : raceStarted ? "projected finish gap" : "projected gap"}
             </p>
             {confidenceMismatch && (
               <span
