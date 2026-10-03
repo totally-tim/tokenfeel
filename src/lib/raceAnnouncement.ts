@@ -12,18 +12,14 @@ export interface RaceLaneFinish {
  * changes only when the next lane completes, so a live region that renders it
  * announces each transition once instead of tracking the 60fps clock. A lane's
  * time is announced only after that lane completes, so it is always final.
+ * The final message repeats both times because both lanes can complete in the
+ * same frame, which skips the single-lane message.
  */
 export function raceFinishAnnouncement(left: RaceLaneFinish, right: RaceLaneFinish, verdict: RaceVerdict): string {
   if (!right.complete) return left.complete ? laneFinished("A", left) : "";
   if (!left.complete) return laneFinished("B", right);
-  const finished =
-    left.wallTimeMs === right.wallTimeMs
-      ? `Both lanes finished in ${formatClock(left.wallTimeMs)}.`
-      : left.wallTimeMs > right.wallTimeMs
-        ? laneFinished("A", left)
-        : laneFinished("B", right);
   const margin = verdict.winner === "too-close" ? "" : ` by ${formatClock(verdict.deltaMs)}`;
-  return `${finished} ${raceVerdictLabel(verdict.winner)}${margin}.`;
+  return `Race finished. Lane A ${formatClock(left.wallTimeMs)}, Lane B ${formatClock(right.wallTimeMs)}. ${raceVerdictLabel(verdict.winner)}${margin}.`;
 }
 
 function laneFinished(label: "A" | "B", lane: RaceLaneFinish) {

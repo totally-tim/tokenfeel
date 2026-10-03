@@ -1,5 +1,5 @@
 import { AlertTriangle, Copy, GitCompare, Link, Play, Square } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CacheModeSelector, Disclosure, RaceLane, SearchSelect, SpeedSelector } from "../components/SimulatorPieces";
 import { RaceGapBreakdown } from "../components/Visualizations";
 import {
@@ -205,6 +205,7 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
   const [speed, setSpeed] = useState(initialState.speed);
   const [cacheMode, setCacheMode] = useState<CacheMode>(initialState.cacheMode);
   const [copyState, setCopyState] = useState<keyof typeof copyLabels>("idle");
+  const copyResetTimer = useRef<number | undefined>(undefined);
   // Stop and setup resets leave playback identical to "ready", so the Start,
   // Stop and reset handlers set this text directly.
   const [raceAction, setRaceAction] = useState("");
@@ -339,7 +340,7 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
   const stopRace = () => {
     leftPlayback.reset();
     rightPlayback.reset();
-    setRaceAction("Race stopped.");
+    setRaceAction("Race stopped and reset.");
   };
 
   const updateLeftId = (nextId: string) => {
@@ -373,17 +374,12 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
     } catch {
       setCopyState("failed");
     }
-    setTimeout(() => setCopyState("idle"), 1200);
+    window.clearTimeout(copyResetTimer.current);
+    copyResetTimer.current = window.setTimeout(() => setCopyState("idle"), 1200);
   };
 
   return (
     <main className={`race-page full-height-page ${raceRunning ? "race-in-session" : ""}`}>
-      <div className="sr-only" role="status">
-        {raceAnnouncement}
-      </div>
-      <div className="sr-only" role="status">
-        {copyAnnouncements[copyState]}
-      </div>
       <section className="race-workbench">
         <div className="race-workbench-head">
           <div className="race-title-block">
@@ -414,6 +410,9 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
             >
               <Link size={15} /> {copyLabels[copyState]}
             </button>
+            <div className="sr-only" role="status">
+              {copyAnnouncements[copyState]}
+            </div>
             <SpeedSelector speed={speed} onSpeed={setSpeed} />
             <CacheModeSelector mode={cacheMode} onMode={updateCacheMode} />
             <button type="button" className="secondary-button small" onClick={() => onNavigate("configs")}>
@@ -495,6 +494,9 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
             <span>RACE CLOCK</span>
             <strong>{formatClock(raceElapsedMs)}</strong>
             <p>{raceClockLabel}</p>
+          </div>
+          <div className="sr-only" role="status">
+            {raceAnnouncement}
           </div>
           <div className="gap-summary">
             <span>GAP</span>

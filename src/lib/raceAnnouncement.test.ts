@@ -18,25 +18,27 @@ describe("raceFinishAnnouncement", () => {
     );
   });
 
-  it("announces the slower lane and the verdict once both lanes finish", () => {
+  it("announces both final times and the verdict once both lanes finish", () => {
     expect(raceFinishAnnouncement(done(12_000), done(90_000), { winner: "left", deltaMs: 78_000 })).toBe(
-      "Lane B finished in 1:30.0. Lane A won by 1:18.0."
+      "Race finished. Lane A 12.0s, Lane B 1:30.0. Lane A won by 1:18.0."
     );
     expect(raceFinishAnnouncement(done(90_000), done(12_000), { winner: "right", deltaMs: 78_000 })).toBe(
-      "Lane A finished in 1:30.0. Lane B won by 1:18.0."
+      "Race finished. Lane A 1:30.0, Lane B 12.0s. Lane B won by 1:18.0."
     );
   });
 
-  it("uses the same too-close wording as the gap summary when the verdict is uncertain", () => {
+  it("uses the gap summary's too-close wording and keeps both times when the verdict is uncertain", () => {
     expect(raceFinishAnnouncement(done(12_000), done(12_400), { winner: "too-close", deltaMs: 400 })).toBe(
-      "Lane B finished in 12.4s. Too close to call from this data."
+      "Race finished. Lane A 12.0s, Lane B 12.4s. Too close to call from this data."
     );
   });
 
-  it("names both lanes when they finish at the same time", () => {
-    expect(raceFinishAnnouncement(done(12_000), done(12_000), { winner: "too-close", deltaMs: 0 })).toBe(
-      "Both lanes finished in 12.0s. Too close to call from this data."
-    );
+  it("keeps the faster lane's time when both lanes complete in the same frame", () => {
+    const verdict = { winner: "left" as const, deltaMs: 100 };
+    const before = raceFinishAnnouncement(running(19_000), running(19_100), verdict);
+    const after = raceFinishAnnouncement(done(19_000), done(19_100), verdict);
+    expect(before).toBe("");
+    expect(after).toBe("Race finished. Lane A 19.0s, Lane B 19.1s. Lane A won by 0.1s.");
   });
 
   it("changes text only at a finish, so a live region announces each transition once", () => {
@@ -50,6 +52,9 @@ describe("raceFinishAnnouncement", () => {
       raceFinishAnnouncement(done(12_000), done(30_000), verdict)
     ];
     const transitions = frames.filter((text, index) => index > 0 && text !== frames[index - 1]);
-    expect(transitions).toEqual(["Lane A finished in 12.0s.", "Lane B finished in 30.0s. Lane A won by 18.0s."]);
+    expect(transitions).toEqual([
+      "Lane A finished in 12.0s.",
+      "Race finished. Lane A 12.0s, Lane B 30.0s. Lane A won by 18.0s."
+    ]);
   });
 });
