@@ -15,13 +15,13 @@ import {
 import {
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
   type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
-  type ReactNode,
-  type Ref
+  type ReactNode
 } from "react";
 import { formatClock, formatNumber, formatRate, formatTokens } from "../lib/format";
 import type {
@@ -42,6 +42,7 @@ import { hasAnyRawEvidence, maxMeasuredDepth } from "../lib/catalogQuality";
 import { StatusBadge } from "./StatusBadge";
 import { TrustBadge } from "./TrustBadge";
 import { isGeneratedEvent, streamFrameForEvent } from "../lib/streaming";
+import { revealInScrollBox, scrollBoxToEnd } from "../lib/scrollFollow";
 import { PhaseWaterfall, QualityFlags } from "./Visualizations";
 import { filterPickerOptions } from "../lib/pickerOptions";
 import type { MatrixOption } from "../lib/configMatrix";
@@ -225,11 +226,13 @@ export function ThinkingStream({
   active: boolean;
   showCursor: boolean;
 }) {
-  const tailRef = useRef<HTMLParagraphElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    if (!active) return;
-    tailRef.current?.scrollIntoView({ block: "end" });
+  // Scrolls only this row's box; scrollIntoView would also scroll the parent
+  // box, the lane card and the page. The parent's layout effect runs after
+  // this one and reveals the row in the parent box.
+  useLayoutEffect(() => {
+    if (active && scrollRef.current) scrollBoxToEnd(scrollRef.current);
   }, [active, streamedText]);
 
   if (!active) {
@@ -249,8 +252,8 @@ export function ThinkingStream({
       <span>
         › THINKING · {formatNumber(streamedTokens)} / {formatNumber(event.tokens)} tokens
       </span>
-      <div className="thinking-row-scroll">
-        <p ref={tailRef}>
+      <div className="thinking-row-scroll" ref={scrollRef}>
+        <p>
           {streamedText}
           {showCursor ? <span className="cursor">▍</span> : null}
         </p>
@@ -616,25 +619,24 @@ export function Transcript({
   runtimeCache: RuntimeMetadata["cache"];
 }) {
   const visibleEvents = events.slice(0, Math.max(1, activeIndex + 1));
+  const scrollRef = useRef<HTMLDivElement | null>(null);
   const activeRef = useRef<HTMLElement | null>(null);
-  const tailRef = useRef<HTMLElement | null>(null);
   const cacheEnabled = cacheMode === "on" || (cacheMode === "runtime" && runtimeCache === "prefix");
   const activeEvent = events[activeIndex];
+  const activeGenerated = activeEvent ? isGeneratedEvent(activeEvent) : false;
   const activeStreamedText = activeEvent ? streamFrameForEvent(activeEvent, elapsedMs).text : "";
 
-  useEffect(() => {
-    activeRef.current?.scrollIntoView({ block: "nearest" });
-  }, [activeIndex]);
-
-  // Keep the newest streamed text of the active event in view as it grows,
-  // independent of the whole-article scroll above -- needed now that
-  // generated text runs far longer than the transcript's visible height.
-  useEffect(() => {
-    tailRef.current?.scrollIntoView({ block: "end" });
-  }, [activeIndex, activeStreamedText]);
+  // A streaming event keeps its end in view as the text grows; any other event
+  // shows from its top when it is taller than the transcript. Only the
+  // transcript box scrolls (scrollIntoView would also scroll the page), and a
+  // layout effect means no frame paints the old position after a turn collapses.
+  useLayoutEffect(() => {
+    if (!scrollRef.current || !activeRef.current) return;
+    revealInScrollBox(scrollRef.current, activeRef.current, activeGenerated ? "end" : "nearest");
+  }, [activeIndex, activeGenerated, activeStreamedText]);
 
   return (
-    <div className="transcript">
+    <div className="transcript" ref={scrollRef}>
       <div className="system-chip">
         <span>SYSTEM PROMPT · {cacheEnabled ? "cache eligible" : "cache off"}</span>
         <span>{cacheEnabled ? "prefix reusable" : "full prefill"}</span>
@@ -661,7 +663,7 @@ export function Transcript({
               {event.cacheBust && <span className="warn-text">re-prefilled · cache bust</span>}
             </div>
             {event.role === "tool_call" ? (
-              <pre ref={active ? (tailRef as Ref<HTMLPreElement>) : undefined}>
+              <pre>
                 {streamedText}
                 {showCursor ? <span className="cursor">▍</span> : null}
               </pre>
@@ -676,7 +678,7 @@ export function Transcript({
                 showCursor={showCursor}
               />
             ) : (
-              <p ref={active ? (tailRef as Ref<HTMLParagraphElement>) : undefined}>
+              <p>
                 {streamedText}
                 {showCursor ? <span className="cursor">▍</span> : null}
               </p>
@@ -810,8 +812,10 @@ export function RaceLane({
   const active = hasStarted && !complete;
   const phase = activePhaseForEvent(activeEvent, elapsedMs, hasStarted, complete);
   const outputEvents = raceOutputWindow(timeline.events, activeEvent.index, 4, hasStarted);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
   const activeOutputRef = useRef<HTMLElement | null>(null);
-  const tailRef = useRef<HTMLElement | null>(null);
+  const toolCallRef = useRef<HTMLPreElement | null>(null);
+  const activeGenerated = isGeneratedEvent(activeEvent);
   const activeStreamedText = streamFrameForEvent(activeEvent, elapsedMs).text;
   const laneRate = phase.kind === "prefill" ? activeEvent.ppRate : activeEvent.tgRate;
   const laneRateKind = !hasStarted
@@ -837,15 +841,14 @@ export function RaceLane({
   const primaryKind = complete ? "elapsed" : active ? "phase" : "ready";
   const progressValue = active ? `${Math.round(phase.progress * 100)}% phase` : `${timeline.events.length} turns`;
 
-  useEffect(() => {
-    activeOutputRef.current?.scrollIntoView({ block: "nearest" });
-  }, [activeEvent.index]);
-
-  // Keep the newest streamed text of the active event in view as it grows,
-  // independent of the whole-card scroll above.
-  useEffect(() => {
-    tailRef.current?.scrollIntoView({ block: "end" });
-  }, [activeEvent.index, activeStreamedText]);
+  // Same follow rule as Transcript, limited to this lane's output box so the
+  // lane card and the page keep the user's scroll position. The tool-call pre
+  // has its own max-height, so it follows its own end first.
+  useLayoutEffect(() => {
+    if (!scrollRef.current || !activeOutputRef.current) return;
+    if (toolCallRef.current) scrollBoxToEnd(toolCallRef.current);
+    revealInScrollBox(scrollRef.current, activeOutputRef.current, activeGenerated ? "end" : "nearest");
+  }, [activeEvent.index, activeGenerated, activeStreamedText]);
 
   return (
     <section
@@ -891,7 +894,7 @@ export function RaceLane({
               turn {activeEvent.index + 1} · {eventLabel(activeEvent).toLowerCase()}
             </strong>
           </div>
-          <div className="race-output-scroll" aria-label={`Lane ${label} live transcript`}>
+          <div className="race-output-scroll" ref={scrollRef} aria-label={`Lane ${label} live transcript`}>
             {outputEvents.length === 0
               ? null
               : outputEvents.map((event) => {
@@ -932,7 +935,7 @@ export function RaceLane({
                       {waitingForOutput ? (
                         <p className="race-output-waiting">{waitingCopy}</p>
                       ) : event.role === "tool_call" ? (
-                        <pre ref={eventActive ? (tailRef as Ref<HTMLPreElement>) : undefined}>
+                        <pre ref={eventActive ? toolCallRef : undefined}>
                           {streamedText}
                           {showCursor ? <span className="cursor">▍</span> : null}
                         </pre>
@@ -947,7 +950,7 @@ export function RaceLane({
                           showCursor={showCursor}
                         />
                       ) : (
-                        <p ref={eventActive ? (tailRef as Ref<HTMLParagraphElement>) : undefined}>
+                        <p>
                           {streamedText}
                           {showCursor ? <span className="cursor">▍</span> : null}
                         </p>
