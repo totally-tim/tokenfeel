@@ -460,8 +460,9 @@ function buildDecodeCumulativeMs(
  * integral over the real prompt depth on top -- so beyond the LAST
  * TTFT-bearing depth prefill keeps growing with prompt size instead of
  * collapsing back to the stale flat TTFT (A1), and below the FIRST one a
- * shorter prompt pays only its own integral plus that launch overhead
- * instead of the full TTFT measured for the longer first prompt. Anchoring
+ * shorter prompt pays only its own integral plus that launch overhead (or a
+ * scaled integral when the overhead is negative) instead of the full TTFT
+ * measured for the longer first prompt. Anchoring
  * the depth (rather than returning undefined and falling through to the bare
  * integral) keeps prefill continuous at both boundaries.
  */
@@ -591,11 +592,11 @@ export function buildTimeline(input: TimelineInput): Timeline {
         ) {
           // A cold prompt below the first TTFT reading has no measurement to
           // reproduce, and a negative overhead added to its shorter integral can
-          // floor it at 0ms. Scale the integral to the first reading's TTFT
+          // floor it at 0ms. Scale each integral to its own value at the anchor
           // instead: positive, monotonic, and continuous at the boundary.
-          const ttftScale = ttftAnchor.ttftMs / anchorPrefillRange.canonicalMs;
-          rawPrefillMs = prefillRange.canonicalMs * ttftScale;
-          rawOptimisticMs = prefillRange.optimisticMs * ttftScale;
+          const optimisticAtAnchorMs = Math.max(0, impliedOverheadMs + anchorPrefillRange.optimisticMs);
+          rawPrefillMs = prefillRange.canonicalMs * (ttftAnchor.ttftMs / anchorPrefillRange.canonicalMs);
+          rawOptimisticMs = prefillRange.optimisticMs * (optimisticAtAnchorMs / anchorPrefillRange.optimisticMs);
         }
         prefillMs = Number.isFinite(rawPrefillMs) ? Math.max(0, rawPrefillMs) : prefillRange.canonicalMs + overheadMs;
         prefillOptimisticMs = Number.isFinite(rawOptimisticMs)

@@ -831,6 +831,52 @@ describe("buildTimeline rate integration (Phase 1)", () => {
     expect(coldPrefillMs(3999)).toBeCloseTo(1999.5);
     expect(coldPrefillMs(4000)).toBeCloseTo(2000); // exact measured TTFT at the boundary
     expect(coldPrefillMs(4001)).toBeCloseTo(2000.5); // interpolated inside the range
+    // Beyond the last reading the existing anchor rule still applies:
+    // overhead at 8000 (4000 - 8000ms) plus the 16000ms integral.
+    expect(coldPrefillMs(16_000)).toBeCloseTo(12_000);
+
+    // A warm turn below the first reading keeps the clamped (>= 0) overhead on
+    // its real sub-range integral; scaling would undercut that integral.
+    const warm = buildTimeline({
+      result: fastFirstReading,
+      scenario: {
+        ...scenario,
+        systemPromptTokens: 0,
+        events: [
+          { id: "u1", role: "user", text: "first", tokens: 1000 },
+          { id: "u2", role: "user", text: "second", tokens: 2000 }
+        ]
+      },
+      cacheMode: "on"
+    }).events[1];
+    expect(warm.cachedPrefixTokens).toBe(1000);
+    expect(warm.prefillMs).toBeCloseTo(2000);
+  });
+
+  it("keeps the optimistic prefill bound continuous at the first TTFT reading when that reading lies past the pp curve", () => {
+    // ppTokens puts the only TTFT reading at 2048 total tokens, past the last
+    // pp depth (512), where the fitted (canonical) and clamped (optimistic)
+    // integrals differ. Each must scale to its own value at the anchor.
+    const pastPpCurve: BenchmarkResult = {
+      ...result,
+      benchmark: { ppTokens: 2048 },
+      measurements: [
+        { depth: 0, pp: 1000, tg: 20, source: { url: "https://example.com/d0", upstreamId: "0", ttftMs: 1500 } },
+        { depth: 512, pp: 800, tg: 20 }
+      ]
+    };
+    const rangeAt = (tokens: number) =>
+      buildTimeline({
+        result: pastPpCurve,
+        scenario: { ...scenario, systemPromptTokens: 0, events: [{ id: "u1", role: "user", text: "hi", tokens }] },
+        cacheMode: "off"
+      }).events[0].prefillRangeMs;
+
+    const below = rangeAt(2047);
+    const atReading = rangeAt(2048);
+    expect(below.min).toBeLessThanOrEqual(atReading.min);
+    expect(atReading.min - below.min).toBeLessThan(1);
+    expect(atReading.max).toBeCloseTo(1500);
   });
 
   it("anchors below the first reading on the ppTokens-shifted axis (llama-benchy convention)", () => {
