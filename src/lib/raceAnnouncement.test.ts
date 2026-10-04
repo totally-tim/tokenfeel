@@ -110,9 +110,17 @@ describe("raceStatusText over a simulated race", () => {
 
   it("announces both lanes when they cross a mark within 200 ms of each other", () => {
     const changes = simulateRace(40_000, 40_600, 1, { winner: "too-close", deltaMs: 600 });
-    for (const part of quartiles) expect(timesShown(changes, part)).toBeGreaterThan(0);
-    expect(changes.find((change) => change.text.includes("Lane B 25%."))?.text).toBe("Lane B 25%.");
-    expect(changes[changes.length - 1].text).toContain("Race finished.");
+    expect(changes.map((change) => change.text)).toEqual([
+      "Race started.",
+      "Lane A 25%.",
+      "Lane B 25%.",
+      "Lane A 50%.",
+      "Lane B 50%.",
+      "Lane A 75%.",
+      "Lane B 75%.",
+      "Lane A finished in 40.0s.",
+      "Lane B finished in 40.6s. Race finished. Too close to call from this data."
+    ]);
     expectNothingDropped(changes);
   });
 
@@ -122,13 +130,20 @@ describe("raceStatusText over a simulated race", () => {
     expectNothingDropped(changes);
   });
 
-  it("plays a waiting 75% before the final verdict instead of after it", () => {
-    // At 8x, lane B finishes, lane A passes 75% about 60 ms later and finishes
-    // 750 ms after that, all inside one minimum display time.
+  it("keeps a young 75% in front of the final verdict and never plays it after", () => {
+    // At 8x, lane A shows 75% and finishes 300 ms later, before that text
+    // has been up for the minimum display time.
     const changes = simulateRace(24_000, 17_500, 8, { winner: "right", deltaMs: 6_500 });
-    const final = changes[changes.length - 1].text;
-    expect(final.endsWith("Lane A 75%. Lane A finished in 24.0s. Race finished. Lane B won by 6.5s.")).toBe(true);
-    expect(changes.filter((change) => change.text.includes("Lane A 75%."))).toEqual([changes[changes.length - 1]]);
+    expect(changes.map((change) => change.text)).toEqual([
+      "Race started.",
+      "Lane B 25%.",
+      "Lane A 25%.",
+      "Lane B 50%. Lane A 50%.",
+      "Lane B 75%.",
+      "Lane B 75%. Lane B finished in 17.5s.",
+      "Lane A 75%.",
+      "Lane A 75%. Lane A finished in 24.0s. Race finished. Lane B won by 6.5s."
+    ]);
     expectNothingDropped(changes);
   });
 

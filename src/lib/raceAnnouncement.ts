@@ -22,12 +22,13 @@ export interface RaceLaneSnapshot {
 
 /**
  * A live-region text that changes again within a few hundred milliseconds may
- * be replaced before a screen reader speaks it. Quartile text therefore waits
- * until the current text has been shown this long, and messages that arrive in
- * the meantime are merged into one string. 1000 ms clears that threshold with
- * margin and bounds how late a quartile can be.
+ * be replaced before a screen reader speaks it, so a text counts as spoken once
+ * it has been shown this long. Quartile text waits until the current text is
+ * spoken, and a finish repeats the current text only while it is not. 500 ms is
+ * just above that threshold; a longer value makes finishes repeat text that
+ * has already been read.
  */
-export const RACE_STATUS_MIN_DISPLAY_MS = 1000;
+export const RACE_STATUS_MIN_DISPLAY_MS = 500;
 
 function reachedQuarter(log: RaceLogEntry[], lane: RaceLaneId) {
   let reached = 0;
@@ -41,8 +42,8 @@ function reachedQuarter(log: RaceLogEntry[], lane: RaceLaneId) {
 /**
  * New log entries for marks the lanes reached since the log was last updated.
  * A lane that passes several marks between two observations logs only the
- * furthest one, and a finish supersedes that lane's marks, because the lower
- * marks are already out of date when they would be spoken.
+ * furthest one, and a finish supersedes that lane's marks: the page never
+ * showed the lane at the lower marks, so they are already out of date.
  */
 export function raceLogUpdates(
   log: RaceLogEntry[],
@@ -79,12 +80,17 @@ function entryText(log: RaceLogEntry[], index: number, verdict: RaceVerdict) {
  * The text of the Race status region at `now`, replayed from the log.
  *
  * Entries with the same timestamp form one message. A message shows at once
- * when the current text is at least RACE_STATUS_MIN_DISPLAY_MS old; otherwise
+ * when the current text has been up for RACE_STATUS_MIN_DISPLAY_MS; otherwise
  * a quartile waits and is merged with anything else that arrives before then.
- * An action or a finish never waits: it shows at once after any waiting text
- * and, when the current text is still young, keeps that text in front of it.
- * The page stops rendering after the last finish, which is why a finish must
- * take the waiting text with it; that also means no quartile plays after it.
+ * A finish never waits: it shows at once after any waiting text and, when the
+ * current text has not been up that long, keeps that text in front of it. The
+ * page stops rendering after the last finish, which is why a finish must take
+ * the waiting text with it; that also means no quartile plays after it.
+ *
+ * The page renders every frame while a race runs, so waiting text appears
+ * when it is due. After a gap in rendering, such as a background tab, waiting
+ * text can be replaced as soon as it appears; it is then at least as old as
+ * the gap.
  */
 export function raceStatusText(log: RaceLogEntry[], now: number, verdict: RaceVerdict): string {
   let shown: string[] = [];
@@ -94,10 +100,10 @@ export function raceStatusText(log: RaceLogEntry[], now: number, verdict: RaceVe
   for (let index = 0; index < log.length && log[index].at <= now;) {
     const at = log[index].at;
     const parts: string[] = [];
-    let urgent = false;
+    let finish = false;
     for (; index < log.length && log[index].at === at; index += 1) {
       parts.push(entryText(log, index, verdict));
-      urgent ||= log[index].kind !== "mark";
+      finish ||= log[index].kind === "finish";
     }
 
     if (waiting.length > 0 && shownAt + RACE_STATUS_MIN_DISPLAY_MS <= at) {
@@ -108,7 +114,7 @@ export function raceStatusText(log: RaceLogEntry[], now: number, verdict: RaceVe
     if (at - shownAt >= RACE_STATUS_MIN_DISPLAY_MS) {
       shown = parts;
       shownAt = at;
-    } else if (urgent) {
+    } else if (finish) {
       shown = [...shown, ...waiting, ...parts];
       shownAt = at;
       waiting = [];

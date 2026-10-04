@@ -305,7 +305,9 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
       { A: snapshot(leftPlayback), B: snapshot(rightPlayback) },
       performance.now()
     );
-    if (updates.length > 0) setRaceLog([...raceLog, ...updates]);
+    // A Start, Stop or reset can replace the log between this render and its
+    // effect; those updates then belong to a run that no longer exists.
+    if (updates.length > 0) setRaceLog((current) => (current === raceLog ? [...current, ...updates] : current));
   }, [raceLog, leftPlayback, rightPlayback]);
 
   useEffect(() => {
