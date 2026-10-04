@@ -847,15 +847,15 @@ export function RaceLane({
   // short windows the lane card clips the output box, and the lane grid clips
   // the card, so the card scrolls too, but only until the whole box is
   // visible. The page and the overflow-hidden lane grid never scroll, because
-  // the reader could not scroll them back.
-  // hasStarted is a dependency because Start fills the output box without
-  // changing the active event.
+  // the reader could not scroll them back. The card moves only while the lane
+  // is live: the render that completes a race also brings back the setup
+  // panel, which squeezes the lane grid.
   useLayoutEffect(() => {
     if (!cardRef.current || !scrollRef.current || !activeOutputRef.current) return;
     if (toolCallRef.current) scrollBoxToEnd(toolCallRef.current);
     revealInScrollBox(scrollRef.current, activeOutputRef.current, activeGenerated ? "end" : "nearest");
-    revealInScrollBox(cardRef.current, scrollRef.current, "nearest", ancestorClip(cardRef.current));
-  }, [activeEvent.index, activeGenerated, activeStreamedText, hasStarted]);
+    if (active) revealInScrollBox(cardRef.current, scrollRef.current, "nearest", ancestorClip(cardRef.current));
+  }, [activeEvent.index, activeGenerated, activeStreamedText, active]);
 
   return (
     <section

@@ -68,6 +68,7 @@ export function revealInScrollBox(
   const clientTop = box.getBoundingClientRect().top + box.clientTop;
   const viewTop = Math.max(clientTop, clip?.top ?? clientTop);
   const viewBottom = Math.min(clientTop + box.clientHeight, clip?.bottom ?? Infinity);
+  if (viewBottom <= viewTop) return;
   const targetRect = target.getBoundingClientRect();
   scrollBoxTo(box, revealScrollTop(box, targetRect.top - viewTop, targetRect.height, block, viewBottom - viewTop));
 }

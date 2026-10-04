@@ -120,6 +120,20 @@ describe("revealing a lane's output box inside its card", () => {
     revealInScrollBox(card, targetIn(card, 391, 202), "nearest", { top: 0, bottom: 465 });
     expect(card.scrollTop).toBe(229);
   });
+
+  test("counts a clip at the top of the card", () => {
+    const card = new FakeBox(400, 800);
+    card.scrollTop = 300;
+    // The box sits 20px below the card's top edge, under a 40px clip.
+    revealInScrollBox(card, targetIn(card, 320, 202), "nearest", { top: 141, bottom: Infinity });
+    expect(card.scrollTop).toBe(280);
+  });
+
+  test("leaves a fully clipped card alone", () => {
+    const card = new FakeBox(400, 800);
+    revealInScrollBox(card, targetIn(card, 391, 202), "nearest", { top: 600, bottom: 560 });
+    expect(card.scrollCalls).toEqual([]);
+  });
 });
 
 describe("following a long streaming event", () => {
