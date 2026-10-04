@@ -144,14 +144,14 @@ describe("raceStatusText over a simulated race", () => {
     expectNothingDropped(changes);
   });
 
-  it("keeps each lane's newest waiting mark and both finishes in a short race at 8x", () => {
-    // Every mark arrives while "Race started." is still young, so each lane's
-    // newer mark replaces its own waiting one and the finishes take them along.
+  it("keeps every observed mark in a short race at 8x where marks and finishes come fast", () => {
+    // Every mark arrives while "Race started." is still young, so they all wait
+    // and the first finish takes them along.
     const changes = simulateRace(4_000, 4_800, 8, { winner: "left", deltaMs: 800 });
     expect(changes.map((change) => change.text)).toEqual([
       "Race started.",
-      "Lane A 75%. Lane B 75%. Lane A finished in 4.0s.",
-      "Lane A 75%. Lane B 75%. Lane A finished in 4.0s. Lane B finished in 4.8s. Race finished. Lane A won by 0.8s."
+      "Lane A 25%. Lane B 25%. Lane A 50%. Lane B 50%. Lane A 75%. Lane B 75%. Lane A finished in 4.0s.",
+      "Lane A 25%. Lane B 25%. Lane A 50%. Lane B 50%. Lane A 75%. Lane B 75%. Lane A finished in 4.0s. Lane B finished in 4.8s. Race finished. Lane A won by 0.8s."
     ]);
     expectNothingDropped(changes);
   });
