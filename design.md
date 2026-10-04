@@ -128,7 +128,10 @@ and the narrower value wrapped the spine's own labels onto three lines.
 At rest the lane pickers already show hardware and model, and the lane panel
 repeats the identity just below, so the setup-card head hides its identity block
 while idle. Once a race starts the pickers collapse and that head becomes the
-lane's compact identity, so it returns.
+lane's compact identity, so it returns. The pickers stay collapsed after the
+finish, until Edit setup, Stop or a setup change, so the lanes keep the height
+the race had. A finished lane's elapsed time also shows in its compact head,
+which stays in view at every window size, including the stacked layouts.
 
 A lane's primary readout is sized by what it is. A measured final elapsed time is
 the payoff and earns display type; a phase name or "Ready" is a status word and

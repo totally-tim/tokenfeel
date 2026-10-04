@@ -850,9 +850,9 @@ export function RaceLane({
   // the reader could not scroll them back. When the box is taller than the
   // visible part of the card, the card shows the box's end, where the newest
   // text is, for every event: switching to the box's top between turns made
-  // the card jump. The card moves only while the lane is live: the render
-  // that completes a race also brings back the setup panel, which squeezes
-  // the lane grid.
+  // the card jump. The card moves only while the lane is live, so it holds
+  // still at the finish and when Edit setup brings back the setup panel,
+  // which squeezes the lane grid.
   useLayoutEffect(() => {
     if (!cardRef.current || !scrollRef.current || !activeOutputRef.current) return;
     if (toolCallRef.current) scrollBoxToEnd(toolCallRef.current);

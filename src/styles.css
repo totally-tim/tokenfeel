@@ -2152,7 +2152,7 @@ mark {
   display: none;
 }
 
-.race-page.race-in-session .race-setup-card-head strong {
+.race-page.race-in-session .race-setup-card-head > div strong {
   font-size: var(--text-body);
 }
 
@@ -2177,9 +2177,32 @@ mark {
 
 .race-setup-card-head {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 10px;
   align-items: start;
+}
+
+/* A finished lane's elapsed time, in the compact lane head that stays at the
+   top of the page after the race, so it is in view at every window size. */
+.race-setup-final {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  margin: 0;
+}
+
+.race-setup-final span {
+  color: var(--fg-muted);
+  font-family: "Geist Mono", monospace;
+  font-size: var(--text-2xs);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.race-setup-final strong {
+  font-family: "Geist Mono", monospace;
+  font-size: var(--text-4xl);
+  line-height: 1;
 }
 
 /* Idle: the pickers directly below already show hardware and model, and the
@@ -2204,7 +2227,7 @@ mark {
   color: var(--warn);
 }
 
-.race-setup-card-head strong,
+.race-setup-card-head > div strong,
 .suggestion-panel strong {
   display: block;
   overflow: hidden;

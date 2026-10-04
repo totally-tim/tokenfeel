@@ -1,4 +1,4 @@
-import { AlertTriangle, Copy, GitCompare, Link, Play, Square } from "lucide-react";
+import { AlertTriangle, Copy, GitCompare, Link, Play, SlidersHorizontal, Square } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { CacheModeSelector, Disclosure, RaceLane, SearchSelect, SpeedSelector } from "../components/SimulatorPieces";
 import { RaceGapBreakdown } from "../components/Visualizations";
@@ -25,7 +25,7 @@ import {
 } from "../lib/raceComparison";
 import { usePlayback } from "../hooks/usePlayback";
 import { buildRaceShareUrl, parseRaceShareHash } from "../lib/raceShare";
-import { raceNeedsSetupReset } from "../lib/raceSession";
+import { raceNeedsSetupReset, raceSetupCollapsed } from "../lib/raceSession";
 import { pageFromHashValue, type PageId } from "../lib/routing";
 import type { BenchmarkResult, CacheMode, Catalog } from "../types";
 
@@ -123,12 +123,16 @@ function RaceSetupCard({
   catalog,
   lane,
   result,
-  onResult
+  onResult,
+  finalMs,
+  winner
 }: {
   catalog: Catalog;
   lane: "A" | "B";
   result: BenchmarkResult;
   onResult: (id: string) => void;
+  finalMs?: number;
+  winner: boolean;
 }) {
   const lookups = useMemo(() => createCatalogLookups(catalog), [catalog]);
   const [mode, setMode] = useState<RaceSetupMode>("model");
@@ -150,6 +154,12 @@ function RaceSetupCard({
           <strong>{hardware?.shortName ?? result.hardware}</strong>
           <small>{model?.name ?? result.model}</small>
         </div>
+        {finalMs !== undefined && (
+          <p className="race-setup-final">
+            <span>{winner ? "Final · won" : "Final"}</span>
+            <strong>{formatClock(finalMs)}</strong>
+          </p>
+        )}
       </div>
 
       <div className="setup-mode-tabs" role="group" aria-label={`Lane ${lane} setup starting point`}>
@@ -194,6 +204,7 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
   const [speed, setSpeed] = useState(initialState.speed);
   const [cacheMode, setCacheMode] = useState<CacheMode>(initialState.cacheMode);
   const [copyText, setCopyText] = useState("Copy link");
+  const [setupOpen, setSetupOpen] = useState(false);
 
   // leftId/rightId/scenarioId are always ids that exist in `catalog`:
   // resolveRaceState validates share-link/hash ids on mount and on every
@@ -209,6 +220,7 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
   const raceStarted = leftPlayback.hasStarted || rightPlayback.hasStarted;
   const raceRunning = leftPlayback.isPlaying || rightPlayback.isPlaying;
   const raceComplete = leftPlayback.isComplete && rightPlayback.isComplete;
+  const setupCollapsed = raceSetupCollapsed({ started: raceStarted, setupOpen });
   const verdict = raceVerdict(leftPlayback.summary, rightPlayback.summary);
   const gap = verdict.deltaMs;
   // "too-close" carries no lane preference of its own; fall back to the
@@ -310,6 +322,7 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
   }, [leftId, rightId, scenarioId, speed, cacheMode]);
 
   const startRace = () => {
+    setSetupOpen(false);
     leftPlayback.restart();
     rightPlayback.restart();
   };
@@ -355,7 +368,7 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
   };
 
   return (
-    <main className={`race-page full-height-page ${raceRunning ? "race-in-session" : ""}`}>
+    <main className={`race-page full-height-page ${setupCollapsed ? "race-in-session" : ""}`}>
       <section className="race-workbench">
         <div className="race-workbench-head">
           <div className="race-title-block">
@@ -378,6 +391,11 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
               {raceRunning ? <Square size={15} /> : <Play size={16} />}
               {raceRunning ? "Stop" : "Start"}
             </button>
+            {raceComplete && setupCollapsed && (
+              <button type="button" className="secondary-button small" onClick={() => setSetupOpen(true)}>
+                <SlidersHorizontal size={15} /> Edit setup
+              </button>
+            )}
             <button
               type="button"
               className="secondary-button small quiet-share"
@@ -395,7 +413,14 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
         </div>
 
         <div className="race-builder-grid">
-          <RaceSetupCard catalog={catalog} lane="A" result={left} onResult={updateLeftId} />
+          <RaceSetupCard
+            catalog={catalog}
+            lane="A"
+            result={left}
+            onResult={updateLeftId}
+            finalMs={leftPlayback.isComplete ? leftPlayback.summary.wallTimeMs : undefined}
+            winner={raceComplete && verdict.winner === "left"}
+          />
 
           <article className="race-scenario-card">
             <SearchSelect
@@ -445,7 +470,14 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
             </div>
           </article>
 
-          <RaceSetupCard catalog={catalog} lane="B" result={right} onResult={updateRightId} />
+          <RaceSetupCard
+            catalog={catalog}
+            lane="B"
+            result={right}
+            onResult={updateRightId}
+            finalMs={rightPlayback.isComplete ? rightPlayback.summary.wallTimeMs : undefined}
+            winner={raceComplete && verdict.winner === "right"}
+          />
         </div>
       </section>
 
