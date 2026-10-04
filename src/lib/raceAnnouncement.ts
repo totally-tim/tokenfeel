@@ -76,6 +76,25 @@ function entryText(log: RaceLogEntry[], index: number, verdict: RaceVerdict) {
   return `${finished} Race finished. ${raceVerdictLabel(verdict.winner)}${margin}.`;
 }
 
+interface StatusPart {
+  text: string;
+  /** Set on marks and finishes; actions belong to no lane. */
+  lane?: RaceLaneId;
+  isMark: boolean;
+}
+
+/**
+ * Drops each mark that a later mark or finish of the same lane follows. Such a
+ * mark is out of date before anyone hears it, and on a fast lane it would
+ * stack up as "Lane A 25%. Lane A 50%. Lane A 75%." or repeat in front of the
+ * lane's finish.
+ */
+function withoutOutdatedMarks(parts: StatusPart[]) {
+  return parts.filter(
+    (part, index) => !part.isMark || !parts.slice(index + 1).some((later) => later.lane === part.lane)
+  );
+}
+
 /**
  * The text of the Race status region at `now`, replayed from the log.
  *
@@ -85,7 +104,8 @@ function entryText(log: RaceLogEntry[], index: number, verdict: RaceVerdict) {
  * A finish never waits: it shows at once after any waiting text and, when the
  * current text has not been up that long, keeps that text in front of it. The
  * page stops rendering after the last finish, which is why a finish must take
- * the waiting text with it; that also means no quartile plays after it.
+ * the waiting text with it; that also means no quartile plays after it. Text
+ * that has not been spoken keeps only each lane's newest mark.
  *
  * The page renders every frame while a race runs, so waiting text appears
  * when it is due. After a gap in rendering, such as a background tab, waiting
@@ -93,17 +113,22 @@ function entryText(log: RaceLogEntry[], index: number, verdict: RaceVerdict) {
  * the gap.
  */
 export function raceStatusText(log: RaceLogEntry[], now: number, verdict: RaceVerdict): string {
-  let shown: string[] = [];
+  let shown: StatusPart[] = [];
   let shownAt = -Infinity;
-  let waiting: string[] = [];
+  let waiting: StatusPart[] = [];
 
   for (let index = 0; index < log.length && log[index].at <= now;) {
     const at = log[index].at;
-    const parts: string[] = [];
+    const parts: StatusPart[] = [];
     let finish = false;
     for (; index < log.length && log[index].at === at; index += 1) {
-      parts.push(entryText(log, index, verdict));
-      finish ||= log[index].kind === "finish";
+      const entry = log[index];
+      parts.push({
+        text: entryText(log, index, verdict),
+        lane: entry.kind === "action" ? undefined : entry.lane,
+        isMark: entry.kind === "mark"
+      });
+      finish ||= entry.kind === "finish";
     }
 
     if (waiting.length > 0 && shownAt + RACE_STATUS_MIN_DISPLAY_MS <= at) {
@@ -115,14 +140,14 @@ export function raceStatusText(log: RaceLogEntry[], now: number, verdict: RaceVe
       shown = parts;
       shownAt = at;
     } else if (finish) {
-      shown = [...shown, ...waiting, ...parts];
+      shown = withoutOutdatedMarks([...shown, ...waiting, ...parts]);
       shownAt = at;
       waiting = [];
     } else {
-      waiting.push(...parts);
+      waiting = withoutOutdatedMarks([...waiting, ...parts]);
     }
   }
 
   if (waiting.length > 0 && shownAt + RACE_STATUS_MIN_DISPLAY_MS <= now) shown = waiting;
-  return shown.join(" ");
+  return shown.map((part) => part.text).join(" ");
 }
