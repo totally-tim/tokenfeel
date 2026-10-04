@@ -192,7 +192,12 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
           <div className="filters">
             <label className="search-box">
               <Search size={15} />
-              <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Filter configs..." />
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Filter configs..."
+                aria-label="Filter configs"
+              />
             </label>
             <SearchSelect
               compact
@@ -252,6 +257,7 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
             <button
               type="button"
               className={verifiedOnly ? "active" : ""}
+              aria-pressed={verifiedOnly}
               onClick={() => setVerifiedOnly((value) => !value)}
             >
               Verified only
@@ -267,6 +273,7 @@ export function ConfigsPage({ catalog }: { catalog: StaticCatalog }) {
                 key={option.key}
                 type="button"
                 className={sortKey === option.key ? "active" : ""}
+                aria-pressed={sortKey === option.key}
                 onClick={() => setSortKey(option.key)}
               >
                 {option.label}

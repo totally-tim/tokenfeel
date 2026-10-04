@@ -1,5 +1,5 @@
 import { AlertTriangle, Copy, GitCompare, Link, Play, Square } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CacheModeSelector, Disclosure, RaceLane, SearchSelect, SpeedSelector } from "../components/SimulatorPieces";
 import { RaceGapBreakdown } from "../components/Visualizations";
 import {
@@ -17,6 +17,7 @@ import {
   raceFieldOptions,
   raceSetupOrders,
   raceVerdict,
+  raceVerdictLabel,
   resolveRaceSelection,
   selectionFromResult,
   suggestComparableResults,
@@ -24,6 +25,7 @@ import {
   type RaceSetupMode
 } from "../lib/raceComparison";
 import { usePlayback } from "../hooks/usePlayback";
+import { raceLogUpdates, raceStatusText, type RaceLogEntry } from "../lib/raceAnnouncement";
 import { buildRaceShareUrl, parseRaceShareHash } from "../lib/raceShare";
 import { raceNeedsSetupReset } from "../lib/raceSession";
 import { pageFromHashValue, type PageId } from "../lib/routing";
@@ -49,6 +51,9 @@ const fieldLabels: Record<RaceSetupField, string> = {
   runtimeKey: "Runtime",
   quant: "Quant"
 };
+
+const copyLabels = { idle: "Copy link", copied: "Copied", failed: "Copy failed" };
+const copyAnnouncements = { idle: "", copied: "Race link copied.", failed: "Could not copy the race link." };
 
 const modeLabels: Record<RaceSetupMode, string> = {
   model: "Model",
@@ -154,7 +159,13 @@ function RaceSetupCard({
 
       <div className="setup-mode-tabs" role="group" aria-label={`Lane ${lane} setup starting point`}>
         {(Object.keys(modeLabels) as RaceSetupMode[]).map((item) => (
-          <button key={item} type="button" className={mode === item ? "active" : ""} onClick={() => setMode(item)}>
+          <button
+            key={item}
+            type="button"
+            className={mode === item ? "active" : ""}
+            aria-pressed={mode === item}
+            onClick={() => setMode(item)}
+          >
             {modeLabels[item]}
           </button>
         ))}
@@ -193,7 +204,9 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
   const [scenarioId, setScenarioId] = useState(initialState.scenarioId);
   const [speed, setSpeed] = useState(initialState.speed);
   const [cacheMode, setCacheMode] = useState<CacheMode>(initialState.cacheMode);
-  const [copyText, setCopyText] = useState("Copy link");
+  const [copyState, setCopyState] = useState<keyof typeof copyLabels>("idle");
+  const copyResetTimer = useRef<number | undefined>(undefined);
+  const [raceLog, setRaceLog] = useState<RaceLogEntry[]>([]);
 
   // leftId/rightId/scenarioId are always ids that exist in `catalog`:
   // resolveRaceState validates share-link/hash ids on mount and on every
@@ -232,6 +245,7 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
           Math.min(rightPlayback.elapsedMs, rightPlayback.timeline.totalMs)
         )
       : 0;
+  const raceAnnouncement = raceStatusText(raceLog, performance.now(), verdict);
   const raceClockLabel = raceComplete ? "finished" : raceRunning ? "running" : raceStarted ? "stopped" : "ready";
   const raceMeta = raceComplete
     ? `${formatClock(leftPlayback.summary.wallTimeMs)} vs ${formatClock(rightPlayback.summary.wallTimeMs)} final`
@@ -241,6 +255,7 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
     if (!raceNeedsSetupReset({ leftStarted: leftPlayback.hasStarted, rightStarted: rightPlayback.hasStarted })) return;
     leftPlayback.reset();
     rightPlayback.reset();
+    setRaceLog([{ at: performance.now(), kind: "action", text: "Race reset after a setup change." }]);
   };
 
   useEffect(() => {
@@ -279,6 +294,23 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
   }, [hash, catalog]);
 
   useEffect(() => {
+    const snapshot = (playback: typeof leftPlayback) => ({
+      started: playback.hasStarted,
+      progress: playback.progress,
+      complete: playback.isComplete,
+      wallTimeMs: playback.summary.wallTimeMs
+    });
+    const updates = raceLogUpdates(
+      raceLog,
+      { A: snapshot(leftPlayback), B: snapshot(rightPlayback) },
+      performance.now()
+    );
+    // A Start, Stop or reset can replace the log between this render and its
+    // effect; those updates then belong to a run that no longer exists.
+    if (updates.length > 0) setRaceLog((current) => (current === raceLog ? [...current, ...updates] : current));
+  }, [raceLog, leftPlayback, rightPlayback]);
+
+  useEffect(() => {
     const next = buildRaceShareUrl({ leftId, rightId, scenarioId, speed, cacheMode });
     if (window.location.href !== next) {
       window.history.replaceState(null, "", next);
@@ -312,11 +344,13 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
   const startRace = () => {
     leftPlayback.restart();
     rightPlayback.restart();
+    setRaceLog([{ at: performance.now(), kind: "action", text: "Race started." }]);
   };
 
   const stopRace = () => {
     leftPlayback.reset();
     rightPlayback.reset();
+    setRaceLog([{ at: performance.now(), kind: "action", text: "Race stopped and reset." }]);
   };
 
   const updateLeftId = (nextId: string) => {
@@ -346,12 +380,12 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
   const copyRace = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
-      setCopyText("Copied");
-      setTimeout(() => setCopyText("Copy link"), 1200);
+      setCopyState("copied");
     } catch {
-      setCopyText("Copy failed");
-      setTimeout(() => setCopyText("Copy link"), 1200);
+      setCopyState("failed");
     }
+    window.clearTimeout(copyResetTimer.current);
+    copyResetTimer.current = window.setTimeout(() => setCopyState("idle"), 1200);
   };
 
   return (
@@ -384,8 +418,11 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
               onClick={() => void copyRace()}
               title={shareUrl}
             >
-              <Link size={15} /> {copyText}
+              <Link size={15} /> {copyLabels[copyState]}
             </button>
+            <div className="sr-only" role="status">
+              {copyAnnouncements[copyState]}
+            </div>
             <SpeedSelector speed={speed} onSpeed={setSpeed} />
             <CacheModeSelector mode={cacheMode} onMode={updateCacheMode} />
             <button type="button" className="secondary-button small" onClick={() => onNavigate("configs")}>
@@ -463,10 +500,13 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
           winner={verdict.winner === "left"}
         />
         <aside className="delta-spine">
-          <div className={`race-clock-card ${raceRunning ? "running" : raceComplete ? "complete" : ""}`}>
+          <div className={`race-clock-card ${raceRunning ? "running" : raceComplete ? "complete" : ""}`} role="timer">
             <span>RACE CLOCK</span>
             <strong>{formatClock(raceElapsedMs)}</strong>
             <p>{raceClockLabel}</p>
+          </div>
+          <div className="sr-only" role="status">
+            {raceAnnouncement}
           </div>
           <div className="gap-summary">
             <span>GAP</span>
@@ -475,15 +515,7 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
               {formatClock(gap)}
             </strong>
             <p>
-              {raceComplete
-                ? verdict.winner === "too-close"
-                  ? "Too close to call from this data"
-                  : verdict.winner === "left"
-                    ? "Lane A won"
-                    : "Lane B won"
-                : raceStarted
-                  ? "projected finish gap"
-                  : "projected gap"}
+              {raceComplete ? raceVerdictLabel(verdict.winner) : raceStarted ? "projected finish gap" : "projected gap"}
             </p>
             {confidenceMismatch && (
               <span
