@@ -112,6 +112,14 @@ describe("revealing a lane's output box inside its card", () => {
     revealInScrollBox(card, targetIn(card, 391, 202), "nearest");
     expect(card.scrollTop).toBe(193);
   });
+
+  test("counts only the part of the card that its ancestors leave visible", () => {
+    const card = new FakeBox(400, 800);
+    // The card's client area spans 101..501 in the viewport; an ancestor
+    // clips it at 465, so the box must end there instead of at 501.
+    revealInScrollBox(card, targetIn(card, 391, 202), "nearest", { top: 0, bottom: 465 });
+    expect(card.scrollTop).toBe(229);
+  });
 });
 
 describe("following a long streaming event", () => {

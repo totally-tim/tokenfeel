@@ -42,7 +42,7 @@ import { hasAnyRawEvidence, maxMeasuredDepth } from "../lib/catalogQuality";
 import { StatusBadge } from "./StatusBadge";
 import { TrustBadge } from "./TrustBadge";
 import { isGeneratedEvent, streamFrameForEvent } from "../lib/streaming";
-import { revealInScrollBox, scrollBoxToEnd } from "../lib/scrollFollow";
+import { ancestorClip, revealInScrollBox, scrollBoxToEnd } from "../lib/scrollFollow";
 import { PhaseWaterfall, QualityFlags } from "./Visualizations";
 import { filterPickerOptions } from "../lib/pickerOptions";
 import type { MatrixOption } from "../lib/configMatrix";
@@ -844,15 +844,17 @@ export function RaceLane({
 
   // Same follow rule as Transcript, inside this lane's output box. The
   // tool-call pre has its own max-height, so it follows its own end first. On
-  // short windows the lane card clips the output box, so the card scrolls too,
-  // but only until the whole box is visible; the page never scrolls.
+  // short windows the lane card clips the output box, and the lane grid clips
+  // the card, so the card scrolls too, but only until the whole box is
+  // visible. The page and the overflow-hidden lane grid never scroll, because
+  // the reader could not scroll them back.
   // hasStarted is a dependency because Start fills the output box without
   // changing the active event.
   useLayoutEffect(() => {
     if (!cardRef.current || !scrollRef.current || !activeOutputRef.current) return;
     if (toolCallRef.current) scrollBoxToEnd(toolCallRef.current);
     revealInScrollBox(scrollRef.current, activeOutputRef.current, activeGenerated ? "end" : "nearest");
-    revealInScrollBox(cardRef.current, scrollRef.current, "nearest");
+    revealInScrollBox(cardRef.current, scrollRef.current, "nearest", ancestorClip(cardRef.current));
   }, [activeEvent.index, activeGenerated, activeStreamedText, hasStarted]);
 
   return (

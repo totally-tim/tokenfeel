@@ -16,24 +16,36 @@ export interface RevealTarget {
   getBoundingClientRect(): { top: number; height: number };
 }
 
+/** A band of the viewport, in client coordinates. */
+export interface VisibleBounds {
+  top: number;
+  bottom: number;
+}
+
 /**
  * The scrollTop that brings a target into view inside one scroll box, with
  * `scrollIntoView`'s block semantics. `top` is the target's offset from the
- * box's visible top edge.
+ * top of the box's visible part, which is `viewHeight` tall.
  */
-export function revealScrollTop(box: ScrollBoxMetrics, top: number, height: number, block: RevealBlock): number {
+export function revealScrollTop(
+  box: ScrollBoxMetrics,
+  top: number,
+  height: number,
+  block: RevealBlock,
+  viewHeight = box.clientHeight
+): number {
   const bottom = top + height;
   let delta = 0;
   if (block === "end") {
-    delta = bottom - box.clientHeight;
+    delta = bottom - viewHeight;
   } else {
     const above = top < 0;
-    const below = bottom > box.clientHeight;
-    const taller = height > box.clientHeight;
+    const below = bottom > viewHeight;
+    const taller = height > viewHeight;
     // Both edges hidden, or both visible: leave the box where it is.
     if (above !== below) {
       const alignTop = (above && !taller) || (below && taller);
-      delta = alignTop ? top : bottom - box.clientHeight;
+      delta = alignTop ? top : bottom - viewHeight;
     }
   }
   const maxScrollTop = Math.max(0, box.scrollHeight - box.clientHeight);
@@ -43,13 +55,34 @@ export function revealScrollTop(box: ScrollBoxMetrics, top: number, height: numb
 /**
  * `target.scrollIntoView({ block })` limited to `box`. The native call also
  * scrolls every scrollable ancestor, including the lane card and the page.
+ * `clip` narrows the box's visible part to what its ancestors leave showing.
  * Always instant: a smooth scroll would restart on every frame of a stream,
  * and an instant one needs no reduced-motion override.
  */
-export function revealInScrollBox(box: ScrollBox, target: RevealTarget, block: RevealBlock): void {
+export function revealInScrollBox(
+  box: ScrollBox,
+  target: RevealTarget,
+  block: RevealBlock,
+  clip?: VisibleBounds
+): void {
+  const clientTop = box.getBoundingClientRect().top + box.clientTop;
+  const viewTop = Math.max(clientTop, clip?.top ?? clientTop);
+  const viewBottom = Math.min(clientTop + box.clientHeight, clip?.bottom ?? Infinity);
   const targetRect = target.getBoundingClientRect();
-  const top = targetRect.top - box.getBoundingClientRect().top - box.clientTop;
-  scrollBoxTo(box, revealScrollTop(box, top, targetRect.height, block));
+  scrollBoxTo(box, revealScrollTop(box, targetRect.top - viewTop, targetRect.height, block, viewBottom - viewTop));
+}
+
+/** The band of the viewport that the clipping ancestors of `element` leave visible. */
+export function ancestorClip(element: Element): VisibleBounds {
+  let top = -Infinity;
+  let bottom = Infinity;
+  for (let ancestor = element.parentElement; ancestor; ancestor = ancestor.parentElement) {
+    if (getComputedStyle(ancestor).overflowY === "visible") continue;
+    const rect = ancestor.getBoundingClientRect();
+    top = Math.max(top, rect.top + ancestor.clientTop);
+    bottom = Math.min(bottom, rect.top + ancestor.clientTop + ancestor.clientHeight);
+  }
+  return { top, bottom };
 }
 
 export function scrollBoxToEnd(box: ScrollBox): void {
