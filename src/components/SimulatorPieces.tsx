@@ -480,7 +480,13 @@ export function SpeedSelector({ speed, onSpeed }: SpeedSelectorProps) {
   return (
     <div className="speed-grid" role="group" aria-label="Playback speed">
       {[1, 2, 4, 8].map((item) => (
-        <button key={item} type="button" className={speed === item ? "active" : ""} onClick={() => onSpeed(item)}>
+        <button
+          key={item}
+          type="button"
+          className={speed === item ? "active" : ""}
+          aria-pressed={speed === item}
+          onClick={() => onSpeed(item)}
+        >
           {item}×
         </button>
       ))}
@@ -507,6 +513,7 @@ export function CacheModeSelector({ mode, onMode }: CacheModeSelectorProps) {
           key={option.value}
           type="button"
           className={mode === option.value ? "active" : ""}
+          aria-pressed={mode === option.value}
           onClick={() => onMode(option.value)}
           title={option.title}
         >
@@ -528,7 +535,7 @@ interface ScenarioCardProps {
 export function ScenarioCard({ title, sub, active, type, onClick }: ScenarioCardProps) {
   const Icon = type === "agent" ? Terminal : type === "reasoning" ? Brain : MessageSquare;
   return (
-    <button className={`scenario-card ${active ? "active" : ""}`} type="button" onClick={onClick}>
+    <button className={`scenario-card ${active ? "active" : ""}`} type="button" aria-pressed={active} onClick={onClick}>
       <Icon size={18} />
       <span>
         <strong>{title}</strong>

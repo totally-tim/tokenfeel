@@ -240,6 +240,11 @@ export function raceVerdict(leftSummary: TimelineSummary, rightSummary: Timeline
   return { winner: leftSummary.wallTimeMs <= rightSummary.wallTimeMs ? "left" : "right", deltaMs };
 }
 
+export function raceVerdictLabel(winner: RaceWinner): string {
+  if (winner === "too-close") return "Too close to call from this data";
+  return `Lane ${winner === "left" ? "A" : "B"} won`;
+}
+
 /**
  * True when the two lanes' data confidence differs enough to matter for the
  * race verdict: one lane has at least one scripted event whose rate is

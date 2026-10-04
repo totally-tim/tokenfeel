@@ -39,7 +39,17 @@ function compactResult(result: BenchmarkResult, detailChunk: string): StaticBenc
       pp: measurement.pp,
       tg: measurement.tg,
       ppLabel: measurement.ppLabel,
-      tgLabel: measurement.tgLabel
+      tgLabel: measurement.tgLabel,
+      // buildTimeline anchors prefill on source.ttftMs; without it every
+      // compact row would fall back to the default overhead estimate. url and
+      // upstreamId are kept because measurementSourceSchema requires them.
+      source: measurement.source
+        ? {
+            url: measurement.source.url,
+            upstreamId: measurement.source.upstreamId,
+            ttftMs: measurement.source.ttftMs
+          }
+        : undefined
     })),
     evidence: result.evidence
       ? {

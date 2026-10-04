@@ -454,17 +454,17 @@ function buildDecodeCumulativeMs(
  * total-prompt-tokens count by callers) lines up with the measurements
  * regardless of which convention the source used.
  *
- * Below the first TTFT-bearing depth the reading flat-clamps to that first
- * measured TTFT. At or beyond the LAST TTFT-bearing depth the value clamps to
- * that last measured TTFT AND the returned anchorDepth clamps to that last
- * measured depth. buildTimeline reconciles the implied launch overhead at
- * anchorDepth, then adds the pp integral over the real (larger) prompt depth
- * on top -- so beyond the measured range prefill keeps growing with prompt
- * size instead of collapsing back to the stale flat TTFT (A1). Anchoring the
- * depth (rather than returning undefined and falling through to the bare
- * integral) keeps that growth continuous at the boundary, where the bare
- * integral would cliff-drop below the last measured TTFT for a one-token-
- * larger prompt.
+ * Outside the measured range the value clamps to the nearest measured TTFT
+ * AND the returned anchorDepth clamps to that measured depth. buildTimeline
+ * reconciles the implied launch overhead at anchorDepth, then adds the pp
+ * integral over the real prompt depth on top -- so beyond the LAST
+ * TTFT-bearing depth prefill keeps growing with prompt size instead of
+ * collapsing back to the stale flat TTFT (A1), and below the FIRST one a
+ * shorter prompt pays only its own integral plus that launch overhead (a
+ * cold one pays a scaled integral when the overhead is negative) instead of
+ * the full TTFT measured for the longer first prompt. Anchoring the depth
+ * (rather than returning undefined and falling through to the bare integral)
+ * keeps prefill continuous at both boundaries.
  */
 function resolveTtftAnchor(
   measurements: BenchmarkMeasurement[],
@@ -483,7 +483,7 @@ function resolveTtftAnchor(
 
   const first = points[0];
   const last = points[points.length - 1];
-  if (depth <= first.effectiveDepth) return { ttftMs: first.ttftMs, anchorDepth: depth };
+  if (depth <= first.effectiveDepth) return { ttftMs: first.ttftMs, anchorDepth: first.effectiveDepth };
   if (depth >= last.effectiveDepth) return { ttftMs: last.ttftMs, anchorDepth: last.effectiveDepth };
 
   for (let index = 0; index < points.length - 1; index += 1) {
@@ -519,6 +519,20 @@ export function buildTimeline(input: TimelineInput): Timeline {
   // them: unset (oMLX) means depth already is the total, set means depth
   // must be shifted forward by that chunk size to reach the true total.
   const ttftDepthOffset = result.benchmark?.ppTokens ?? 0;
+  // Cache-shortened prefills reuse only the launch overhead implied at the
+  // FIRST TTFT reading (PR #15, option B2). In the TTFT-bearing catalog rows pp
+  // is an average rate (TTFT ~= tokens / pp), so the overhead implied deeper in
+  // the curve is mostly the cold prompt's integration residual, not launch
+  // cost. A negative first-reading overhead clamps to 0. Only the TTFT path
+  // below reads this, and there firstTtftAnchor is always defined.
+  const firstTtftAnchor = resolveTtftAnchor(result.measurements, 0, ttftDepthOffset);
+  const warmOverheadMs = firstTtftAnchor
+    ? Math.max(
+        0,
+        firstTtftAnchor.ttftMs -
+          integrateTimeRangeMs(result.measurements, "pp", 0, firstTtftAnchor.anchorDepth).canonicalMs
+      )
+    : 0;
   let cursorMs = 0;
   let contextDepth = scenario.systemPromptTokens;
   let cachedPrefixTokens = 0;
@@ -567,24 +581,39 @@ export function buildTimeline(input: TimelineInput): Timeline {
       if (ttftAnchor !== undefined) {
         // impliedOverheadMs is the fixed launch cost the model's integral doesn't
         // capture, measured at the anchor depth (the real prompt depth within the
-        // measured range, or the last measured depth beyond it). Adding it back to
-        // the (possibly cache-shortened) integral over the real prefill range
+        // measured range, or the nearest measured depth outside it). Adding it back
+        // to the (possibly cache-shortened) integral over the real prefill range
         // reproduces measuredTtftMs exactly for a fully cold prefill within range;
-        // beyond the last measured depth the anchor freezes but prefillRange keeps
-        // integrating to the real depth, so prefill grows monotonically (A1).
+        // outside the range the anchor freezes but prefillRange still integrates
+        // to the real depth, so prefill stays monotonic in prompt size (A1).
         const anchorPrefillRange = integrateTimeRangeMs(result.measurements, "pp", 0, ttftAnchor.anchorDepth);
         const impliedOverheadMs = ttftAnchor.ttftMs - anchorPrefillRange.canonicalMs;
         // A fully cold prefill (effectiveCachedPrefix === 0) within the measured
         // range has prefillRange.canonicalMs === anchorPrefillRange.canonicalMs,
         // so the raw implied overhead -- even when negative for a fast launch --
-        // reproduces measuredTtftMs exactly and must pass through unclamped. A
-        // cache-shortened prefill instead reuses this overhead on top of a
-        // sub-range integral, where a negative overhead would drag the result
-        // below the real integrated cost of the reprocessed tokens; clamp it to
-        // >= 0 there (A1).
-        const reusableOverheadMs = effectiveCachedPrefix > 0 ? Math.max(0, impliedOverheadMs) : impliedOverheadMs;
-        const rawPrefillMs = reusableOverheadMs + prefillRange.canonicalMs;
-        const rawOptimisticMs = reusableOverheadMs + prefillRange.optimisticMs;
+        // reproduces measuredTtftMs exactly and must pass through unclamped.
+        const isWarm = effectiveCachedPrefix > 0;
+        const coldRange = isWarm
+          ? integrateTimeRangeMs(result.measurements, "pp", 0, withoutCachePrefillTokens)
+          : prefillRange;
+        let coldMs = impliedOverheadMs + coldRange.canonicalMs;
+        let coldOptimisticMs = impliedOverheadMs + coldRange.optimisticMs;
+        if (withoutCachePrefillTokens < ttftAnchor.anchorDepth && impliedOverheadMs < 0) {
+          // A prompt below the first TTFT reading has no measurement to
+          // reproduce, and a negative overhead added to its shorter integral can
+          // floor it at 0ms. Scale each integral to its own value at the anchor
+          // instead: positive, monotonic, and continuous at the boundary.
+          const optimisticAtAnchorMs = impliedOverheadMs + anchorPrefillRange.optimisticMs;
+          coldMs = coldRange.canonicalMs * (ttftAnchor.ttftMs / anchorPrefillRange.canonicalMs);
+          coldOptimisticMs = coldRange.optimisticMs * (optimisticAtAnchorMs / anchorPrefillRange.optimisticMs);
+        }
+        // A cache-shortened prefill adds warmOverheadMs (B2, see above) to its
+        // sub-range integral, capped at the cold prefill of the same total
+        // prompt: reprocessing part of a prompt never takes longer than all of it.
+        const rawPrefillMs = isWarm ? Math.min(warmOverheadMs + prefillRange.canonicalMs, coldMs) : coldMs;
+        const rawOptimisticMs = isWarm
+          ? Math.min(warmOverheadMs + prefillRange.optimisticMs, coldOptimisticMs)
+          : coldOptimisticMs;
         prefillMs = Number.isFinite(rawPrefillMs) ? Math.max(0, rawPrefillMs) : prefillRange.canonicalMs + overheadMs;
         prefillOptimisticMs = Number.isFinite(rawOptimisticMs)
           ? Math.max(0, rawOptimisticMs)
