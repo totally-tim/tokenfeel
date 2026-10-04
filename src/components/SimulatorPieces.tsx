@@ -812,6 +812,7 @@ export function RaceLane({
   const active = hasStarted && !complete;
   const phase = activePhaseForEvent(activeEvent, elapsedMs, hasStarted, complete);
   const outputEvents = raceOutputWindow(timeline.events, activeEvent.index, 4, hasStarted);
+  const cardRef = useRef<HTMLDivElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const activeOutputRef = useRef<HTMLElement | null>(null);
   const toolCallRef = useRef<HTMLPreElement | null>(null);
@@ -841,14 +842,18 @@ export function RaceLane({
   const primaryKind = complete ? "elapsed" : active ? "phase" : "ready";
   const progressValue = active ? `${Math.round(phase.progress * 100)}% phase` : `${timeline.events.length} turns`;
 
-  // Same follow rule as Transcript, limited to this lane's output box so the
-  // lane card and the page keep the user's scroll position. The tool-call pre
-  // has its own max-height, so it follows its own end first.
+  // Same follow rule as Transcript, inside this lane's output box. The
+  // tool-call pre has its own max-height, so it follows its own end first. On
+  // short windows the lane card clips the output box, so the card scrolls too,
+  // but only until the whole box is visible; the page never scrolls.
+  // hasStarted is a dependency because Start fills the output box without
+  // changing the active event.
   useLayoutEffect(() => {
-    if (!scrollRef.current || !activeOutputRef.current) return;
+    if (!cardRef.current || !scrollRef.current || !activeOutputRef.current) return;
     if (toolCallRef.current) scrollBoxToEnd(toolCallRef.current);
     revealInScrollBox(scrollRef.current, activeOutputRef.current, activeGenerated ? "end" : "nearest");
-  }, [activeEvent.index, activeGenerated, activeStreamedText]);
+    revealInScrollBox(cardRef.current, scrollRef.current, "nearest");
+  }, [activeEvent.index, activeGenerated, activeStreamedText, hasStarted]);
 
   return (
     <section
@@ -860,7 +865,7 @@ export function RaceLane({
       }
     >
       <div className="lane-stripe" />
-      <div className="lane-inner">
+      <div className="lane-inner" ref={cardRef}>
         <div className="lane-head">
           <div>
             <div className="lane-title-row">

@@ -99,6 +99,21 @@ describe("scrollBoxToEnd", () => {
   });
 });
 
+describe("revealing a lane's output box inside its card", () => {
+  test("leaves the card alone while the whole box is visible", () => {
+    const card = new FakeBox(400, 600);
+    card.scrollTop = 120;
+    revealInScrollBox(card, targetIn(card, 300, 202), "nearest");
+    expect(card.scrollCalls).toEqual([]);
+  });
+
+  test("scrolls the card only as far as a clipped box needs", () => {
+    const card = new FakeBox(400, 600);
+    revealInScrollBox(card, targetIn(card, 391, 202), "nearest");
+    expect(card.scrollTop).toBe(193);
+  });
+});
+
 describe("following a long streaming event", () => {
   const catalog = readPrunedCatalogFromDisk();
   const scenario = catalog.scenarios.find((item) => item.id === "repo-wide-refactor");
