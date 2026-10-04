@@ -582,8 +582,21 @@ export function buildTimeline(input: TimelineInput): Timeline {
         // below the real integrated cost of the reprocessed tokens; clamp it to
         // >= 0 there (A1).
         const reusableOverheadMs = effectiveCachedPrefix > 0 ? Math.max(0, impliedOverheadMs) : impliedOverheadMs;
-        const rawPrefillMs = reusableOverheadMs + prefillRange.canonicalMs;
-        const rawOptimisticMs = reusableOverheadMs + prefillRange.optimisticMs;
+        let rawPrefillMs = reusableOverheadMs + prefillRange.canonicalMs;
+        let rawOptimisticMs = reusableOverheadMs + prefillRange.optimisticMs;
+        if (
+          effectiveCachedPrefix === 0 &&
+          withoutCachePrefillTokens < ttftAnchor.anchorDepth &&
+          impliedOverheadMs < 0
+        ) {
+          // A cold prompt below the first TTFT reading has no measurement to
+          // reproduce, and a negative overhead added to its shorter integral can
+          // floor it at 0ms. Scale the integral to the first reading's TTFT
+          // instead: positive, monotonic, and continuous at the boundary.
+          const ttftScale = ttftAnchor.ttftMs / anchorPrefillRange.canonicalMs;
+          rawPrefillMs = prefillRange.canonicalMs * ttftScale;
+          rawOptimisticMs = prefillRange.optimisticMs * ttftScale;
+        }
         prefillMs = Number.isFinite(rawPrefillMs) ? Math.max(0, rawPrefillMs) : prefillRange.canonicalMs + overheadMs;
         prefillOptimisticMs = Number.isFinite(rawOptimisticMs)
           ? Math.max(0, rawOptimisticMs)

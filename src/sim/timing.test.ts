@@ -799,6 +799,65 @@ describe("buildTimeline rate integration (Phase 1)", () => {
     expect(warm.prefillMs).toBeCloseTo(74);
   });
 
+  it("scales a cold prompt below the first TTFT reading when the implied overhead there is negative, instead of flooring it at 0ms", () => {
+    // The first TTFT (2000ms) is half the 4000ms flat integral to 4000 tokens:
+    // a -2000ms overhead. Adding it to a 500-token integral would floor at 0ms.
+    const fastFirstReading: BenchmarkResult = {
+      ...result,
+      measurements: [
+        {
+          depth: 4000,
+          pp: 1000,
+          tg: 20,
+          source: { url: "https://example.com/d4000", upstreamId: "4000", ttftMs: 2000 }
+        },
+        {
+          depth: 8000,
+          pp: 1000,
+          tg: 20,
+          source: { url: "https://example.com/d8000", upstreamId: "8000", ttftMs: 4000 }
+        }
+      ],
+      overheadMs: 100
+    };
+    const coldPrefillMs = (tokens: number) =>
+      buildTimeline({
+        result: fastFirstReading,
+        scenario: { ...scenario, systemPromptTokens: 0, events: [{ id: "u1", role: "user", text: "hi", tokens }] },
+        cacheMode: "off"
+      }).events[0].prefillMs;
+
+    expect(coldPrefillMs(500)).toBeCloseTo(250); // 2000ms * 500 / 4000
+    expect(coldPrefillMs(3999)).toBeCloseTo(1999.5);
+    expect(coldPrefillMs(4000)).toBeCloseTo(2000); // exact measured TTFT at the boundary
+    expect(coldPrefillMs(4001)).toBeCloseTo(2000.5); // interpolated inside the range
+  });
+
+  it("anchors below the first reading on the ppTokens-shifted axis (llama-benchy convention)", () => {
+    // depth 0 with ppTokens 1000 is a TTFT for 1000 total tokens: 1100ms over a
+    // 1000ms integral, so a 100ms launch overhead.
+    const llamaBenchyStyleResult: BenchmarkResult = {
+      ...result,
+      benchmark: { ppTokens: 1000 },
+      measurements: [
+        { depth: 0, pp: 1000, tg: 20, source: { url: "https://example.com/d0", upstreamId: "0", ttftMs: 1100 } },
+        {
+          depth: 1000,
+          pp: 1000,
+          tg: 20,
+          source: { url: "https://example.com/d1000", upstreamId: "1000", ttftMs: 2100 }
+        }
+      ]
+    };
+    const event = buildTimeline({
+      result: llamaBenchyStyleResult,
+      scenario: { ...scenario, systemPromptTokens: 0, events: [{ id: "u1", role: "user", text: "hi", tokens: 300 }] },
+      cacheMode: "off"
+    }).events[0];
+
+    expect(event.prefillMs).toBeCloseTo(400); // overhead 100 + integral 300, not the 1100ms first TTFT
+  });
+
   it("never lets a cache-shortened prefill collapse below its real integrated cost when the implied TTFT overhead is negative (A1)", () => {
     const measuredResult: BenchmarkResult = {
       ...result,
