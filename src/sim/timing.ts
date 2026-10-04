@@ -519,6 +519,20 @@ export function buildTimeline(input: TimelineInput): Timeline {
   // them: unset (oMLX) means depth already is the total, set means depth
   // must be shifted forward by that chunk size to reach the true total.
   const ttftDepthOffset = result.benchmark?.ppTokens ?? 0;
+  // Cache-shortened prefills reuse only the launch overhead implied at the
+  // FIRST TTFT reading (PR #15, option B2). In the TTFT-bearing catalog rows pp
+  // is an average rate (TTFT ~= tokens / pp), so the overhead implied deeper in
+  // the curve is mostly the cold prompt's integration residual, not launch
+  // cost. A negative first-reading overhead clamps to 0, so a warm prefill
+  // never costs less than its own sub-range integral (A1).
+  const firstTtftAnchor = resolveTtftAnchor(result.measurements, 0, ttftDepthOffset);
+  const warmOverheadMs =
+    firstTtftAnchor &&
+    Math.max(
+      0,
+      firstTtftAnchor.ttftMs -
+        integrateTimeRangeMs(result.measurements, "pp", 0, firstTtftAnchor.anchorDepth).canonicalMs
+    );
   let cursorMs = 0;
   let contextDepth = scenario.systemPromptTokens;
   let cachedPrefixTokens = 0;
@@ -578,11 +592,8 @@ export function buildTimeline(input: TimelineInput): Timeline {
         // range has prefillRange.canonicalMs === anchorPrefillRange.canonicalMs,
         // so the raw implied overhead -- even when negative for a fast launch --
         // reproduces measuredTtftMs exactly and must pass through unclamped. A
-        // cache-shortened prefill instead reuses this overhead on top of a
-        // sub-range integral, where a negative overhead would drag the result
-        // below the real integrated cost of the reprocessed tokens; clamp it to
-        // >= 0 there (A1).
-        const reusableOverheadMs = effectiveCachedPrefix > 0 ? Math.max(0, impliedOverheadMs) : impliedOverheadMs;
+        // cache-shortened prefill uses warmOverheadMs instead (see above).
+        const reusableOverheadMs = effectiveCachedPrefix > 0 ? warmOverheadMs! : impliedOverheadMs;
         let rawPrefillMs = reusableOverheadMs + prefillRange.canonicalMs;
         let rawOptimisticMs = reusableOverheadMs + prefillRange.optimisticMs;
         if (

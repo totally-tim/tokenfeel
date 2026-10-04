@@ -9,6 +9,7 @@ import {
   summarizeTimeline
 } from "./timing";
 import type { BenchmarkMeasurement, BenchmarkResult, ScenarioScript } from "../types";
+import { readPrunedCatalogFromDisk } from "../../scripts/validate-data";
 
 /**
  * Pre-Phase-1 baseline: point-samples the rate at a single depth instead of
@@ -877,6 +878,68 @@ describe("buildTimeline rate integration (Phase 1)", () => {
     expect(below.min).toBeLessThanOrEqual(atReading.min);
     expect(atReading.min - below.min).toBeLessThan(1);
     expect(atReading.max).toBeCloseTo(1500);
+  });
+
+  it("charges a warm prefill above the first TTFT reading the first reading's launch overhead, not the overhead implied at its own depth (B2)", () => {
+    // The first reading implies a 50ms launch overhead (1050ms over a 1000ms
+    // integral). At 3000 tokens the interpolated TTFT (about 5683ms) sits about
+    // 2683ms above the integral: cold-prompt residual, not launch cost.
+    const residualGrowsWithDepth: BenchmarkResult = {
+      ...result,
+      measurements: [
+        {
+          depth: 1000,
+          pp: 1000,
+          tg: 20,
+          source: { url: "https://example.com/d1000", upstreamId: "1000", ttftMs: 1050 }
+        },
+        {
+          depth: 4000,
+          pp: 1000,
+          tg: 20,
+          source: { url: "https://example.com/d4000", upstreamId: "4000", ttftMs: 8000 }
+        }
+      ]
+    };
+    const timeline = buildTimeline({
+      result: residualGrowsWithDepth,
+      scenario: {
+        ...scenario,
+        systemPromptTokens: 0,
+        events: [
+          { id: "u1", role: "user", text: "first", tokens: 2976 },
+          { id: "u2", role: "user", text: "second", tokens: 24 }
+        ]
+      },
+      cacheMode: "on"
+    });
+    const [cold, warm] = timeline.events;
+
+    expect(cold.prefillMs).toBeCloseTo(1050 + (6950 * 1976) / 3000); // interpolated measured TTFT
+    expect(warm.cachedPrefixTokens).toBe(2976);
+    expect(warm.prefillMs).toBeCloseTo(74); // overhead 50 + integral 24
+  });
+
+  it("prices Codex's trip-u6 warm turn from PR #15 at the first-reading overhead on the real catalog row (B2)", () => {
+    // M2 10c / Qwen3.5 9B distilled / 8bit / oMLX 0.2.7: 24 new tokens at depth
+    // 3049, above the first TTFT reading at 1024. Reusing the overhead implied
+    // at 3049 priced this turn at 11,623ms; main's compact rows (no TTFT) gave
+    // 446.64ms.
+    const catalog = readPrunedCatalogFromDisk();
+    const row = catalog.results.find((candidate) =>
+      candidate.id.startsWith("m2-10c-24gb__qwen3.5-9b-claude-4.6-opus-reasoning-distilled__8bit__omlx-api-0.2.7-")
+    );
+    const tripPlanning = catalog.scenarios.find((candidate) => candidate.id === "chatbot-trip-planning");
+    expect(row).toBeDefined();
+    expect(tripPlanning).toBeDefined();
+
+    const event = buildTimeline({ result: row!, scenario: tripPlanning!, cacheMode: "runtime" }).events.find(
+      (candidate) => candidate.id === "trip-u6"
+    )!;
+
+    expect(event.withoutCachePrefillTokens).toBe(3049);
+    expect(event.prefillTokens).toBe(24);
+    expect(event.prefillMs).toBeCloseTo(366.64, 1);
   });
 
   it("anchors below the first reading on the ppTokens-shifted axis (llama-benchy convention)", () => {
