@@ -747,6 +747,58 @@ describe("buildTimeline rate integration (Phase 1)", () => {
     expect(wayPast.prefillMs).toBeGreaterThan(justPast.prefillMs); // monotonic
   });
 
+  it("charges a prompt below the first measured TTFT depth its own integral plus the launch overhead there, not the longer first prompt's TTFT", () => {
+    // oMLX-style sweep with no depth-0 reading. The first TTFT (4050ms) is for a
+    // 4000-token prompt whose flat 1ms/token integral is 4000ms, so the implied
+    // launch overhead at that anchor is 50ms.
+    const firstReadingAt4000: BenchmarkResult = {
+      ...result,
+      measurements: [
+        {
+          depth: 4000,
+          pp: 1000,
+          tg: 20,
+          source: { url: "https://example.com/d4000", upstreamId: "4000", ttftMs: 4050 }
+        },
+        {
+          depth: 8000,
+          pp: 1000,
+          tg: 20,
+          source: { url: "https://example.com/d8000", upstreamId: "8000", ttftMs: 8050 }
+        }
+      ],
+      overheadMs: 100
+    };
+    const coldPrefill = (tokens: number): ScenarioScript => ({
+      ...scenario,
+      systemPromptTokens: 0,
+      events: [{ id: "u1", role: "user", text: "hello", tokens }]
+    });
+    const short = buildTimeline({ result: firstReadingAt4000, scenario: coldPrefill(500), cacheMode: "off" }).events[0];
+    const atFirst = buildTimeline({ result: firstReadingAt4000, scenario: coldPrefill(4000), cacheMode: "off" })
+      .events[0];
+
+    expect(short.prefillMs).toBeCloseTo(550); // overhead 50 + integral 500
+    expect(atFirst.prefillMs).toBeCloseTo(4050); // exact measured TTFT at the boundary
+
+    // A warm turn below the first reading reprocesses only its 24 new tokens
+    // on top of the same 50ms overhead, not most of the 4050ms first TTFT.
+    const warmTurns: ScenarioScript = {
+      ...scenario,
+      systemPromptTokens: 1000,
+      events: [
+        { id: "u1", role: "user", text: "first", tokens: 24 },
+        { id: "a1", role: "assistant", text: "reply", tokens: 10 },
+        { id: "u2", role: "user", text: "second", tokens: 24 }
+      ]
+    };
+    const warm = buildTimeline({ result: firstReadingAt4000, scenario: warmTurns, cacheMode: "on" }).events[2];
+
+    expect(warm.cachedPrefixTokens).toBe(1034);
+    expect(warm.prefillTokens).toBe(24);
+    expect(warm.prefillMs).toBeCloseTo(74);
+  });
+
   it("never lets a cache-shortened prefill collapse below its real integrated cost when the implied TTFT overhead is negative (A1)", () => {
     const measuredResult: BenchmarkResult = {
       ...result,

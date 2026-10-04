@@ -454,17 +454,16 @@ function buildDecodeCumulativeMs(
  * total-prompt-tokens count by callers) lines up with the measurements
  * regardless of which convention the source used.
  *
- * Below the first TTFT-bearing depth the reading flat-clamps to that first
- * measured TTFT. At or beyond the LAST TTFT-bearing depth the value clamps to
- * that last measured TTFT AND the returned anchorDepth clamps to that last
- * measured depth. buildTimeline reconciles the implied launch overhead at
- * anchorDepth, then adds the pp integral over the real (larger) prompt depth
- * on top -- so beyond the measured range prefill keeps growing with prompt
- * size instead of collapsing back to the stale flat TTFT (A1). Anchoring the
- * depth (rather than returning undefined and falling through to the bare
- * integral) keeps that growth continuous at the boundary, where the bare
- * integral would cliff-drop below the last measured TTFT for a one-token-
- * larger prompt.
+ * Outside the measured range the value clamps to the nearest measured TTFT
+ * AND the returned anchorDepth clamps to that measured depth. buildTimeline
+ * reconciles the implied launch overhead at anchorDepth, then adds the pp
+ * integral over the real prompt depth on top -- so beyond the LAST
+ * TTFT-bearing depth prefill keeps growing with prompt size instead of
+ * collapsing back to the stale flat TTFT (A1), and below the FIRST one a
+ * shorter prompt pays only its own integral plus that launch overhead
+ * instead of the full TTFT measured for the longer first prompt. Anchoring
+ * the depth (rather than returning undefined and falling through to the bare
+ * integral) keeps prefill continuous at both boundaries.
  */
 function resolveTtftAnchor(
   measurements: BenchmarkMeasurement[],
@@ -483,7 +482,7 @@ function resolveTtftAnchor(
 
   const first = points[0];
   const last = points[points.length - 1];
-  if (depth <= first.effectiveDepth) return { ttftMs: first.ttftMs, anchorDepth: depth };
+  if (depth <= first.effectiveDepth) return { ttftMs: first.ttftMs, anchorDepth: first.effectiveDepth };
   if (depth >= last.effectiveDepth) return { ttftMs: last.ttftMs, anchorDepth: last.effectiveDepth };
 
   for (let index = 0; index < points.length - 1; index += 1) {
@@ -567,11 +566,11 @@ export function buildTimeline(input: TimelineInput): Timeline {
       if (ttftAnchor !== undefined) {
         // impliedOverheadMs is the fixed launch cost the model's integral doesn't
         // capture, measured at the anchor depth (the real prompt depth within the
-        // measured range, or the last measured depth beyond it). Adding it back to
-        // the (possibly cache-shortened) integral over the real prefill range
+        // measured range, or the nearest measured depth outside it). Adding it back
+        // to the (possibly cache-shortened) integral over the real prefill range
         // reproduces measuredTtftMs exactly for a fully cold prefill within range;
-        // beyond the last measured depth the anchor freezes but prefillRange keeps
-        // integrating to the real depth, so prefill grows monotonically (A1).
+        // outside the range the anchor freezes but prefillRange still integrates
+        // to the real depth, so prefill stays monotonic in prompt size (A1).
         const anchorPrefillRange = integrateTimeRangeMs(result.measurements, "pp", 0, ttftAnchor.anchorDepth);
         const impliedOverheadMs = ttftAnchor.ttftMs - anchorPrefillRange.canonicalMs;
         // A fully cold prefill (effectiveCachedPrefix === 0) within the measured
