@@ -129,9 +129,15 @@ At rest the lane pickers already show hardware and model, and the lane panel
 repeats the identity just below, so the setup-card head hides its identity block
 while idle. Once a race starts the pickers collapse and that head becomes the
 lane's compact identity, so it returns. The pickers stay collapsed after the
-finish, until Edit setup, Stop or a setup change, so the lanes keep the height
-the race had. A finished lane's elapsed time also shows in its compact head,
-which stays in view at every window size, including the stacked layouts.
+finish, so the lanes keep the height the race had. Edit setup opens and closes
+them without clearing the result. Stop during a race, or a lane, scenario or
+cache change, resets the race and brings them back.
+
+When a lane finishes, its compact head also shows the final elapsed time, and
+after both finish it marks the winner. The time fits within the head's height,
+so the head does not grow when it appears. The heads sit at the top of the
+page, so both results are in view without scrolling from the top, also in the
+stacked layouts.
 
 A lane's primary readout is sized by what it is. A measured final elapsed time is
 the payoff and earns display type; a phase name or "Ready" is a status word and

@@ -417,6 +417,16 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
           </div>
 
           <div className="race-control-cluster">
+            {raceComplete && (
+              <button
+                type="button"
+                className="secondary-button small race-setup-toggle"
+                aria-expanded={!setupCollapsed}
+                onClick={() => setSetupOpen((open) => !open)}
+              >
+                <SlidersHorizontal size={15} /> Edit setup
+              </button>
+            )}
             <button
               type="button"
               className={`run-race-button ${raceRunning ? "stop" : ""}`}
@@ -425,11 +435,6 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
               {raceRunning ? <Square size={15} /> : <Play size={16} />}
               {raceRunning ? "Stop" : "Start"}
             </button>
-            {raceComplete && setupCollapsed && (
-              <button type="button" className="secondary-button small" onClick={() => setSetupOpen(true)}>
-                <SlidersHorizontal size={15} /> Edit setup
-              </button>
-            )}
             <button
               type="button"
               className="secondary-button small quiet-share"

@@ -2016,7 +2016,12 @@ mark {
   background: transparent;
 }
 
+/* The backdrop filter makes the workbench a stacking context, so a picker
+   panel's z-index only counts inside it. The z-index lifts the whole
+   workbench, and an open picker with it, above the lanes. */
 .race-workbench {
+  position: relative;
+  z-index: 1;
   display: grid;
   gap: 12px;
   padding: 14px 20px;
@@ -2182,13 +2187,16 @@ mark {
   align-items: start;
 }
 
-/* A finished lane's elapsed time, in the compact lane head that stays at the
-   top of the page after the race, so it is in view at every window size. */
+/* A finished lane's elapsed time, in the lane head at the top of the page.
+   One line, no taller than the identity beside it, so the head keeps its
+   height when the lane finishes. */
 .race-setup-final {
-  display: grid;
-  justify-items: end;
-  gap: 2px;
+  grid-column: 3;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   margin: 0;
+  white-space: nowrap;
 }
 
 .race-setup-final span {
@@ -2201,7 +2209,7 @@ mark {
 
 .race-setup-final strong {
   font-family: "Geist Mono", monospace;
-  font-size: var(--text-4xl);
+  font-size: var(--text-3xl);
   line-height: 1;
 }
 
@@ -4767,6 +4775,27 @@ mark {
 
   .race-control-cluster {
     justify-content: flex-start;
+  }
+
+  /* Before Start in the right-aligned cluster, so Start keeps its place when
+     the button appears; here Start fills its own row, so it goes last. */
+  .race-setup-toggle {
+    order: 1;
+  }
+
+  /* Two short lines leave the lane's hardware name room on a phone. */
+  .race-setup-final {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1px;
+  }
+
+  .race-setup-final span {
+    line-height: 1;
+  }
+
+  .race-setup-final strong {
+    font-size: var(--text-2xl);
   }
 
   .race-control-cluster,
