@@ -523,16 +523,16 @@ export function buildTimeline(input: TimelineInput): Timeline {
   // FIRST TTFT reading (PR #15, option B2). In the TTFT-bearing catalog rows pp
   // is an average rate (TTFT ~= tokens / pp), so the overhead implied deeper in
   // the curve is mostly the cold prompt's integration residual, not launch
-  // cost. A negative first-reading overhead clamps to 0, so a warm prefill
-  // never costs less than its own sub-range integral (A1).
+  // cost. A negative first-reading overhead clamps to 0. Only the TTFT path
+  // below reads this, and there firstTtftAnchor is always defined.
   const firstTtftAnchor = resolveTtftAnchor(result.measurements, 0, ttftDepthOffset);
-  const warmOverheadMs =
-    firstTtftAnchor &&
-    Math.max(
-      0,
-      firstTtftAnchor.ttftMs -
-        integrateTimeRangeMs(result.measurements, "pp", 0, firstTtftAnchor.anchorDepth).canonicalMs
-    );
+  const warmOverheadMs = firstTtftAnchor
+    ? Math.max(
+        0,
+        firstTtftAnchor.ttftMs -
+          integrateTimeRangeMs(result.measurements, "pp", 0, firstTtftAnchor.anchorDepth).canonicalMs
+      )
+    : 0;
   let cursorMs = 0;
   let contextDepth = scenario.systemPromptTokens;
   let cachedPrefixTokens = 0;
@@ -591,24 +591,29 @@ export function buildTimeline(input: TimelineInput): Timeline {
         // A fully cold prefill (effectiveCachedPrefix === 0) within the measured
         // range has prefillRange.canonicalMs === anchorPrefillRange.canonicalMs,
         // so the raw implied overhead -- even when negative for a fast launch --
-        // reproduces measuredTtftMs exactly and must pass through unclamped. A
-        // cache-shortened prefill uses warmOverheadMs instead (see above).
-        const reusableOverheadMs = effectiveCachedPrefix > 0 ? warmOverheadMs! : impliedOverheadMs;
-        let rawPrefillMs = reusableOverheadMs + prefillRange.canonicalMs;
-        let rawOptimisticMs = reusableOverheadMs + prefillRange.optimisticMs;
-        if (
-          effectiveCachedPrefix === 0 &&
-          withoutCachePrefillTokens < ttftAnchor.anchorDepth &&
-          impliedOverheadMs < 0
-        ) {
-          // A cold prompt below the first TTFT reading has no measurement to
+        // reproduces measuredTtftMs exactly and must pass through unclamped.
+        const isWarm = effectiveCachedPrefix > 0;
+        const coldRange = isWarm
+          ? integrateTimeRangeMs(result.measurements, "pp", 0, withoutCachePrefillTokens)
+          : prefillRange;
+        let coldMs = impliedOverheadMs + coldRange.canonicalMs;
+        let coldOptimisticMs = impliedOverheadMs + coldRange.optimisticMs;
+        if (withoutCachePrefillTokens < ttftAnchor.anchorDepth && impliedOverheadMs < 0) {
+          // A prompt below the first TTFT reading has no measurement to
           // reproduce, and a negative overhead added to its shorter integral can
           // floor it at 0ms. Scale each integral to its own value at the anchor
           // instead: positive, monotonic, and continuous at the boundary.
           const optimisticAtAnchorMs = impliedOverheadMs + anchorPrefillRange.optimisticMs;
-          rawPrefillMs = prefillRange.canonicalMs * (ttftAnchor.ttftMs / anchorPrefillRange.canonicalMs);
-          rawOptimisticMs = prefillRange.optimisticMs * (optimisticAtAnchorMs / anchorPrefillRange.optimisticMs);
+          coldMs = coldRange.canonicalMs * (ttftAnchor.ttftMs / anchorPrefillRange.canonicalMs);
+          coldOptimisticMs = coldRange.optimisticMs * (optimisticAtAnchorMs / anchorPrefillRange.optimisticMs);
         }
+        // A cache-shortened prefill adds warmOverheadMs (B2, see above) to its
+        // sub-range integral, capped at the cold prefill of the same total
+        // prompt: reprocessing part of a prompt never takes longer than all of it.
+        const rawPrefillMs = isWarm ? Math.min(warmOverheadMs + prefillRange.canonicalMs, coldMs) : coldMs;
+        const rawOptimisticMs = isWarm
+          ? Math.min(warmOverheadMs + prefillRange.optimisticMs, coldOptimisticMs)
+          : coldOptimisticMs;
         prefillMs = Number.isFinite(rawPrefillMs) ? Math.max(0, rawPrefillMs) : prefillRange.canonicalMs + overheadMs;
         prefillOptimisticMs = Number.isFinite(rawOptimisticMs)
           ? Math.max(0, rawOptimisticMs)

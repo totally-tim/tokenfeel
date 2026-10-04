@@ -836,8 +836,9 @@ describe("buildTimeline rate integration (Phase 1)", () => {
     // overhead at 8000 (4000 - 8000ms) plus the 16000ms integral.
     expect(coldPrefillMs(16_000)).toBeCloseTo(12_000);
 
-    // A warm turn below the first reading keeps the clamped (>= 0) overhead on
-    // its real sub-range integral; scaling would undercut that integral.
+    // A warm turn below the first reading would cost its 2000ms sub-range
+    // integral (the negative overhead clamps to 0), but the cold prefill of the
+    // same 3000-token prompt scales to 1500ms, so the warm turn caps there.
     const warm = buildTimeline({
       result: fastFirstReading,
       scenario: {
@@ -851,7 +852,8 @@ describe("buildTimeline rate integration (Phase 1)", () => {
       cacheMode: "on"
     }).events[1];
     expect(warm.cachedPrefixTokens).toBe(1000);
-    expect(warm.prefillMs).toBeCloseTo(2000);
+    expect(warm.prefillMs).toBeCloseTo(1500);
+    expect(warm.prefillMs).toBeCloseTo(coldPrefillMs(3000));
   });
 
   it("keeps the optimistic prefill bound continuous at the first TTFT reading when that reading lies past the pp curve", () => {
@@ -942,6 +944,37 @@ describe("buildTimeline rate integration (Phase 1)", () => {
     expect(event.prefillMs).toBeCloseTo(366.64, 1);
   });
 
+  it("never prices a warm prefill above the cold prefill of the same total prompt (Codex review of a8e3ca23)", () => {
+    // DGX Spark / DeepSeek V4 Flash: the first reading implies a 401.8ms launch
+    // overhead, more than the residual at 34,816 tokens. Adding it to the
+    // 34,688-token sub-range priced the warm turn at 17,180ms, above the
+    // 16,996ms cold prefill of the whole prompt.
+    const catalog = readPrunedCatalogFromDisk();
+    const row = catalog.results.find((candidate) =>
+      candidate.id.startsWith("dgx-spark-dual-qsfp__deepseek-v4-flash__fp4-fp8-mixed__vllm-dspark")
+    );
+    expect(row).toBeDefined();
+    const prefillFor = (events: ScenarioScript["events"]) =>
+      buildTimeline({
+        result: row!,
+        scenario: { ...scenario, systemPromptTokens: 0, events },
+        cacheMode: "runtime"
+      }).events.at(-1)!;
+
+    const warm = prefillFor([
+      { id: "u1", role: "user", text: "first", tokens: 128 },
+      { id: "u2", role: "user", text: "second", tokens: 34_688 }
+    ]);
+    const cold = prefillFor([{ id: "u1", role: "user", text: "whole prompt", tokens: 34_816 }]);
+
+    expect(warm.cachedPrefixTokens).toBe(128);
+    expect(cold.cachedPrefixTokens).toBe(0);
+    expect(warm.prefillMs).toBeLessThanOrEqual(cold.prefillMs);
+    expect(warm.prefillMs).toBeCloseTo(cold.prefillMs);
+    expect(warm.prefillRangeMs.min).toBeLessThanOrEqual(cold.prefillRangeMs.min);
+    expect(warm.prefillRangeMs.max).toBeLessThanOrEqual(cold.prefillRangeMs.max);
+  });
+
   it("anchors below the first reading on the ppTokens-shifted axis (llama-benchy convention)", () => {
     // depth 0 with ppTokens 1000 is a TTFT for 1000 total tokens: 1100ms over a
     // 1000ms integral, so a 100ms launch overhead.
@@ -967,7 +1000,7 @@ describe("buildTimeline rate integration (Phase 1)", () => {
     expect(event.prefillMs).toBeCloseTo(400); // overhead 100 + integral 300, not the 1100ms first TTFT
   });
 
-  it("never lets a cache-shortened prefill collapse below its real integrated cost when the implied TTFT overhead is negative (A1)", () => {
+  it("clamps a negative TTFT overhead to 0 on a cache-shortened prefill instead of undercutting its integrated cost (A1)", () => {
     const measuredResult: BenchmarkResult = {
       ...result,
       measurements: [
