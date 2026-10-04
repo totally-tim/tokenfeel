@@ -1,4 +1,6 @@
-export type RevealBlock = "nearest" | "end";
+// "nearest-end" is "nearest", except that a target taller than the view shows
+// its end, where a stream's newest text is.
+export type RevealBlock = "nearest" | "nearest-end" | "end";
 
 export interface ScrollBoxMetrics {
   scrollTop: number;
@@ -42,8 +44,10 @@ export function revealScrollTop(
     const above = top < 0;
     const below = bottom > viewHeight;
     const taller = height > viewHeight;
-    // Both edges hidden, or both visible: leave the box where it is.
-    if (above !== below) {
+    if (taller && block === "nearest-end") {
+      delta = bottom - viewHeight;
+    } else if (above !== below) {
+      // Exactly one edge is hidden; with both hidden or both visible the box stays.
       const alignTop = (above && !taller) || (below && taller);
       delta = alignTop ? top : bottom - viewHeight;
     }

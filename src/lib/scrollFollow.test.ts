@@ -67,6 +67,16 @@ describe("revealScrollTop", () => {
   test("nearest leaves the box alone when the target covers it", () => {
     expect(revealScrollTop({ ...box, scrollTop: 300 }, -50, 400, "nearest")).toBe(300);
   });
+
+  test("nearest-end acts like nearest for a target that fits", () => {
+    expect(revealScrollTop({ ...box, scrollTop: 300 }, 20, 100, "nearest-end")).toBe(300);
+    expect(revealScrollTop(box, 250, 100, "nearest-end")).toBe(150);
+  });
+
+  test("nearest-end shows the end of a target taller than the box", () => {
+    expect(revealScrollTop(box, 250, 400, "nearest-end")).toBe(450);
+    expect(revealScrollTop({ ...box, scrollTop: 300 }, -50, 400, "nearest-end")).toBe(450);
+  });
 });
 
 describe("revealInScrollBox", () => {
