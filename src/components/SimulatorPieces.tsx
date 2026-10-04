@@ -848,18 +848,16 @@ export function RaceLane({
   // the card, so the card scrolls too, but only until the whole box is
   // visible. The page and the overflow-hidden lane grid never scroll, because
   // the reader could not scroll them back. When the box is taller than the
-  // visible part of the card, a streaming lane shows the box's end, where the
-  // newest text is. The card moves only while the lane is live: the render
+  // visible part of the card, the card shows the box's end, where the newest
+  // text is, for every event: switching to the box's top between turns made
+  // the card jump. The card moves only while the lane is live: the render
   // that completes a race also brings back the setup panel, which squeezes
   // the lane grid.
   useLayoutEffect(() => {
     if (!cardRef.current || !scrollRef.current || !activeOutputRef.current) return;
     if (toolCallRef.current) scrollBoxToEnd(toolCallRef.current);
     revealInScrollBox(scrollRef.current, activeOutputRef.current, activeGenerated ? "end" : "nearest");
-    if (active) {
-      const block = activeGenerated ? "nearest-end" : "nearest";
-      revealInScrollBox(cardRef.current, scrollRef.current, block, ancestorClip(cardRef.current));
-    }
+    if (active) revealInScrollBox(cardRef.current, scrollRef.current, "nearest-end", ancestorClip(cardRef.current));
   }, [activeEvent.index, activeGenerated, activeStreamedText, active]);
 
   return (
