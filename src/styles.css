@@ -2345,6 +2345,16 @@ mark {
   padding: 14px;
 }
 
+/* In the three-column layout the row fills the lane grid instead of growing to
+   the center column's height, so on short windows a lane card ends inside the
+   grid's clip and its own scroll can reach the live output. The stacked
+   layouts at 1180px and below keep their auto rows. */
+@media (min-width: 1181px) {
+  .lanes {
+    grid-template-rows: minmax(0, 1fr);
+  }
+}
+
 .race-lane {
   position: relative;
   display: flex;
