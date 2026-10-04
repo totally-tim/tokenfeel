@@ -38,14 +38,27 @@ function simulateRace(totalA: number, totalB: number, speed: number, verdict: Ra
   }
 }
 
+function hasNewerEntry(text: string, lane: string, percent: number) {
+  if (text.includes(`Lane ${lane} finished`)) return true;
+  return [...text.matchAll(new RegExp(`Lane ${lane} (\\d+)%`, "g"))].some((match) => Number(match[1]) > percent);
+}
+
 // A replacement that comes sooner than the minimum display time counts as
-// dropping the text it replaces, unless the new text still contains it. A
-// scheduled change renders on the first frame after it is due, so the time a
-// text stays up can fall short of the minimum by up to one frame.
+// dropping the text it replaces, unless the new text still contains it. The
+// only exception is a mark that the new text replaces with a newer mark or the
+// finish of the same lane. A scheduled change renders on the first frame after
+// it is due, so the time a text stays up can fall short of the minimum by up to
+// one frame.
 function expectNothingDropped(changes: Change[]) {
   changes.slice(1).forEach((change, index) => {
     const previous = changes[index];
-    if (change.at - previous.at < RACE_STATUS_MIN_DISPLAY_MS - frameMs) expect(change.text).toContain(previous.text);
+    if (change.at - previous.at >= RACE_STATUS_MIN_DISPLAY_MS - frameMs) return;
+    const kept = previous.text
+      .replace(/Lane ([AB]) (\d+)%\. ?/g, (mark, lane: string, percent: string) =>
+        hasNewerEntry(change.text, lane, Number(percent)) ? "" : mark
+      )
+      .trim();
+    expect(change.text).toContain(kept);
   });
 }
 
@@ -127,9 +140,9 @@ describe("raceStatusText over a simulated race", () => {
     expectNothingDropped(changes);
   });
 
-  it("keeps a young 75% in front of the final verdict and never plays it after", () => {
-    // At 8x, lane A shows 75% and finishes 300 ms later, before that text
-    // has been up for the minimum display time.
+  it("replaces a young 75% with the same lane's finish instead of repeating it", () => {
+    // At 8x, each lane shows 75% and finishes about 300 ms later, before that
+    // text has been up for the minimum display time.
     const changes = simulateRace(24_000, 17_500, 8, { winner: "right", deltaMs: 6_500 });
     expect(changes.map((change) => change.text)).toEqual([
       "Race started.",
@@ -137,23 +150,36 @@ describe("raceStatusText over a simulated race", () => {
       "Lane A 25%.",
       "Lane B 50%. Lane A 50%.",
       "Lane B 75%.",
-      "Lane B 75%. Lane B finished in 17.5s.",
+      "Lane B finished in 17.5s.",
       "Lane A 75%.",
-      "Lane A 75%. Lane A finished in 24.0s. Race finished. Lane B won by 6.5s."
+      "Lane A finished in 24.0s. Race finished. Lane B won by 6.5s."
     ]);
     expectNothingDropped(changes);
   });
 
-  it("keeps every observed mark in a short race at 8x where marks and finishes come fast", () => {
-    // Every mark arrives while "Race started." is still young, so they all wait
-    // and the first finish takes them along.
+  it("keeps only each lane's newest unspoken mark in a short race at 8x", () => {
+    // Every mark arrives while "Race started." is still young, so they all wait,
+    // and the first finish takes the one that is still current along.
     const changes = simulateRace(4_000, 4_800, 8, { winner: "left", deltaMs: 800 });
     expect(changes.map((change) => change.text)).toEqual([
       "Race started.",
-      "Lane A 25%. Lane B 25%. Lane A 50%. Lane B 50%. Lane A 75%. Lane B 75%. Lane A finished in 4.0s.",
-      "Lane A 25%. Lane B 25%. Lane A 50%. Lane B 50%. Lane A 75%. Lane B 75%. Lane A finished in 4.0s. Lane B finished in 4.8s. Race finished. Lane A won by 0.8s."
+      "Lane B 75%. Lane A finished in 4.0s.",
+      "Lane A finished in 4.0s. Lane B finished in 4.8s. Race finished. Lane A won by 0.8s."
     ]);
     expectNothingDropped(changes);
+  });
+
+  it("replaces a lane's waiting mark with its newer one and keeps the other lane's", () => {
+    const verdict: RaceVerdict = { winner: "left", deltaMs: 1_000 };
+    const log: RaceLogEntry[] = [
+      started,
+      { at: 100, kind: "mark", lane: "A", quarter: 1 },
+      { at: 150, kind: "mark", lane: "B", quarter: 1 },
+      { at: 300, kind: "mark", lane: "A", quarter: 2 },
+      { at: 450, kind: "mark", lane: "A", quarter: 3 }
+    ];
+    expect(raceStatusText(log, 499, verdict)).toBe("Race started.");
+    expect(raceStatusText(log, 500, verdict)).toBe("Lane B 25%. Lane A 75%.");
   });
 
   it("drops a waiting quartile on Stop and shows no stale quartile afterwards", () => {
