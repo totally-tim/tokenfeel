@@ -42,8 +42,9 @@ function reachedQuarter(log: RaceLogEntry[], lane: RaceLaneId) {
 /**
  * New log entries for marks the lanes reached since the log was last updated.
  * A lane that passes several marks between two observations logs only the
- * furthest one, and a finish supersedes that lane's marks: the page never
- * showed the lane at the lower marks, so they are already out of date.
+ * furthest one, and a finish supersedes that lane's marks, because the lower
+ * marks are already out of date. raceStatusText applies the same rule to a
+ * mark that is still waiting to be shown.
  */
 export function raceLogUpdates(
   log: RaceLogEntry[],
@@ -93,17 +94,19 @@ function entryText(log: RaceLogEntry[], index: number, verdict: RaceVerdict) {
  * the gap.
  */
 export function raceStatusText(log: RaceLogEntry[], now: number, verdict: RaceVerdict): string {
-  let shown: string[] = [];
+  // `lane` is set only on marks, the one kind of entry that can wait.
+  let shown: Array<{ lane?: RaceLaneId; text: string }> = [];
   let shownAt = -Infinity;
-  let waiting: string[] = [];
+  let waiting: typeof shown = [];
 
   for (let index = 0; index < log.length && log[index].at <= now;) {
     const at = log[index].at;
-    const parts: string[] = [];
+    const parts: typeof shown = [];
     let finish = false;
     for (; index < log.length && log[index].at === at; index += 1) {
-      parts.push(entryText(log, index, verdict));
-      finish ||= log[index].kind === "finish";
+      const entry = log[index];
+      parts.push({ lane: entry.kind === "mark" ? entry.lane : undefined, text: entryText(log, index, verdict) });
+      finish ||= entry.kind === "finish";
     }
 
     if (waiting.length > 0 && shownAt + RACE_STATUS_MIN_DISPLAY_MS <= at) {
@@ -119,10 +122,12 @@ export function raceStatusText(log: RaceLogEntry[], now: number, verdict: RaceVe
       shownAt = at;
       waiting = [];
     } else {
-      waiting.push(...parts);
+      // A lane's newer mark replaces its own mark that is still waiting, which
+      // would be out of date before anyone heard it.
+      waiting = [...waiting.filter((part) => !parts.some((next) => next.lane === part.lane)), ...parts];
     }
   }
 
   if (waiting.length > 0 && shownAt + RACE_STATUS_MIN_DISPLAY_MS <= now) shown = waiting;
-  return shown.join(" ");
+  return shown.map((part) => part.text).join(" ");
 }

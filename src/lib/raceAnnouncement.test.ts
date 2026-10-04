@@ -10,7 +10,6 @@ import type { RaceVerdict } from "./raceComparison";
 
 const frameMs = 1000 / 60;
 const started: RaceLogEntry = { at: 0, kind: "action", text: "Race started." };
-const quartiles = ["Lane A 25%.", "Lane A 50%.", "Lane A 75%.", "Lane B 25%.", "Lane B 50%.", "Lane B 75%."];
 
 interface Change {
   at: number;
@@ -50,10 +49,6 @@ function expectNothingDropped(changes: Change[]) {
   });
 }
 
-function timesShown(changes: Change[], part: string) {
-  return changes.filter((change) => change.text.includes(part)).length;
-}
-
 describe("raceLogUpdates", () => {
   const verdict: RaceVerdict = { winner: "left", deltaMs: 1000 };
 
@@ -83,7 +78,9 @@ describe("raceLogUpdates", () => {
 describe("raceStatusText over a simulated race", () => {
   it("announces each lane's 25, 50 and 75% exactly once at 1x", () => {
     const changes = simulateRace(40_000, 60_000, 1, { winner: "left", deltaMs: 20_000 });
-    for (const part of quartiles) expect(timesShown(changes, part)).toBe(1);
+    for (const part of ["Lane A 25%.", "Lane A 50%.", "Lane A 75%.", "Lane B 25%.", "Lane B 50%.", "Lane B 75%."]) {
+      expect(changes.filter((change) => change.text.includes(part))).toHaveLength(1);
+    }
     expect(changes.map((change) => change.text)).toEqual([
       "Race started.",
       "Lane A 25%.",
@@ -147,13 +144,15 @@ describe("raceStatusText over a simulated race", () => {
     expectNothingDropped(changes);
   });
 
-  it("keeps every message in a short race at 8x where marks and finishes come fast", () => {
+  it("keeps each lane's newest waiting mark and both finishes in a short race at 8x", () => {
+    // Every mark arrives while "Race started." is still young, so each lane's
+    // newer mark replaces its own waiting one and the finishes take them along.
     const changes = simulateRace(4_000, 4_800, 8, { winner: "left", deltaMs: 800 });
-    for (const part of [...quartiles, "Lane A finished in 4.0s.", "Lane B finished in 4.8s."]) {
-      expect(timesShown(changes, part)).toBeGreaterThan(0);
-    }
-    expect(changes[changes.length - 1].text).toMatch(/Race finished\. Lane A won by 0\.8s\.$/);
-    expect(changes.length).toBeLessThanOrEqual(11);
+    expect(changes.map((change) => change.text)).toEqual([
+      "Race started.",
+      "Lane A 75%. Lane B 75%. Lane A finished in 4.0s.",
+      "Lane A 75%. Lane B 75%. Lane A finished in 4.0s. Lane B finished in 4.8s. Race finished. Lane A won by 0.8s."
+    ]);
     expectNothingDropped(changes);
   });
 
