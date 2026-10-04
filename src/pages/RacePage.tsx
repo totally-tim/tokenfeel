@@ -25,7 +25,7 @@ import {
   type RaceSetupMode
 } from "../lib/raceComparison";
 import { usePlayback } from "../hooks/usePlayback";
-import { raceFinishAnnouncement } from "../lib/raceAnnouncement";
+import { raceLogUpdates, raceStatusText, type RaceLogEntry } from "../lib/raceAnnouncement";
 import { buildRaceShareUrl, parseRaceShareHash } from "../lib/raceShare";
 import { raceNeedsSetupReset } from "../lib/raceSession";
 import { pageFromHashValue, type PageId } from "../lib/routing";
@@ -206,9 +206,7 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
   const [cacheMode, setCacheMode] = useState<CacheMode>(initialState.cacheMode);
   const [copyState, setCopyState] = useState<keyof typeof copyLabels>("idle");
   const copyResetTimer = useRef<number | undefined>(undefined);
-  // Stop and setup resets leave playback identical to "ready", so the Start,
-  // Stop and reset handlers set this text directly.
-  const [raceAction, setRaceAction] = useState("");
+  const [raceLog, setRaceLog] = useState<RaceLogEntry[]>([]);
 
   // leftId/rightId/scenarioId are always ids that exist in `catalog`:
   // resolveRaceState validates share-link/hash ids on mount and on every
@@ -247,12 +245,7 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
           Math.min(rightPlayback.elapsedMs, rightPlayback.timeline.totalMs)
         )
       : 0;
-  const raceAnnouncement =
-    raceFinishAnnouncement(
-      { complete: leftPlayback.isComplete, wallTimeMs: leftPlayback.summary.wallTimeMs },
-      { complete: rightPlayback.isComplete, wallTimeMs: rightPlayback.summary.wallTimeMs },
-      verdict
-    ) || raceAction;
+  const raceAnnouncement = raceStatusText(raceLog, performance.now(), verdict);
   const raceClockLabel = raceComplete ? "finished" : raceRunning ? "running" : raceStarted ? "stopped" : "ready";
   const raceMeta = raceComplete
     ? `${formatClock(leftPlayback.summary.wallTimeMs)} vs ${formatClock(rightPlayback.summary.wallTimeMs)} final`
@@ -262,7 +255,7 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
     if (!raceNeedsSetupReset({ leftStarted: leftPlayback.hasStarted, rightStarted: rightPlayback.hasStarted })) return;
     leftPlayback.reset();
     rightPlayback.reset();
-    setRaceAction("Race reset after a setup change.");
+    setRaceLog([{ at: performance.now(), kind: "action", text: "Race reset after a setup change." }]);
   };
 
   useEffect(() => {
@@ -301,6 +294,21 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
   }, [hash, catalog]);
 
   useEffect(() => {
+    const snapshot = (playback: typeof leftPlayback) => ({
+      started: playback.hasStarted,
+      progress: playback.progress,
+      complete: playback.isComplete,
+      wallTimeMs: playback.summary.wallTimeMs
+    });
+    const updates = raceLogUpdates(
+      raceLog,
+      { A: snapshot(leftPlayback), B: snapshot(rightPlayback) },
+      performance.now()
+    );
+    if (updates.length > 0) setRaceLog([...raceLog, ...updates]);
+  }, [raceLog, leftPlayback, rightPlayback]);
+
+  useEffect(() => {
     const next = buildRaceShareUrl({ leftId, rightId, scenarioId, speed, cacheMode });
     if (window.location.href !== next) {
       window.history.replaceState(null, "", next);
@@ -334,13 +342,13 @@ export function RacePage({ catalog, onNavigate, hash }: RacePageProps) {
   const startRace = () => {
     leftPlayback.restart();
     rightPlayback.restart();
-    setRaceAction("Race started.");
+    setRaceLog([{ at: performance.now(), kind: "action", text: "Race started." }]);
   };
 
   const stopRace = () => {
     leftPlayback.reset();
     rightPlayback.reset();
-    setRaceAction("Race stopped and reset.");
+    setRaceLog([{ at: performance.now(), kind: "action", text: "Race stopped and reset." }]);
   };
 
   const updateLeftId = (nextId: string) => {
